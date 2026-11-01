@@ -40,8 +40,8 @@ function detailRows(s: Signal): RowData[] {
       ["Awarding agency", s.agency],
       ["Branch or office", s.sub_agency && s.sub_agency !== s.agency ? s.sub_agency : null],
       ["Award value", amountLabel(s)],
-      ["Company market value", s.market_cap ? money(s.market_cap) : null],
-      ["Award vs. company size", s.award_pct != null ? `${s.award_pct.toFixed(1)}%` : null],
+      ["What the whole company is worth", s.market_cap ? money(s.market_cap) : null],
+      ["Deal as a share of the company", s.award_pct != null ? `${s.award_pct.toFixed(1)}%` : null],
       ["Awarded", shortDate(s.trade_date)], ["Source", sourceFor(s)], ["Award ID", s.award_id],
     ];
   }
@@ -59,7 +59,7 @@ function detailRows(s: Signal): RowData[] {
     ["Amount", amountLabel(s)],
     ["Asset", s.asset_type === "OP" ? "Options" : s.asset_type === "ST" ? "Stock" : s.asset_type],
     ["Traded", shortDate(s.trade_date)], ["Disclosed", shortDate(s.disclosed)],
-    ["Days to disclose", s.lag_days],
+    ["Days until they reported it", s.lag_days],
   ];
 }
 

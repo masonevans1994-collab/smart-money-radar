@@ -33,12 +33,12 @@ export function TrackRecord({ record }: { record?: TR | null }) {
               <>
                 <View style={styles.row}>
                   <Text style={[styles.big, { color: up ? colors.up : colors.down }]}>{pct(g.avg_vs_spy)}</Text>
-                  <Text style={styles.bigLabel}>average vs. S&P 500</Text>
+                  <Text style={styles.bigLabel}>better or worse than the market, on average</Text>
                 </View>
                 <View style={styles.stats}>
                   <Stat label="Avg. return" value={pct(g.avg_return)} />
                   <Stat label="Beat the market" value={`${g.beat_spy_pct ?? 0}%`} />
-                  <Stat label="vs. S&P after 30 days" value={pct(g.avg_vs_spy_30d)} />
+                  <Stat label="vs. the market after 30 days" value={pct(g.avg_vs_spy_30d)} />
                 </View>
                 <Text style={styles.muted}>
                   {g.n} signal{g.n === 1 ? "" : "s"} since {g.since}

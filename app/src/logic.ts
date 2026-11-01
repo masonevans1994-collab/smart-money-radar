@@ -113,10 +113,10 @@ export function tagFor(s: Signal): string {
 export function sourceFor(s: Signal): string {
   if (s.kind === "contract") {
     if (s.source === "DoD announcement") return "Pentagon announcement";
-    if (s.source === "Company 8-K") return "Company SEC filing";
-    return "USAspending.gov";
+    if (s.source === "Company 8-K") return "Company's own SEC filing";
+    return "USAspending.gov (official record)";
   }
-  if (s.kind === "insider") return "SEC Form 4";
+  if (s.kind === "insider") return "SEC filing";
   return s.chamber === "Senate" ? "Senate disclosure" : "House disclosure";
 }
 
@@ -199,7 +199,7 @@ export function heroFor(tab: Tab, feed: Feed, watchCount: number): HeroText {
   if (tab === "people") {
     const n = feed.congress.length + feed.insiders.length;
     return { figure: String(n), gold: false,
-      caption: `stock trades reported by members of Congress and company executives` };
+      caption: `stock trades by members of Congress and company executives` };
   }
   if (tab === "watch") {
     return { figure: String(watchCount), gold: false,
@@ -351,7 +351,7 @@ export function plainSummary(s: Signal): string[] {
     }
   } else if (s.kind === "insider") {
     out.push(`${s.who}, ${s.role_label ? `the company's ${s.role_label.toLowerCase()}` : "a company insider"}, spent ${money(s.value)} of their own money on ${s.company} stock.`);
-    out.push("Executives sell for lots of reasons, but they usually buy for one: they think the stock is worth more than its price.");
+    out.push("Executives sell their stock for lots of reasons, but they usually buy it for one: they think it's worth more than the price.");
   } else {
     const who = s.owner === "Self" ? s.who : `${s.who}'s ${s.owner.toLowerCase()}`;
     const verb = s.type.startsWith("Sale") ? "sold" : s.type === "Purchase" ? "bought" : "traded";
