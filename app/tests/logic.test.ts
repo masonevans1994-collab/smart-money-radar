@@ -157,7 +157,7 @@ test("weekly recap and agency descriptions", () => {
 });
 
 
-import { lastTimeLines } from "../src/logic";
+import { lastTimeDetail, lastTimeHeadline, lastTimeLines } from "../src/logic";
 
 test("what-happened-last-time sentences use real past moves", () => {
   const s = contract({ history: { n: 25, verdict: "v", windows: {},
@@ -166,7 +166,11 @@ test("what-happened-last-time sentences use real past moves", () => {
   assert.equal(lines[0], "Closest match: $168M from Defense on Aug 22, 2025.");
   assert.equal(lines[1], "Over the next 30 days the stock fell 4.1%, 9.2 points worse than the market.");
   assert.equal(lines[2], "On the day itself it moved -0.8%.");
-  assert.match(keyNote(s), /Last similar award \(\$168M, Aug 22, 2025\): stock fell 4.1% in 30 days/);
+  assert.equal(lastTimeHeadline({ ...s, company: "Honeywell International Inc." } as Signal),
+    "Last time Honeywell won a deal like this, its stock went down 4%.");
+  assert.equal(keyNote(s), "Last time Fluor won a deal like this, its stock went down 4%.");
+  const d = lastTimeDetail({ ...s, history: { ...s.history!, windows: { "30": { n: 25, beat_pct: 36, avg_vs_spy: -1.4, median_vs_spy: -1, avg_raw: 1.8 } } } } as Signal)!;
+  assert.equal(d, "That was $168M in Aug 2025, measured over the next 30 days. Out of its last 25 deals, the stock beat the market afterward 9 times.");
   assert.equal(lastTimeLines(contract()), null);
 });
 console.log(`\n${passed} logic tests passed`);

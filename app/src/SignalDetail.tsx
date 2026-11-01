@@ -3,7 +3,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
   agencyLabel, amountLabel, isSell, KEEP_IN_MIND, money, plainSummary, related, SCORE_GUIDE,
-  lastTimeLines, shareText, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel,
+  lastTimeDetail, lastTimeHeadline, lastTimeLines, shareText, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel,
 } from "./logic";
 import { useState, useMemo } from "react";
 import { agencyDescription } from "./agencies";
@@ -63,17 +63,6 @@ function detailRows(s: Signal): RowData[] {
   ];
 }
 
-function Mini({ n, label }: { n: string; label: string }) {
-  const colors = useColors();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  return (
-    <View style={styles.mini2}>
-      <Text style={styles.mini2N}>{n}</Text>
-      <Text style={styles.mini2L}>{label}</Text>
-    </View>
-  );
-}
-
 function MiniList({ title, items, onOpen }: {
   title: string; items: Signal[]; onOpen: (s: Signal) => void;
 }) {
@@ -113,6 +102,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const rel = signal ? related(all, signal) : { sameTicker: [], sameWho: [] };
   const [explain, setExplain] = useState(false);
+  const [numbers, setNumbers] = useState(false);
   const contract = signal?.kind === "contract";
   return (
     <Modal visible={!!signal} animationType="slide" presentationStyle="pageSheet"
@@ -209,23 +199,23 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                   </View>
                 )}
 
-                {contract && signal.history && (
+                {contract && signal.history && lastTimeHeadline(signal) && (
                   <View style={styles.lastTime}>
-                    <Text style={styles.lastTimeTitle}>What happened last time</Text>
-                    {lastTimeLines(signal)?.map((l) => <Text key={l} style={styles.lastTimeLine}>{l}</Text>)}
-                    <Text style={styles.lastTimePattern}>{signal.history.verdict}</Text>
-                    {signal.history.windows["30"] && (
-                      <View style={styles.lastTimeStats}>
-                        <Mini n={`${signal.history.windows["30"].beat_pct}%`} label="beat the market after 30 days" />
-                        <Mini n={`${signal.history.windows["30"].avg_vs_spy > 0 ? "+" : ""}${signal.history.windows["30"].avg_vs_spy.toFixed(1)}%`}
-                          label="average vs. market, 30 days" />
-                        <Mini n={String(signal.history.n)} label="past awards measured" />
+                    <Text style={styles.lastTimeHead}>{lastTimeHeadline(signal)}</Text>
+                    <Text style={styles.lastTimeSmall}>{lastTimeDetail(signal)}</Text>
+                    <Pressable onPress={() => setNumbers((v) => !v)} hitSlop={8} accessibilityRole="button">
+                      <Text style={styles.lastTimeMore}>{numbers ? "Hide the numbers" : "Show the numbers"}</Text>
+                    </Pressable>
+                    {numbers && (
+                      <View style={{ gap: 6 }}>
+                        {lastTimeLines(signal)?.map((l) => <Text key={l} style={styles.lastTimeLine}>{l}</Text>)}
+                        <Text style={styles.lastTimeLine}>{signal.history.verdict}</Text>
+                        <Text style={styles.lastTimeFoot}>
+                          From real closing prices after this company's past awards of $25M or more,
+                          compared with the S&P 500. Past moves don't predict future ones.
+                        </Text>
                       </View>
                     )}
-                    <Text style={styles.lastTimeFoot}>
-                      Measured from real closing prices after this company's past awards of $25M or more.
-                      Past moves don't predict future ones.
-                    </Text>
                   </View>
                 )}
 
@@ -314,14 +304,11 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   plain: { marginTop: 18, gap: 8 },
   lastTime: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, marginTop: 20, gap: 8,
     borderLeftWidth: 3, borderLeftColor: colors.gold },
-  lastTimeTitle: { ...type.bodyStrong, fontSize: 16, color: colors.text },
-  lastTimeLine: { ...type.body, fontSize: 15, lineHeight: 22, color: colors.text },
-  lastTimePattern: { ...type.body, color: colors.soft, marginTop: 4 },
-  lastTimeStats: { flexDirection: "row", gap: 8, marginTop: 6 },
-  mini2: { flex: 1, backgroundColor: colors.raised, borderRadius: 10, padding: 8 },
-  mini2N: { fontFamily: fonts.bold, fontSize: 16, color: colors.text, fontVariant: ["tabular-nums"] },
-  mini2L: { ...type.small, fontSize: 11, color: colors.muted, marginTop: 2 },
-  lastTimeFoot: { ...type.small, color: colors.muted, marginTop: 4 },
+  lastTimeHead: { ...type.title, fontSize: 19, lineHeight: 26, color: colors.text },
+  lastTimeSmall: { ...type.body, color: colors.soft },
+  lastTimeMore: { ...type.small, fontFamily: fonts.semibold, color: colors.gold, marginTop: 2 },
+  lastTimeLine: { ...type.body, color: colors.soft },
+  lastTimeFoot: { ...type.small, color: colors.muted },
   plainText: { ...type.lead, fontFamily: fonts.regular, fontSize: 17, lineHeight: 25, color: colors.text },
   plainHelp: { ...type.small, color: colors.muted },
   terms: { flexDirection: "row", flexWrap: "wrap", gap: 8 },

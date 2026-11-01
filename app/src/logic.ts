@@ -129,10 +129,9 @@ export function amountLabel(s: Signal): string {
 
 /** The one line that says why this row matters. */
 export function keyNote(s: Signal): string {
-  if (s.kind === "contract" && s.history?.closest?.d30 != null) {
-    const c = s.history.closest;
-    const dir = c.d30! > 0 ? "rose" : c.d30! < 0 ? "fell" : "was flat";
-    return `Last similar award (${money(c.value)}, ${shortDate(c.date, true)}): stock ${dir} ${Math.abs(c.d30!).toFixed(1)}% in 30 days`;
+  if (s.kind === "contract") {
+    const h = lastTimeHeadline(s);
+    if (h) return h;
   }
   if (s.kind === "contract") {
     return s.history_note ?? s.reasons.find((r) => !r.startsWith("Won a"))
@@ -454,6 +453,29 @@ export function weeklyRecap(feed: Feed, now = new Date()): Recap | null {
     topAgency,
     periodLabel: `${shortDate(cutoff)} to ${shortDate(isoDay(now))}`,
   };
+}
+
+/** One line a newcomer can read in a second, from real prices. */
+export function lastTimeHeadline(s: Signal): string | null {
+  if (s.kind !== "contract" || !s.history?.closest || s.history.closest.d30 == null) return null;
+  const c = s.history.closest;
+  const d30 = c.d30 as number;
+  const short = s.company.split(/ (Inc|Corp|plc|Co|Company|Corporation|Holdings|Technologies|International)\b/i)[0].replace(/,$/, "");
+  const n = Math.round(Math.abs(d30));
+  const what = d30 > 0.5 ? `went up ${n}%` : d30 < -0.5 ? `went down ${n}%` : "barely moved";
+  return `Last time ${short} won a deal like this, its stock ${what}.`;
+}
+
+/** The small print under the headline. */
+export function lastTimeDetail(s: Signal): string | null {
+  if (s.kind !== "contract" || !s.history?.closest) return null;
+  const c = s.history.closest;
+  const w30 = s.history.windows["30"];
+  const ups = w30 ? Math.round((w30.beat_pct / 100) * w30.n) : null;
+  const first = `That was ${money(c.value)} in ${shortDate(c.date, true).replace(/^(\w+) \d+, /, "$1 ")}, measured over the next 30 days.`;
+  const second = w30 && ups !== null
+    ? ` Out of its last ${w30.n} deals, the stock beat the market afterward ${ups} time${ups === 1 ? "" : "s"}.` : "";
+  return first + second;
 }
 
 /** Plain sentences about the closest past award of similar size, from real prices. */
