@@ -73,8 +73,10 @@ def add_context(contracts: list[dict], user_agent: str, cache: ContextCache | No
     looked, done = 0, 0
     for c in contracts:
         name = (c.get("recipient") or c.get("company") or "").strip()
-        if not name or c.get("source") == "Company 8-K":
-            continue  # 8-K names are parent companies; skip to avoid odd matches
+        if not name or c.get("source") == "Company 8-K" or c.get("is_modification"):
+            # 8-K names are parent companies; expansions of one long-running
+            # contract would make any company look like a "rare" winner.
+            continue
         values = cache.get(name)
         if values is None:
             if looked >= max_lookups:
