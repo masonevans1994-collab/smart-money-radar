@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { agencyLabel, amountLabel, isSell, keyNote, moveLabel, scoreTier, shortDate, tierLabel, tooSoon } from "./logic";
+import { agencyLabel, amountLabel, isSell, keyNote, moveLabel, scoreTier, shortDate, tierLabel, tooSoon, shortName } from "./logic";
 import { Spark } from "./Spark";
 import { topicsFor } from "./topics";
 import { fonts, type, type Palette, useColors } from "./theme";
@@ -64,7 +64,9 @@ function SignalCardBase({ signal, starred, isNew, onPress, linked }: {
 
       <View style={styles.nameRow}>
         <Text style={styles.name} numberOfLines={2}>{name}</Text>
-        <Text style={styles.ticker}>{signal.ticker}</Text>
+        <Text style={styles.ticker} numberOfLines={1}>
+          {signal.kind === "congress" && signal.company ? `${shortName(signal)} · ${signal.ticker}` : signal.ticker}
+        </Text>
         {starred && <Text style={styles.star} accessibilityLabel="Saved">★</Text>}
       </View>
 
@@ -132,7 +134,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   scoreTextLg: { fontSize: 18 },
   nameRow: { flexDirection: "row", alignItems: "baseline", gap: 8, marginTop: 6, flexWrap: "wrap" },
   name: { ...type.lead, color: colors.text, flexShrink: 1 },
-  ticker: { fontFamily: fonts.bold, fontSize: 13, color: colors.soft, letterSpacing: 0.3 },
+  ticker: { fontFamily: fonts.bold, fontSize: 13, color: colors.soft, letterSpacing: 0.3, flexShrink: 1 },
   star: { color: colors.gold, fontSize: 13 },
   metaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4, flexWrap: "wrap" },
   context: { ...type.small, color: colors.muted, flexShrink: 1 },

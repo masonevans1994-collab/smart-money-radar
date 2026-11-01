@@ -138,8 +138,9 @@ export function keyNote(s: Signal): string {
   }
   if (s.reasons.length > 1) return s.reasons[1];
   if (s.kind === "congress") {
-    return s.type === "Purchase" ? "A member of Congress chose to buy this stock"
-      : s.type.startsWith("Sale") ? "A member of Congress sold some of this stock"
+    const what = s.company ? `${shortName(s)} stock` : "this stock";
+    return s.type === "Purchase" ? `A member of Congress chose to buy ${what}`
+      : s.type.startsWith("Sale") ? `A member of Congress sold some ${what}`
         : s.reasons[0] ?? "";
   }
   return s.reasons[0] ?? "";
@@ -369,7 +370,7 @@ export function plainSummary(s: Signal): string[] {
   } else {
     const who = s.owner === "Self" ? s.who : `${s.who}'s ${s.owner.toLowerCase()}`;
     const verb = s.type.startsWith("Sale") ? "sold" : s.type === "Purchase" ? "bought" : "traded";
-    out.push(`${who} ${verb} ${amountLabel(s).replace("–", " to ")} of ${s.ticker} stock. Members of Congress only have to report a range, not the exact amount.`);
+    out.push(`${who} ${verb} ${amountLabel(s).replace("–", " to ")} of ${s.company ? `${shortName(s)} (${s.ticker})` : s.ticker} stock. Members of Congress only have to report a range, not the exact amount.`);
     if (s.lag_days && s.lag_days > 45) {
       out.push(`They reported it ${s.lag_days} days later. The law allows 45.`);
     }

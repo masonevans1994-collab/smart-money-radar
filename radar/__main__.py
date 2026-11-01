@@ -95,6 +95,11 @@ def main(argv=None) -> int:
                       for c in prev["contracts"]]
             status["contracts"] = "stale"
     ins, con = scoring.score_insider(ins_raw), scoring.score_congress(con_raw)
+    # Plain company names for Congress trades ("Disney", not just "DIS").
+    for t in con:
+        name = SYMBOL_NAMES.get(t.get("ticker", ""))
+        if name and not t.get("company"):
+            t["company"] = name
     scoring.cross_signal(ins, con)
     con_all = scoring.score_contracts(awards, con, ins)
     scoring.committee_flags(con_all, roster)
@@ -197,6 +202,7 @@ def load_contracts(fetcher, ua, args) -> list[dict]:
             fetcher.get(contracts.NASDAQ_LISTED, cache=False).decode("utf-8", "replace"),
             fetcher.get(contracts.OTHER_LISTED, cache=False).decode("utf-8", "replace"))
         print(f"  symbol list: {len(book.index)} listed companies")
+        SYMBOL_NAMES.update(book.names)
     except Exception as e:  # noqa: BLE001 - aliases alone still match the big names
         print(f"  symbol list unavailable ({e}); using built-in contractor list only")
         book = contracts.SymbolBook()
@@ -208,6 +214,9 @@ def load_contracts(fetcher, ua, args) -> list[dict]:
     if len(merged) < len(matched):
         print(f"  merged {len(matched) - len(merged)} duplicate report(s) of the same award")
     return merged
+
+
+SYMBOL_NAMES: dict[str, str] = {}  # ticker -> listed company name, filled by load_contracts
 
 
 def fetch_text(url: str) -> str | None:

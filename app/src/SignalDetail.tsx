@@ -150,7 +150,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                       {signal.kind !== "congress" ? <Text style={styles.companyLink}> ›</Text> : null}
                     </Text>
                     <Text style={styles.tickerLine}>
-                      {signal.ticker}
+                      {signal.kind === "congress" && signal.company ? `${signal.company}, ${signal.ticker}` : signal.ticker}
                       {signal.kind === "insider" && signal.role_label ? `, bought by ${signal.who}` : ""}
                       {contract && signal.who !== signal.company ? `, won by ${signal.who}` : ""}
                     </Text>

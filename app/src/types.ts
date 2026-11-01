@@ -58,6 +58,7 @@ export interface InsiderSignal extends BaseSignal {
 
 export interface CongressSignal extends BaseSignal {
   kind: "congress";
+  company?: string; // listed name when we know it ("Walt Disney Company")
   chamber?: "House" | "Senate";
   district: string;
   type: string; // Purchase | Sale | Sale (partial) | Exchange
