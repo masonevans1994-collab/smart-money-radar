@@ -112,3 +112,11 @@ def add_performance(signals: list[dict], book: PriceBook) -> None:
         s["price_now"] = round(now, 2)
         s["price_date"] = now_day
         s["change_pct"] = round((now - then) / then * 100, 1)
+        # Compact daily series for the app's chart: a week before the
+        # trade/award through today, at most 90 points.
+        lead = (dt.date.fromisoformat(s["trade_date"]) - dt.timedelta(days=10)).isoformat()
+        series = [(d, c) for d, c in rows if d >= lead][-90:]
+        if len(series) >= 3:
+            s["spark"] = [round(c, 2) for _, c in series]
+            s["spark_mark"] = next((i for i, (d, _) in enumerate(series) if d >= s["trade_date"]),
+                                   len(series) - 1)

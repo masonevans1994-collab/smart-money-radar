@@ -81,6 +81,11 @@ def contract_awards():
         cap, now, then = sizes[c["ticker"]]
         c.update(market_cap=cap, award_pct=round(c["value"] / cap * 100, 2), price_now=now,
                  price_then=then, price_date=_d(0), change_pct=round((now - then) / then * 100, 1))
+        steps = 24
+        c["spark"] = [round(then * (0.97 + 0.01 * ((i * 7) % 5)) if i < 8 else
+                            then + (now - then) * (i - 8) / (steps - 9) + then * 0.006 * ((i * 3) % 4 - 1.5), 2)
+                      for i in range(steps)]
+        c["spark_mark"] = 8
     return out
 
 

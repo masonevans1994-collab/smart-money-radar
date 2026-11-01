@@ -69,5 +69,6 @@ def test_price_parsers_and_performance():
             {"ticker": "X", "trade_date": "2026-10-02", "avg_price": 120.0}]
     prices.add_performance(sigs, book)
     assert sigs[0]["change_pct"] == 5.8 and sigs[0]["price_then"] == 104
+    assert sigs[0]["spark"] == [100.0, 104.0, 110.0] and sigs[0]["spark_mark"] == 1
     assert sigs[1]["change_pct"] == -8.3  # uses the insider's own price
     assert prices.stooq_symbol("BRK.B") == "brk-b.us" and prices.yahoo_symbol("brk.b") == "BRK-B"
