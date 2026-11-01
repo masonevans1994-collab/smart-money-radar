@@ -140,7 +140,7 @@ export function keyNote(s: Signal): string {
   if (s.kind === "congress") {
     const what = s.company ? `${shortName(s)} stock` : "this stock";
     return s.type === "Purchase" ? `A member of Congress chose to buy ${what}`
-      : s.type.startsWith("Sale") ? `A member of Congress sold some ${what}`
+      : s.type.startsWith("Sale") ? `A member of Congress sold some of ${s.company ? "their " + what : what}`
         : s.reasons[0] ?? "";
   }
   return s.reasons[0] ?? "";

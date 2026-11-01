@@ -96,10 +96,14 @@ def main(argv=None) -> int:
             status["contracts"] = "stale"
     ins, con = scoring.score_insider(ins_raw), scoring.score_congress(con_raw)
     # Plain company names for Congress trades ("Disney", not just "DIS").
+    named = 0
     for t in con:
         name = SYMBOL_NAMES.get(t.get("ticker", ""))
         if name and not t.get("company"):
             t["company"] = name
+            named += 1
+    if con:
+        print(f"  company names found for {named} of {len(con)} Congress trades ({len(SYMBOL_NAMES)} symbols known)")
     scoring.cross_signal(ins, con)
     con_all = scoring.score_contracts(awards, con, ins)
     scoring.committee_flags(con_all, roster)
