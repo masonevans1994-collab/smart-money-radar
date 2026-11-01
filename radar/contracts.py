@@ -114,7 +114,8 @@ def sentence_case(text: str) -> str:
     letters = [c for c in text if c.isalpha()]
     if not letters or sum(c.isupper() for c in letters) / len(letters) < 0.8:
         return text
-    out = text.lower()
+    # Keep codes like contract numbers (anything with a digit) as written.
+    out = " ".join(w if re.search(r"\d", w) else w.lower() for w in text.split(" "))
     out = re.sub(r"(^|[.!?]\s+)([a-z])", lambda m: m.group(1) + m.group(2).upper(), out)
     for w in ("u.s.", "dod", "nasa", "va", "idiq", "fy"):
         out = re.sub(rf"\b{re.escape(w)}(?=\W|$)", w.upper(), out, flags=re.I)

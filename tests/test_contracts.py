@@ -182,6 +182,8 @@ def test_names_and_descriptions():
     assert contracts.sentence_case("THE PURPOSE OF THIS MODIFICATION IS TO INCREASE FUNDING. DOD WORK.") == \
         "The purpose of this modification is to increase funding. DOD work."
     assert contracts.sentence_case("Already fine text") == "Already fine text"
+    assert contracts.sentence_case("OPERATION OF SITE - CONTRACT NO. DE-NA0002839") == \
+        "Operation of site - contract no. DE-NA0002839"
     m, _ = contracts.match_awards([{"recipient": "LOCKHEED MARTIN CORP", "parent": "", "value": 1e8,
                                     "award_date": "2026-10-01", "description": "SPARE PARTS"}], b)
     assert m[0]["company"] == "Lockheed Martin Corporation" and m[0]["who"] == "Lockheed Martin Corp"
