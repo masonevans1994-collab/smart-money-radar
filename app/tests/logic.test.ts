@@ -136,7 +136,7 @@ test("a small move counts as about the same", () => {
 });
 
 
-import { weeklyRecap } from "../src/logic";
+import { agencyLabel, weeklyRecap } from "../src/logic";
 import { agencyDescription } from "../src/agencies";
 
 test("weekly recap and agency descriptions", () => {
@@ -150,6 +150,9 @@ test("weekly recap and agency descriptions", () => {
   assert.equal(r.bestMover?.ticker, "HON");
   assert.equal(r.topAgency, "Navy");
   assert.match(agencyDescription("Department of Defense", "Defense Logistics Agency")!, /fuel, food/);
+  assert.equal(agencyLabel(contract({ agency: "United States Department of Agriculture", sub_agency: "" } as Partial<Signal>)), "Agriculture");
+  const moved = refine([contract({ change_pct: -1 } as Partial<Signal>), contract({ ticker: "B", change_pct: 7 } as Partial<Signal>)], null, "move");
+  assert.equal(moved[0].ticker, "B");
   assert.equal(agencyDescription("Something Obscure"), null);
 });
 console.log(`\n${passed} logic tests passed`);

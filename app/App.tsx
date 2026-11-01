@@ -22,6 +22,7 @@ import {
   callFor, checkIn, type Direction, loadProgress, makeCall, type Progress, EMPTY, resolveCalls,
   saveProgress,
 } from "./src/game";
+import { Glossary } from "./src/Glossary";
 import { Guide } from "./src/Guide";
 import { Legal, SHORT_DISCLAIMER } from "./src/Legal";
 import { Onboarding } from "./src/Onboarding";
@@ -38,6 +39,7 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "newest", label: "Newest" },
   { key: "score", label: "Most notable" },
   { key: "size", label: "Largest" },
+  { key: "move", label: "Biggest stock move" },
 ];
 
 function Radar() {
@@ -57,6 +59,7 @@ function Radar() {
   const [guide, setGuide] = useState(false);
   const [legal, setLegal] = useState(false);
   const [recapHidden, setRecapHidden] = useState(false);
+  const [glossary, setGlossary] = useState<string | null | false>(false);
   const [progress, setProgressState] = useState<Progress>(EMPTY);
   const setProgress = useCallback((fn: (p: Progress) => Progress) => {
     setProgressState((p) => { const n = fn(p); if (n !== p) saveProgress(n); return n; });
@@ -134,10 +137,15 @@ function Radar() {
     <View>
       <View style={styles.topBar}>
         <Text style={styles.brand}>Radar{progress.streak > 1 ? <Text style={styles.streak}>  {progress.streak}-day streak</Text> : null}</Text>
-        <Pressable onPress={() => { setGuide(true); setProgress((p) => ({ ...p, guideRead: true })); }}
-          hitSlop={10} accessibilityRole="button">
-          <Text style={styles.help}>How it works</Text>
-        </Pressable>
+        <View style={{ flexDirection: "row", gap: 16 }}>
+          <Pressable onPress={() => setGlossary(null)} hitSlop={10} accessibilityRole="button">
+            <Text style={styles.help}>Glossary</Text>
+          </Pressable>
+          <Pressable onPress={() => { setGuide(true); setProgress((p) => ({ ...p, guideRead: true })); }}
+            hitSlop={10} accessibilityRole="button">
+            <Text style={styles.help}>How it works</Text>
+          </Pressable>
+        </View>
       </View>
       <Text style={styles.status}>{status}</Text>
 
@@ -290,11 +298,13 @@ function Radar() {
         onToggleStar={toggleStar}
         onClose={() => setOpen(null)}
         onLegal={() => { setOpen(null); setLegal(true); }}
+        onExplain={(term: string) => setGlossary(term)}
       />
       <Onboarding visible={onboard && !legal} onDone={() => { setOnboard(false); finishOnboarding(); }}
         onLegal={() => setLegal(true)} />
       <Guide visible={guide && !legal} onClose={() => setGuide(false)} onLegal={() => setLegal(true)} />
       <Legal visible={legal} onClose={() => setLegal(false)} />
+      <Glossary visible={glossary !== false} focus={glossary || undefined} onClose={() => setGlossary(false)} />
     </View>
   );
 }

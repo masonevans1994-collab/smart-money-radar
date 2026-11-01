@@ -2,7 +2,7 @@
 import type { Feed, Signal } from "./types";
 
 export type Tab = "contract" | "people" | "watch" | "record" | "you";
-export type SortKey = "score" | "size" | "newest";
+export type SortKey = "score" | "size" | "newest" | "move";
 
 export const TABS: { key: Tab; label: string }[] = [
   { key: "contract", label: "Contracts" },
@@ -52,6 +52,9 @@ export function filterSignals(
 export function refine(rows: Signal[], agency: string | null, sort: SortKey): Signal[] {
   let out = agency ? rows.filter((s) => agencyLabel(s) === agency) : rows;
   if (sort === "size") out = [...out].sort((a, b) => size(b) - size(a));
+  else if (sort === "move") {
+    out = [...out].sort((a, b) => Math.abs(b.change_pct ?? 0) - Math.abs(a.change_pct ?? 0));
+  }
   else if (sort === "newest") {
     out = [...out].sort((a, b) =>
       (b.trade_date ?? "").localeCompare(a.trade_date ?? "") || b.score - a.score);
@@ -77,9 +80,11 @@ export function agencyLabel(s: Signal): string {
     [/health|hhs|food and drug|disease|medicare|nih/i, "Health"], [/treasury|internal revenue/i, "Treasury"],
     [/general services/i, "GSA"], [/transportation|aviation/i, "Transportation"],
     [/agriculture/i, "Agriculture"], [/justice|investigation/i, "Justice"], [/\bstate\b/i, "State"],
+    [/social security/i, "Social Security"], [/commerce/i, "Commerce"], [/education/i, "Education"],
+    [/interior/i, "Interior"], [/labor/i, "Labor"], [/environmental/i, "EPA"],
   ];
   for (const [re, label] of map) if (re.test(raw)) return label;
-  return raw.replace(/^Department of (the )?/i, "");
+  return raw.replace(/^(United States |U\.S\. )?Department of (the )?/i, "");
 }
 
 export function topAgencies(signals: Signal[], max = 7): string[] {
@@ -358,7 +363,24 @@ export function plainSummary(s: Signal): string[] {
 }
 
 export function tickerHelp(s: Signal): string {
-  return `${s.ticker} is the company's stock symbol, the name you'd search for in any investing app.`;
+  return `${s.ticker} is the company's stock symbol, the code you'd search for in any investing app.`;
+}
+
+/** Glossary terms that apply to this item, for the "Explain" row. */
+export function termsFor(s: Signal): string[] {
+  const t = ["Stock symbol", "Public company"];
+  if (s.kind === "contract") {
+    t.unshift(s.is_modification ? "Add-on" : "Contract award");
+    t.push("Agency");
+    if (s.market_cap) t.push("Market value");
+    if (s.committee_flag) t.push("Committee");
+  } else if (s.kind === "insider") {
+    t.unshift("Insider", "Open-market buy");
+  } else {
+    t.unshift("Congressional trade");
+  }
+  t.push("Score");
+  return t;
 }
 
 export const KEEP_IN_MIND = [

@@ -3,7 +3,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
   agencyLabel, amountLabel, isSell, KEEP_IN_MIND, money, plainSummary, related, SCORE_GUIDE,
-  shareText, shortDate, signalKey, sourceFor, tagFor, tickerHelp, tierLabel,
+  shareText, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel,
 } from "./logic";
 import { useState } from "react";
 import { agencyDescription } from "./agencies";
@@ -88,10 +88,11 @@ function MiniList({ title, items, onOpen }: {
 }
 
 export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClose, onLegal, call,
-  onCall, onOpenRecord }: {
+  onCall, onOpenRecord, onExplain }: {
   signal: Signal | null; all: Signal[]; starred: boolean;
   onToggleStar: (ticker: string) => void; onOpen: (s: Signal) => void; onClose: () => void;
   onLegal: () => void; call?: Call; onCall: (s: Signal, d: Direction) => void; onOpenRecord: () => void;
+  onExplain: (term: string) => void;
 }) {
   const rel = signal ? related(all, signal) : { sameTicker: [], sameWho: [] };
   const [explain, setExplain] = useState(false);
@@ -208,6 +209,16 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                   </>
                 )}
 
+                <Text style={styles.section}>Words used here</Text>
+                <View style={styles.terms}>
+                  {termsFor(signal).map((t) => (
+                    <Pressable key={t} onPress={() => onExplain(t)} style={styles.termChip}
+                      accessibilityRole="button" accessibilityLabel={`Explain ${t}`}>
+                      <Text style={styles.termText}>{t}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+
                 <Text style={styles.section}>Keep in mind</Text>
                 <View style={styles.caution}>
                   {KEEP_IN_MIND.map((k) => <Text key={k} style={styles.cautionText}>{k}</Text>)}
@@ -266,6 +277,9 @@ const styles = StyleSheet.create({
   plain: { marginTop: 18, gap: 8 },
   plainText: { ...type.lead, fontFamily: fonts.regular, fontSize: 17, lineHeight: 25, color: colors.text },
   plainHelp: { ...type.small, color: colors.muted },
+  terms: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  termChip: { backgroundColor: colors.panel, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
+  termText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.soft },
   caution: { borderLeftWidth: 3, borderLeftColor: colors.line, paddingLeft: 12, gap: 8 },
   cautionText: { ...type.body, color: colors.soft },
   chartBox: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, marginTop: 20, gap: 12 },
