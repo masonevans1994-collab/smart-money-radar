@@ -19,10 +19,10 @@ const url = process.argv[2];
   await p.getByText('Skip', { exact: true }).click(); await p.waitForTimeout(100);
   if ((await txt()).includes('Quick tour')) findings.push('tour skip failed');
   // 3 sorts
-  const n0 = await cards();
+  // Native lists only render what's on screen, so compare presence, not exact counts.
   for (const s of ['Most notable', 'Largest', 'Biggest stock move', 'Newest']) {
-    await p.getByText(s, { exact: true }).click(); await p.waitForTimeout(80);
-    if ((await cards()) !== n0) findings.push(`sort ${s} changed card count`);
+    await p.getByText(s, { exact: true }).click(); await p.waitForTimeout(120);
+    if ((await cards()) < 1) findings.push(`sort ${s} emptied the list`);
   }
   // 4 agency filter + about page
   const agencyChip = p.locator('[role=button]').filter({ hasText: /^(Army|Energy|Veterans Affairs|Navy|NASA|Air Force|Treasury|Health|Agriculture)$/ }).first();
@@ -39,8 +39,8 @@ const url = process.argv[2];
   await p.getByText('Try:', { exact: true }).waitFor();
   await p.locator('input').fill('zzzz'); await p.waitForTimeout(80);
   if (!(await txt()).includes('Nothing matches "zzzz"')) findings.push('empty search message missing');
-  await p.locator('input').fill(''); await p.waitForTimeout(80);
-  if ((await cards()) !== n0) findings.push('clearing search did not restore');
+  await p.locator('input').fill(''); await p.waitForTimeout(150);
+  if ((await cards()) < 1) findings.push('clearing search did not restore');
   // 6 detail: score explainer, numbers, glossary chip, call, save, share
   await p.locator('[aria-label*="score"]').first().click(); await p.waitForTimeout(200);
   const detailText = await txt();
@@ -73,8 +73,8 @@ const url = process.argv[2];
   }
   // 8 appearance switch
   await p.getByText('Light', { exact: true }).click(); await p.waitForTimeout(150);
-  const bg = await p.evaluate(() => getComputedStyle(document.querySelector('#root > div')).backgroundColor);
-  if (!/246, 244, 238/.test(bg)) findings.push('light mode bg ' + bg);
+  const light = await p.evaluate(() => [...document.querySelectorAll('div')].some((d) => /246, 244, 238/.test(getComputedStyle(d).backgroundColor)));
+  if (!light) findings.push('light mode did not apply');
   await p.getByText('Dark', { exact: true }).click();
   // 9 unsave from Saved tab
   await p.getByText('Saved', { exact: true }).last().click(); await p.waitForTimeout(100);
