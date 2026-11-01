@@ -119,7 +119,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                 <Text style={styles.kicker}>
                   {contract ? `${tagFor(signal)} from ${agencyLabel(signal)}` : tagFor(signal)}
                 </Text>
-                <Text style={[styles.heroAmount,
+                <Text maxFontSizeMultiplier={1.3} style={[styles.heroAmount,
                   { color: contract ? colors.gold : isSell(signal) ? colors.down : colors.text }]}>
                   {amountLabel(signal)}
                 </Text>

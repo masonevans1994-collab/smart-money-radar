@@ -125,7 +125,7 @@ function Radar() {
       )}
 
       <View style={styles.hero}>
-        <Text style={[styles.heroFigure, { color: hero.gold ? colors.gold : colors.text }]}>
+        <Text maxFontSizeMultiplier={1.3} style={[styles.heroFigure, { color: hero.gold ? colors.gold : colors.text }]}>
           {hero.figure}
         </Text>
         <Text style={styles.heroCaption}>{hero.caption}</Text>

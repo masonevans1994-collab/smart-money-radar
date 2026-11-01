@@ -48,7 +48,7 @@ function SignalCardBase({ signal, starred, isNew, onPress, linked }: {
       accessibilityLabel={`${signal.headline}, score ${signal.score}`}
     >
       <View style={styles.top}>
-        <Text style={[styles.amount, { color: contract ? colors.gold : isSell(signal) ? colors.down : colors.text }]}
+        <Text maxFontSizeMultiplier={1.4} style={[styles.amount, { color: contract ? colors.gold : isSell(signal) ? colors.down : colors.text }]}
           numberOfLines={1}>
           {amountLabel(signal)}
         </Text>
