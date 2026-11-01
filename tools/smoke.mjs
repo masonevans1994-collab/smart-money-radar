@@ -9,7 +9,7 @@ page.on("pageerror", (e) => errors.push(e.message));
 await page.goto(url, { waitUntil: "networkidle" });
 await page.getByText("Smart Money", { exact: false }).first().waitFor({ timeout: 20000 });
 const text = await page.locator("body").innerText();
-const cards = (text.match(/Traded \d{4}-\d{2}-\d{2}/g) || []).length;
+const cards = (text.match(/(Traded|Awarded) \d{4}-\d{2}-\d{2}/g) || []).length;
 console.log("--- app text (first 1200 chars) ---\n" + text.slice(0, 1200));
 console.log(`--- cards rendered: ${cards}; page errors: ${errors.length}`);
 errors.forEach((e) => console.log("PAGE ERROR:", e));

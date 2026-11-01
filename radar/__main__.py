@@ -30,8 +30,8 @@ def main(argv=None) -> int:
     p.add_argument("--no-congress", action="store_true", help="skip House and Senate filings")
     p.add_argument("--no-senate", action="store_true", help="skip Senate filings")
     p.add_argument("--no-prices", action="store_true", help="skip price performance")
-    p.add_argument("--contract-days", type=int, default=14,
-                   help="days of new contract awards to scan (default 14)")
+    p.add_argument("--contract-days", type=int, default=30,
+                   help="days of new contract awards to scan (default 30)")
     p.add_argument("--min-contract", type=float, default=10e6,
                    help="smallest contract award to include, in dollars (default 10M)")
     p.add_argument("--no-contracts", action="store_true", help="skip contract awards")

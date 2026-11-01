@@ -14,6 +14,7 @@ import http.cookiejar
 import json
 import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -42,18 +43,27 @@ class SenateSession:
         self.min_interval = min_interval
         self._last = 0.0
 
-    def _req(self, url: str, data: dict | None = None, referer: str = SEARCH) -> str:
-        wait = self.min_interval - (time.monotonic() - self._last)
-        if wait > 0:
-            time.sleep(wait)
-        self._last = time.monotonic()
+    def _req(self, url: str, data: dict | None = None, referer: str = SEARCH,
+             retries: int = 2) -> str:
         body = urllib.parse.urlencode(data).encode() if data is not None else None
-        req = urllib.request.Request(url, data=body, headers={
-            "User-Agent": self.ua, "Referer": referer,
-            "Accept-Encoding": "identity",
-        })
-        with self.opener.open(req, timeout=30) as r:
-            return r.read().decode("utf-8", "replace")
+        for attempt in range(retries + 1):
+            wait = self.min_interval - (time.monotonic() - self._last)
+            if wait > 0:
+                time.sleep(wait)
+            self._last = time.monotonic()
+            req = urllib.request.Request(url, data=body, headers={
+                "User-Agent": self.ua, "Referer": referer, "Accept-Encoding": "identity",
+            })
+            try:
+                with self.opener.open(req, timeout=30) as r:
+                    return r.read().decode("utf-8", "replace")
+            except urllib.error.HTTPError as e:
+                # The site intermittently refuses some cloud IPs; back off briefly.
+                if e.code in (403, 429, 503) and attempt < retries:
+                    time.sleep(5 * (attempt + 1))
+                    continue
+                raise
+        raise RuntimeError("unreachable")
 
     def _csrf_cookie(self) -> str:
         return next((c.value for c in self.jar if c.name == "csrftoken"), "")
@@ -161,11 +171,13 @@ def fetch_senate_trades(user_agent: str, days: int = 14, max_filings: int = 60,
     today = today or dt.date.today()
     since = today - dt.timedelta(days=days)
     s = session or SenateSession(user_agent)
+    step = "accepting terms"
     try:
         s.accept_terms()
+        step = "searching reports"
         filings = parse_report_rows(s.search_ptrs(since))
     except Exception as e:  # noqa: BLE001 - never sink the whole run
-        log(f"  Senate search failed: {e}")
+        log(f"  Senate site failed while {step}: {e} (will retry next run)")
         return [], []
     filings = sorted(filings, key=lambda f: f["filing_date"], reverse=True)[:max_filings]
     log(f"  {len(filings)} Senate PTR filings since {since}")

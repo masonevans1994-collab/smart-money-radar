@@ -74,7 +74,7 @@ ALIASES = [
     ("SIGA TECHNOLOGIES", "SIGA"), ("AMENTUM", "AMTM"), ("GEO GROUP", "GEO"),
     ("CORECIVIC", "CXW"), ("TELEDYNE", "TDY"), ("HEICO", "HEI"),
     ("MOOG", "MOG.A"), ("WOODWARD", "WWD"), ("HOWMET", "HWM"),
-    ("SPIRIT AEROSYSTEMS", "BA"), ("ARCHER AVIATION", "ACHR"),
+    ("SPIRIT AEROSYSTEMS", "BA"), ("WELCH ALLYN", "BAX"), ("HILL ROM", "BAX"), ("ARCHER AVIATION", "ACHR"),
     ("JOBY AERO", "JOBY"), ("IRIDIUM", "IRDM"), ("VIASAT", "VSAT"),
     ("ECHOSTAR", "SATS"), ("FIRSTENERGY", "FE"), ("SIEMENS GOVERNMENT", "SIEGY"),
 ]
@@ -309,7 +309,9 @@ def fetch_dod(get_text, days: int = 7, today: dt.date | None = None, log=print) 
         try:
             out += parse_dod_article(get_text(it["url"]), day, it["url"])
         except Exception as e:  # noqa: BLE001
-            log(f"  could not read {it['url']}: {e}")
+            # war.gov refuses automated readers; don't keep knocking.
+            log(f"  DoD article pages unavailable ({e}); skipping the rest")
+            break
     log(f"  DoD announcements: {len(out)} awards from {len(items)} daily posts")
     return out
 
