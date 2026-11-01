@@ -76,10 +76,14 @@ _ROW_RE = re.compile(
     r"(?P<trade>\d{2}/\d{2}/\d{4})\s+"
     r"(?P<notified>\d{2}/\d{2}/\d{4})\s+"
     r"(?P<lo>Over \$[\d,]+|\$[\d,]+)"
-    r"(?:\s*-\s*(?:[^$()]{0,80}?" + _TICK.format(n="t_mid", a="a_mid")
-    + r")?(?P<hi>\$[\d,]+))?"
+    # Anything (wrapped asset name, ticker, [ST]) may sit between the halves.
+    r"(?:\s*-\s*(?P<mid>[^$]{0,120}?)(?P<hi>\$[\d,]+))?"
     r"(?:\s*" + _TICK.format(n="t_end", a="a_end") + r")?"
 )
+# Standard STOCK Act reporting brackets: low end -> high end.
+BRACKETS = {1_001: 15_000, 15_001: 50_000, 50_001: 100_000, 100_001: 250_000,
+            250_001: 500_000, 500_001: 1_000_000, 1_000_001: 5_000_000,
+            5_000_001: 25_000_000, 25_000_001: 50_000_000}
 _LEAD_TICK_RE = re.compile(r"\(([A-Z][A-Z0-9.\-]{0,6})\)\s*(?:\[([A-Z]{2})\])?")
 _OWNER_RE = re.compile(r"(?:^|\s)(SP|DC|JT)\s+[A-Z0-9][^$]{0,160}$")
 
@@ -105,12 +109,18 @@ def parse_ptr_text(text: str) -> list[dict]:
         prev_end = m.end()
         # Prefer a ticker that wrapped after the amount; otherwise the last
         # one in the text leading up to this row.
-        ticker, asset = m.group("t_mid") or m.group("t_end"), \
-            m.group("a_mid") or m.group("a_end")
+        mid = m.group("mid") or ""
+        if "ID Owner" in mid:  # range split across a page break; ignore junk
+            mid = ""
+        mid_tick = _LEAD_TICK_RE.search(mid)
+        mid_asset = re.search(r"\[([A-Z]{2})\]", mid)
+        ticker = mid_tick.group(1) if mid_tick else m.group("t_end")
+        asset = (mid_tick.group(2) if mid_tick and mid_tick.group(2) else
+                 mid_asset.group(1) if mid_asset else m.group("a_end"))
         if not ticker:
             leads = _LEAD_TICK_RE.findall(lead)
             if leads:
-                ticker, asset = leads[-1]
+                ticker, asset = leads[-1][0], leads[-1][1] or asset
         if not ticker:
             # Whole row fit on one line but the asset name wrapped below it:
             # take the first ticker before the next row and consume it.
@@ -123,6 +133,8 @@ def parse_ptr_text(text: str) -> list[dict]:
         owner_m = _OWNER_RE.search(lead)
         amount = m.group("lo") + (f" - {m.group('hi')}" if m.group("hi") else "")
         low, high = parse_amount(amount)
+        if not m.group("lo").startswith("Over") and (high is None or high <= low):
+            high = BRACKETS.get(low, high if high and high > low else None)
         out.append({
             "ticker": ticker,
             "asset_type": asset or "",
@@ -155,7 +167,11 @@ def fetch_house_trades(fetcher, days: int = 14, max_filings: int = 60,
     since = today - dt.timedelta(days=days)
     filings = []
     for year in sorted({since.year, today.year}):
-        body = fetcher.get(HOUSE_ZIP.format(year=year), cache=False)
+        try:
+            body = fetcher.get(HOUSE_ZIP.format(year=year), cache=False)
+        except Exception as e:  # noqa: BLE001 - keep the run going
+            log(f"  House index for {year} failed: {e}")
+            body = None
         if not body:
             log(f"  House index for {year} unavailable")
             continue
@@ -165,9 +181,14 @@ def fetch_house_trades(fetcher, days: int = 14, max_filings: int = 60,
                     key=lambda f: f["filing_date"], reverse=True)[:max_filings]
     log(f"  {len(recent)} House PTR filings since {since}")
 
+    from .http import Blocked
+
     trades, review = [], []
     for f in recent:
-        pdf = fetcher.get(f["url"])
+        try:
+            pdf = fetcher.get(f["url"])
+        except Blocked:
+            pdf = None
         rows = parse_ptr_text(pdf_to_text(pdf)) if pdf else []
         if not rows:
             review.append(f)  # scanned paper filing or unusual layout

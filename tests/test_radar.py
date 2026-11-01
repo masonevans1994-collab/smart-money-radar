@@ -171,3 +171,22 @@ def test_ptr_ticker_wrapped_below_full_row():
     rows = congress.parse_ptr_text(text)
     assert [(r["ticker"], r["owner"], r["type"]) for r in rows] == [
         ("VLHC", "Dependent child", "Purchase"), ("ACMW", "Self", "Sale")]
+
+
+def test_ptr_real_house_layouts():
+    # Layouts copied from real e-filed House PTRs (names/tickers changed).
+    text = ("ID Owner Asset Transaction Date Notification Amount Cap. Type Date Gains > $200? "
+            "SP Apple Inc. - Common Stock (AAPL) S 10/02/2026 10/05/2026 $250,001 - [ST] $500,000 "
+            "F S : New S O : Trust One "
+            "SP Costco Wholesale Corporation - S 10/02/2026 10/05/2026 $250,001 - Common Stock (COST) [ST] $500,000 "
+            "F S : New ExxonMobil Holdings Corporation S 10/14/2026 10/14/2026 $1,001 - $15,000 "
+            "Common Stock (XOM) [ST] F S : New "
+            "Estee Lauder (EL) [ST] P 10/09/2026 10/10/2026 $50,001 - ID Owner Asset Gains > $200? $100,000 ")
+    rows = congress.parse_ptr_text(text)
+    got = [(r["ticker"], r["owner"], r["amount_low"], r["amount_high"], r["asset_type"]) for r in rows]
+    assert got == [
+        ("AAPL", "Spouse", 250001, 500000, "ST"),
+        ("COST", "Spouse", 250001, 500000, "ST"),
+        ("XOM", "Self", 1001, 15000, "ST"),
+        ("EL", "Self", 50001, 100000, "ST"),
+    ]

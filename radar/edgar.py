@@ -188,9 +188,16 @@ def business_days_back(n: int, today: dt.date | None = None) -> list[dt.date]:
 
 def fetch_insider_buys(fetcher, days: int = 3, max_filings: int = 500,
                        log=print) -> list[dict]:
+    from .http import Blocked
+
     filings = []
     for day in business_days_back(days):
-        body = fetcher.get(daily_index_url(day), cache=day < dt.date.today())
+        try:
+            body = fetcher.get(daily_index_url(day), cache=day < dt.date.today())
+        except Blocked as e:
+            log(f"  SEC refused the request ({e}). The SEC requires a real contact "
+                "email: set SEC_USER_AGENT to 'Your Name you@example.com'.")
+            return []
         if body is None:
             log(f"  no EDGAR index for {day} (weekend/holiday or not posted yet)")
             continue
@@ -203,7 +210,11 @@ def fetch_insider_buys(fetcher, days: int = 3, max_filings: int = 500,
     for i, f in enumerate(filings, 1):
         if i % 100 == 0:
             log(f"  parsed {i}/{len(filings)} filings, {len(events)} buys so far")
-        body = fetcher.get(f["url"])
+        try:
+            body = fetcher.get(f["url"])
+        except Blocked as e:
+            log(f"  SEC refused the request ({e}); stopping early.")
+            break
         if not body:
             continue
         xml = extract_ownership_xml(body.decode("utf-8", "replace"))
