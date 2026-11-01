@@ -321,8 +321,15 @@ export function tierLabel(score: number): string {
   return score >= 70 ? "Stands out" : score >= 45 ? "Worth a look" : "Routine";
 }
 
+/** True when the market hasn't had a trading day since the award or trade
+ *  (signed Friday, viewed on the weekend): there's no move to report yet. */
+export function tooSoon(s: Signal): boolean {
+  return !!s.price_date && !!s.trade_date && s.price_date <= s.trade_date;
+}
+
 export function moveLabel(s: Signal): string | null {
   if (s.change_pct === undefined || s.change_pct === null) return null;
+  if (tooSoon(s)) return "Too soon to tell";
   const v = Math.abs(s.change_pct).toFixed(1);
   if (s.change_pct === 0) return "Stock unchanged";
   return s.change_pct > 0 ? `Stock up ${v}%` : `Stock down ${v}%`;
@@ -368,7 +375,9 @@ export function plainSummary(s: Signal): string[] {
     }
   }
   const mv = moveLabel(s);
-  if (mv && s.trade_date) {
+  if (mv && s.trade_date && tooSoon(s)) {
+    out.push(`The market hasn't had a trading day since ${shortDate(s.trade_date)} yet, so there's no stock move to show. Check back after the next market day.`);
+  } else if (mv && s.trade_date) {
     out.push(`${mv.replace("Stock", "The stock is")} since ${shortDate(s.trade_date)}.`);
   }
   return out;
@@ -447,7 +456,7 @@ export function weeklyRecap(feed: Feed, now = new Date()): Recap | null {
   const cutoff = weekStart(now);
   const recent = (feed.contracts ?? []).filter((c) => (c.trade_date ?? "") >= cutoff);
   if (!recent.length) return null;
-  const withMove = recent.filter((c) => c.change_pct !== undefined);
+  const withMove = recent.filter((c) => c.change_pct !== undefined && !tooSoon(c));
   const byAgency = new Map<string, number>();
   for (const c of recent) byAgency.set(agencyLabel(c), (byAgency.get(agencyLabel(c)) ?? 0) + c.value);
   const topAgency = [...byAgency.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
@@ -463,11 +472,18 @@ export function weeklyRecap(feed: Feed, now = new Date()): Recap | null {
 }
 
 /** One line a newcomer can read in a second, from real prices. */
+/** "Honeywell International Inc." -> "Honeywell": the name people actually say. */
+export function shortName(s: { company?: string; ticker: string }): string {
+  if (!s.company) return s.ticker;
+  const short = s.company.split(/ (Inc|Corp|plc|Co|Company|Corporation|Holdings|Technologies|International|Group|Ltd|Limited|N\.V\.|S\.A\.)\b/i)[0].replace(/,$/, "").trim();
+  return short || s.company;
+}
+
 export function lastTimeHeadline(s: Signal): string | null {
   if (s.kind !== "contract" || !s.history?.closest || s.history.closest.d30 == null) return null;
   const c = s.history.closest;
   const d30 = c.d30 as number;
-  const short = s.company.split(/ (Inc|Corp|plc|Co|Company|Corporation|Holdings|Technologies|International)\b/i)[0].replace(/,$/, "");
+  const short = shortName(s);
   const n = Math.round(Math.abs(d30));
   const what = d30 > 0.5 ? `went up ${n}%` : d30 < -0.5 ? `went down ${n}%` : "barely moved";
   return `Last time ${short} won a deal like this, its stock ${what}.`;
@@ -504,7 +520,7 @@ export function lastTimeLines(s: Signal): string[] | null {
 /** The most likely reason the stock did (or didn't) react, from measurable facts. */
 export function whyLine(s: Signal): string | null {
   if (s.kind !== "contract") return null;
-  const short = s.company.split(/ (Inc|Corp|plc|Co|Company|Corporation|Holdings|Technologies|International)\b/i)[0].replace(/,$/, "");
+  const short = shortName(s);
   const pct = s.award_pct;
   const w30 = s.history?.windows["30"];
   const reacts = w30 ? w30.beat_pct >= 60 && w30.avg_vs_spy >= 1 : null;
@@ -531,7 +547,7 @@ export function whyLine(s: Signal): string | null {
 
 /** "Defense stocks overall are up 2.1% over the same stretch, so most of this move is the sector." */
 export function sectorLine(s: Signal): string | null {
-  if (s.kind !== "contract" || s.sector_pct === undefined || s.change_pct === undefined || !s.sector) return null;
+  if (s.kind !== "contract" || s.sector_pct === undefined || s.change_pct === undefined || !s.sector || tooSoon(s)) return null;
   const sec = s.sector_pct, own = s.change_pct;
   const label = s.sector.charAt(0).toUpperCase() + s.sector.slice(1);
   const dir = sec > 0.2 ? `up ${sec.toFixed(1)}%` : sec < -0.2 ? `down ${Math.abs(sec).toFixed(1)}%` : "flat";
@@ -593,8 +609,8 @@ export function catchUp(signals: Signal[], seenBefore: Set<string> | null, lastO
 
 export function recapShareText(r: Recap): string {
   const lines = [`This week the government signed ${r.count} contract${r.count === 1 ? "" : "s"} worth ${money(r.total)} with ${r.companies} public compan${r.companies === 1 ? "y" : "ies"}${r.topAgency ? `, led by ${r.topAgency}` : ""}.`];
-  if (r.biggest) lines.push(`Biggest: ${amountLabel(r.biggest)} to ${r.biggest.kind === "contract" ? r.biggest.company : r.biggest.ticker}.`);
-  if (r.bestMover) lines.push(`Best mover: ${r.bestMover.ticker}, ${moveLabel(r.bestMover)?.toLowerCase().replace("stock ", "")} since its award.`);
+  if (r.biggest) lines.push(`Biggest: ${amountLabel(r.biggest)} to ${shortName(r.biggest)}.`);
+  if (r.bestMover) lines.push(`Best mover: ${shortName(r.bestMover)}, ${moveLabel(r.bestMover)?.toLowerCase().replace("stock ", "")} since its award.`);
   lines.push("Via Radar. From public records. Not investment advice.");
   return lines.join("\n");
 }

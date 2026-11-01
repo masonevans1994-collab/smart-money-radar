@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Pressable, Share, StyleSheet, Text, View } from "react-native";
 
-import { agencyLabel, amountLabel, money, moveLabel, type Recap as RecapData, recapShareText } from "./logic";
+import { agencyLabel, amountLabel, money, moveLabel, type Recap as RecapData, recapShareText, shortName } from "./logic";
 import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
 
@@ -35,7 +35,7 @@ export function RecapCard({ recap, onOpen, onDismiss }: {
         <Pressable onPress={() => onOpen(recap.biggest!)} style={styles.row} accessibilityRole="button">
           <Text style={styles.rowLabel}>Biggest</Text>
           <Text style={styles.rowText} numberOfLines={2}>
-            {amountLabel(recap.biggest)} to {recap.biggest.kind === "contract" ? recap.biggest.company : recap.biggest.ticker} from {agencyLabel(recap.biggest)}
+            {amountLabel(recap.biggest)} to {shortName(recap.biggest)} from {agencyLabel(recap.biggest)}
           </Text>
         </Pressable>
       )}
@@ -43,7 +43,7 @@ export function RecapCard({ recap, onOpen, onDismiss }: {
         <Pressable onPress={() => onOpen(recap.bestMover!)} style={styles.row} accessibilityRole="button">
           <Text style={styles.rowLabel}>Best mover</Text>
           <Text style={styles.rowText} numberOfLines={2}>
-            {recap.bestMover.ticker}, {moveLabel(recap.bestMover)?.toLowerCase().replace("stock ", "")} since its award
+            {shortName(recap.bestMover)}, {moveLabel(recap.bestMover)?.toLowerCase().replace("stock ", "")} since its award
           </Text>
         </Pressable>
       )}

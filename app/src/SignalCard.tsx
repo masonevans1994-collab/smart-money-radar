@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { agencyLabel, amountLabel, isSell, keyNote, moveLabel, scoreTier, shortDate, tierLabel } from "./logic";
+import { agencyLabel, amountLabel, isSell, keyNote, moveLabel, scoreTier, shortDate, tierLabel, tooSoon } from "./logic";
 import { Spark } from "./Spark";
 import { topicsFor } from "./topics";
 import { fonts, type, type Palette, useColors } from "./theme";
@@ -27,7 +27,7 @@ export function ChangeChip({ signal, big }: { signal: Signal; big?: boolean }) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const label = moveLabel(signal);
   if (!label) return null;
-  const v = signal.change_pct ?? 0;
+  const v = tooSoon(signal) ? 0 : signal.change_pct ?? 0;
   const tint = v > 0 ? colors.up : v < 0 ? colors.down : colors.soft;
   return (
     <Text style={[styles.change, big && styles.changeBig, { color: tint }]}>

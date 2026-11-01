@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   allSignals, amountLabel, biggestThisWeek, dayLabel, filterSignals, freshness, keyNote, money,
-  moveLabel, plainSummary, refine, signalKey, tierLabel, withDayHeaders, isHeader,
+  moveLabel, plainSummary, refine, signalKey, tierLabel, withDayHeaders, isHeader, shortName,
 } from "../src/logic";
 import type { Feed, Signal } from "../src/types";
 
@@ -247,4 +247,20 @@ test("compare peers and rows", () => {
   assert.deepEqual(rows[3].values, ["up 1.2%", "down 3.0%"]);
   assert.deepEqual(rows[4].values, ["up 0.5%", "–"]);
 });
+test("shortName says the name people use", () => {
+  assert.equal(shortName({ company: "Honeywell International Inc.", ticker: "HON" }), "Honeywell");
+  assert.equal(shortName({ company: "Accenture plc", ticker: "ACN" }), "Accenture");
+  assert.equal(shortName({ company: "General Dynamics Corporation", ticker: "GD" }), "General Dynamics");
+  assert.equal(shortName({ ticker: "KTOS" }), "KTOS");
+});
+
+test("a Friday award viewed on the weekend says too soon, not unchanged", () => {
+  const fri = contract({ trade_date: "2026-10-30", price_date: "2026-10-30", price_then: 218.33, price_now: 218.33, change_pct: 0 });
+  assert.equal(moveLabel(fri), "Too soon to tell");
+  assert.match(plainSummary(fri).join(" "), /hasn't had a trading day/);
+  const mon = contract({ trade_date: "2026-10-30", price_date: "2026-11-02", price_then: 218.33, price_now: 218.33, change_pct: 0 });
+  assert.equal(moveLabel(mon), "Stock unchanged");
+});
+
 console.log(`\n${passed} logic tests passed`);
+

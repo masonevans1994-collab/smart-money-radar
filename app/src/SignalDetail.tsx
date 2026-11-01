@@ -3,8 +3,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
   agencyLabel, amountLabel, isSell, KEEP_IN_MIND, money, plainSummary, related, SCORE_GUIDE,
-  lastTimeDetail, lastTimeHeadline, lastTimeLines, peersFor, sectorLine, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel,
-} from "./logic";
+  lastTimeDetail, lastTimeHeadline, lastTimeLines, peersFor, sectorLine, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel, tooSoon } from "./logic";
 import { useState, useMemo } from "react";
 import { agencyDescription } from "./agencies";
 import { CallBox } from "./CallBox";
@@ -189,7 +188,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                   <View style={styles.chartBox}>
                     <View style={styles.chartHead}>
                       <Text style={styles.chartTitle}>
-                        {signal.ticker} since {contract ? "the award" : "the trade"}
+                        {signal.ticker} {tooSoon(signal) ? "before" : "since"} {contract ? "the award" : "the trade"}
                       </Text>
                       <ChangeChip signal={signal} big />
                     </View>
@@ -204,7 +203,9 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                     {sectorLine(signal) && <Text style={styles.sectorLine}>{sectorLine(signal)}</Text>}
                     <Text style={styles.chartFoot}>
                       Each bar is one day's closing price. The gold bar is {shortDate(signal.trade_date)}, when it was {contract ? "signed" : "traded"}.
-                      {signal.price_then != null && signal.price_now != null
+                      {tooSoon(signal)
+                        ? " No trading day since, so the chart ends there for now."
+                        : signal.price_then != null && signal.price_now != null
                         ? ` Price then $${signal.price_then.toFixed(2)}, latest $${signal.price_now.toFixed(2)}.` : ""}
                     </Text>
                   </View>
