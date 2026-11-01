@@ -108,7 +108,9 @@ def score_congress(trades: list[dict]) -> list[dict]:
         score += pts
         verb = t["type"].split()[0].lower()
         verb = {"purchase": "bought", "sale": "sold", "exchange": "exchanged"}[verb]
-        why.append(f"{t['owner'] if t['owner'] != 'Self' else 'Member'} {verb} {rng}")
+        whose = {"Self": "", "Spouse": "Their spouse ", "Dependent child": "Their child ",
+                 "Joint": "A joint account "}.get(t["owner"], "")
+        why.append(f"{whose or 'They '}{verb} {rng} of {t['ticker']} stock")
 
         if t["type"] == "Purchase":
             score += 15

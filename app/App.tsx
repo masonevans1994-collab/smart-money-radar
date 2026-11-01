@@ -16,7 +16,7 @@ import {
 } from "./src/data";
 import {
   allSignals, amountLabel, biggestThisWeek, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
-  type SortKey, type Tab, TABS, timeAgo, topAgencies, withDayHeaders,
+  savedStocks, type SortKey, type Tab, TABS, timeAgo, topAgencies, withDayHeaders,
 } from "./src/logic";
 import {
   callFor, checkIn, type Direction, loadProgress, makeCall, type Progress, EMPTY, resolveCalls,
@@ -25,6 +25,7 @@ import {
 import { Guide } from "./src/Guide";
 import { Legal, SHORT_DISCLAIMER } from "./src/Legal";
 import { Onboarding } from "./src/Onboarding";
+import { Saved } from "./src/Saved";
 import { SignalCard } from "./src/SignalCard";
 import { SignalDetail } from "./src/SignalDetail";
 import { colors, fonts, type } from "./src/theme";
@@ -102,6 +103,7 @@ function Radar() {
   const agencies = useMemo(() => topAgencies(signals), [signals]);
   const linkedContracts = useMemo(() => (feed ? contractsByTicker(feed) : new Map()), [feed]);
   const items = useMemo<ListItem[]>(() => {
+    if (tab === "watch") return [];
     const base = filterSignals(signals, tab, query, watch);
     const rows = refine(base, tab === "contract" ? agency : null, sort);
     return sort === "newest" ? withDayHeaders(rows) : rows;
@@ -170,7 +172,7 @@ function Radar() {
         )}
       </View>
 
-      {tab !== "record" && tab !== "you" && (
+      {tab !== "record" && tab !== "you" && tab !== "watch" && (
         <>
           <TextInput
             value={query}
@@ -204,11 +206,11 @@ function Radar() {
   );
 
   const empty = tab === "record" ? <TrackRecord record={feed.track_record} />
-    : tab === "you" ? <You progress={progress} /> : (
+    : tab === "you" ? <You progress={progress} />
+      : tab === "watch" ? <Saved stocks={savedStocks(signals, watch)} onOpen={openSignal} onRemove={toggleStar} /> : (
     <Text style={styles.empty}>
       {query ? `Nothing matches "${query}".`
-        : tab === "watch" ? "Nothing saved yet. Open any award or trade and tap Save to follow that stock here."
-          : tab === "people" ? "No reported trades by members of Congress or executives in the last two weeks."
+        : tab === "people" ? "No reported trades by members of Congress or executives in the last two weeks."
             : "No contract awards to public companies yet. Pull down to refresh."}
     </Text>
   );

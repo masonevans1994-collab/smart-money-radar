@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-01T18:02:10+00:00",
+  "generated": "2026-11-01T18:13:53+00:00",
   "demo": true,
   "contracts": [
     {
@@ -384,7 +384,7 @@
       "lag_days": 17,
       "score": 75,
       "reasons": [
-        "Spouse bought $250K\u2013$500K",
+        "Their spouse bought $250K\u2013$500K of QRTZ stock",
         "Options trade: leveraged, short-dated bet",
         "2 members made the same move in QRTZ",
         "Company insiders AND members of Congress are both buying"
@@ -409,7 +409,7 @@
       "lag_days": 13,
       "score": 50,
       "reasons": [
-        "Member bought $15K\u2013$50K",
+        "They bought $15K\u2013$50K of QRTZ stock",
         "2 members made the same move in QRTZ",
         "Company insiders AND members of Congress are both buying"
       ],
@@ -433,7 +433,7 @@
       "lag_days": 64,
       "score": 45,
       "reasons": [
-        "Member bought $1K\u2013$15K",
+        "They bought $1K\u2013$15K of SNDL stock",
         "Disclosed 64 days after the trade (limit is 45)",
         "Company insiders AND members of Congress are both buying"
       ],
@@ -457,7 +457,7 @@
       "lag_days": 27,
       "score": 20,
       "reasons": [
-        "Spouse sold $50K\u2013$100K"
+        "Their spouse sold $50K\u2013$100K of BRKW stock"
       ],
       "value_mid": 75000.5,
       "headline": "Hon. Dana Example (spouse) sold $50K\u2013$100K of BRKW"

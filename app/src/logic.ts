@@ -128,7 +128,13 @@ export function keyNote(s: Signal): string {
     return s.history_note ?? s.reasons.find((r) => !r.startsWith("Won a"))
       ?? (s.is_modification ? "More money on a contract the company already had" : s.reasons[0] ?? "");
   }
-  return s.reasons[1] ?? s.reasons[0] ?? "";
+  if (s.reasons.length > 1) return s.reasons[1];
+  if (s.kind === "congress") {
+    return s.type === "Purchase" ? "A member of Congress chose to buy this stock"
+      : s.type.startsWith("Sale") ? "A member of Congress sold some of this stock"
+        : s.reasons[0] ?? "";
+  }
+  return s.reasons[0] ?? "";
 }
 
 export function pct(v: number | null | undefined, digits = 1): string {
@@ -368,4 +374,26 @@ export function biggestThisWeek(feed: Feed, now = new Date()): Signal | null {
   const recent = (feed.contracts ?? []).filter((c) => (c.trade_date ?? "") >= cutoff);
   if (!recent.length) return null;
   return recent.reduce((a, b) => (b.value > a.value ? b : a));
+}
+
+/** For the Saved tab: one summary per saved stock, built from everything in the feed. */
+export interface SavedStock {
+  ticker: string;
+  company: string;
+  contracts: Signal[];
+  trades: Signal[];
+  latest?: Signal;
+}
+
+export function savedStocks(all: Signal[], watchlist: Set<string>): SavedStock[] {
+  const out: SavedStock[] = [];
+  for (const t of watchlist) {
+    const items = all.filter((s) => s.ticker === t);
+    const contracts = items.filter((s) => s.kind === "contract");
+    const trades = items.filter((s) => s.kind !== "contract");
+    const latest = [...items].sort((a, b) => (b.trade_date ?? "").localeCompare(a.trade_date ?? ""))[0];
+    const named = items.find((s) => s.kind !== "congress") as Exclude<Signal, { kind: "congress" }> | undefined;
+    out.push({ ticker: t, company: named?.company ?? t, contracts, trades, latest });
+  }
+  return out.sort((a, b) => (b.latest?.trade_date ?? "").localeCompare(a.latest?.trade_date ?? ""));
 }
