@@ -114,7 +114,7 @@ jobs:
           node smoke.mjs http://localhost:8080/smart-money-radar/
           if [ -d /tmp/site/smart-money-radar/preview ]; then
             mkdir -p /tmp/shots
-            node shots.mjs http://localhost:8080/smart-money-radar/preview/ /tmp/shots
+            node shots.mjs http://localhost:8080/smart-money-radar/preview/ /tmp/shots || echo "screenshots failed (not blocking)"
           fi
 
       - name: Save review screenshots to the 'screens' branch

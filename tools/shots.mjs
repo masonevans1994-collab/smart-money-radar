@@ -9,7 +9,7 @@ page.on("pageerror", (e) => errors.push(e.message));
 await page.goto(url, { waitUntil: "networkidle" });
 await page.waitForTimeout(1500);
 await page.screenshot({ path: `${outDir}/1-welcome.png` });
-const start = page.getByText("Show me the awards", { exact: true });
+const start = page.getByText(/show me the awards/i);
 if (await start.count()) await start.click();
 await page.waitForTimeout(800);
 await page.screenshot({ path: `${outDir}/2-contracts.png` });
