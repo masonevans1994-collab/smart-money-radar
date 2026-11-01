@@ -1,26 +1,30 @@
 import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { changeLabel, isSell, scoreColor, sourceFor, tagFor } from "./logic";
-import { colors } from "./theme";
+import { agencyLabel, amountLabel, changeLabel, isSell, keyNote, scoreTier, shortDate, tagFor } from "./logic";
+import { Spark } from "./Spark";
+import { colors, fonts, type } from "./theme";
 import type { Signal } from "./types";
 
-export function ScoreBadge({ score, size = 48 }: { score: number; size?: number }) {
-  const c = scoreColor(score);
+const TIER = { high: colors.up, mid: colors.gold, low: colors.muted };
+
+export function ScoreBadge({ score, size = "sm" }: { score: number; size?: "sm" | "lg" }) {
+  const c = TIER[scoreTier(score)];
+  const lg = size === "lg";
   return (
-    <View style={[styles.score, { width: size, height: size, borderRadius: size / 2, borderColor: c }]}>
-      <Text style={[styles.scoreText, { color: c, fontSize: size * 0.36 }]}>{score}</Text>
+    <View style={[styles.score, { borderColor: c }, lg && styles.scoreLg]}
+      accessibilityLabel={`Score ${score} out of 100`}>
+      <Text style={[styles.scoreText, { color: c }, lg && styles.scoreTextLg]}>{score}</Text>
     </View>
   );
 }
 
-export function ChangeChip({ signal }: { signal: Signal }) {
+export function ChangeChip({ signal, big }: { signal: Signal; big?: boolean }) {
   const label = changeLabel(signal);
   if (!label) return null;
   const up = (signal.change_pct ?? 0) >= 0;
   return (
-    <Text style={[styles.change, { color: up ? colors.accent : colors.sell,
-      backgroundColor: up ? "#12301f" : "#3a1a14" }]}>
+    <Text style={[styles.change, big && styles.changeBig, { color: up ? colors.up : colors.down }]}>
       {up ? "▲" : "▼"} {label}
     </Text>
   );
@@ -29,42 +33,56 @@ export function ChangeChip({ signal }: { signal: Signal }) {
 function SignalCardBase({ signal, starred, isNew, onPress }: {
   signal: Signal; starred: boolean; isNew: boolean; onPress: () => void;
 }) {
-  const sell = isSell(signal);
+  const contract = signal.kind === "contract";
+  const name = signal.kind === "congress" ? signal.who : signal.company;
+  const context = contract ? agencyLabel(signal) : signal.kind === "congress"
+    ? `${signal.type}${signal.owner !== "Self" ? ` by ${signal.owner.toLowerCase()}` : ""}`
+    : signal.role_label ?? "Insider";
+  const up = (signal.change_pct ?? 0) >= 0;
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }: { pressed: boolean }) => [styles.card, pressed && { opacity: 0.75 }]}
+      style={({ pressed }: { pressed: boolean }) => [styles.row, pressed && styles.pressed]}
       accessibilityRole="button"
       accessibilityLabel={`${signal.headline}, score ${signal.score}`}
     >
-      <ScoreBadge score={signal.score} />
-      <View style={styles.body}>
-        <View style={styles.row}>
-          <Text style={styles.ticker}>{signal.ticker}</Text>
-          {starred && <Text style={styles.star}>★</Text>}
-          {isNew && <Text style={styles.newTag}>NEW</Text>}
-          {signal.kind === "contract" && !!signal.committee_flag && (
-            <Text style={styles.flagTag}>COMMITTEE</Text>
-          )}
-          <Text style={[styles.tag, { color: sell ? colors.sell : colors.accent }]}>
-            {tagFor(signal).toUpperCase()}
-          </Text>
-          <Text style={styles.tag}>{sourceFor(signal)}</Text>
-        </View>
-        <Text style={styles.headline} numberOfLines={2}>{signal.headline}</Text>
-        {signal.reasons.slice(1, 3).map((r) => (
-          <View key={r} style={styles.bulletRow}>
-            <Text style={styles.reason}>•</Text>
-            <Text style={[styles.reason, styles.bulletText]} numberOfLines={1}>{r}</Text>
-          </View>
-        ))}
-        <View style={styles.footer}>
-          <Text style={styles.meta}>
-            {signal.kind === "contract" ? "Awarded" : "Traded"} {signal.trade_date ?? "?"}
-          </Text>
+      <View style={styles.top}>
+        <Text style={[styles.amount, { color: contract ? colors.gold : isSell(signal) ? colors.down : colors.text }]}
+          numberOfLines={1}>
+          {amountLabel(signal)}
+        </Text>
+        <ScoreBadge score={signal.score} />
+      </View>
+
+      <View style={styles.nameRow}>
+        <Text style={styles.name} numberOfLines={1}>{name}</Text>
+        <Text style={styles.ticker}>{signal.ticker}</Text>
+        {starred && <Text style={styles.star} accessibilityLabel="Saved">★</Text>}
+      </View>
+
+      <View style={styles.metaRow}>
+        <Text style={styles.context}>{context}</Text>
+        {contract && signal.is_modification && <Text style={styles.pill}>Expansion</Text>}
+        {isNew && <Text style={[styles.pill, styles.newPill]}>New</Text>}
+      </View>
+
+      {contract && !!signal.committee_flag && (
+        <Text style={styles.flag} numberOfLines={2}>
+          Conflict check: {signal.committee_flag.replace(" · ", " sits on ")}
+        </Text>
+      )}
+      <Text style={styles.note} numberOfLines={2}>{keyNote(signal)}</Text>
+
+      <View style={styles.bottom}>
+        <Spark data={signal.spark} mark={signal.spark_mark} up={up} />
+        <View style={styles.bottomText}>
           <ChangeChip signal={signal} />
+          <Text style={styles.date}>
+            {contract ? "Awarded" : "Traded"} {shortDate(signal.trade_date)}
+          </Text>
         </View>
       </View>
+      {!contract && <Text style={styles.kind}>{tagFor(signal)}</Text>}
     </Pressable>
   );
 }
@@ -72,39 +90,40 @@ function SignalCardBase({ signal, starred, isNew, onPress }: {
 export const SignalCard = memo(SignalCardBase);
 
 const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row", gap: 12, backgroundColor: colors.panel,
-    borderColor: colors.line, borderWidth: 1, borderRadius: 14,
-    padding: 14, marginHorizontal: 16, marginBottom: 10,
+  row: {
+    marginHorizontal: 16, marginBottom: 10, padding: 16, borderRadius: 16,
+    backgroundColor: colors.panel,
   },
-  score: { borderWidth: 4, alignItems: "center", justifyContent: "center" },
-  scoreText: { fontWeight: "700", fontVariant: ["tabular-nums"] },
-  body: { flex: 1, minWidth: 0 },
-  row: { flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" },
-  ticker: { color: colors.text, fontSize: 17, fontWeight: "700" },
-  star: { color: colors.warn, fontSize: 14 },
-  newTag: {
-    color: colors.bg, backgroundColor: colors.warn, fontSize: 10, fontWeight: "800",
-    paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4, overflow: "hidden",
+  pressed: { backgroundColor: colors.raised },
+  top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  amount: { ...type.amount, flexShrink: 1, fontVariant: ["tabular-nums"] },
+  score: {
+    minWidth: 34, height: 26, paddingHorizontal: 6, borderRadius: 13, borderWidth: 1.5,
+    alignItems: "center", justifyContent: "center",
   },
-  flagTag: {
-    color: "#fff", backgroundColor: "#8a2b1f", fontSize: 10, fontWeight: "800",
-    paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4, overflow: "hidden",
+  scoreLg: { minWidth: 56, height: 40, borderRadius: 20, borderWidth: 2 },
+  scoreText: { fontFamily: fonts.bold, fontSize: 13, fontVariant: ["tabular-nums"] },
+  scoreTextLg: { fontSize: 18 },
+  nameRow: { flexDirection: "row", alignItems: "baseline", gap: 8, marginTop: 6 },
+  name: { ...type.lead, color: colors.text, flexShrink: 1 },
+  ticker: { fontFamily: fonts.bold, fontSize: 13, color: colors.soft, letterSpacing: 0.3 },
+  star: { color: colors.gold, fontSize: 13 },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4, flexWrap: "wrap" },
+  context: { ...type.small, color: colors.muted },
+  pill: {
+    ...type.small, fontFamily: fonts.semibold, color: colors.soft, backgroundColor: colors.raised,
+    paddingHorizontal: 7, paddingVertical: 1, borderRadius: 6, overflow: "hidden",
   },
-  tag: {
-    color: colors.muted, fontSize: 10, fontWeight: "600", letterSpacing: 0.5,
-    backgroundColor: colors.chip, paddingHorizontal: 6, paddingVertical: 2,
-    borderRadius: 5, overflow: "hidden",
+  newPill: { color: colors.bg, backgroundColor: colors.gold },
+  flag: {
+    ...type.small, fontFamily: fonts.semibold, color: "#F3B4A8", marginTop: 10,
+    borderLeftWidth: 3, borderLeftColor: colors.seal, paddingLeft: 8,
   },
-  headline: { color: colors.text, fontSize: 15, marginTop: 3, marginBottom: 4, lineHeight: 20 },
-  reason: { color: colors.soft, fontSize: 13, lineHeight: 18 },
-  bulletRow: { flexDirection: "row", gap: 6 },
-  bulletText: { flex: 1 },
-  footer: { flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    marginTop: 6, gap: 8 },
-  meta: { color: colors.muted, fontSize: 12 },
-  change: {
-    fontSize: 12, fontWeight: "700", paddingHorizontal: 7, paddingVertical: 2,
-    borderRadius: 6, overflow: "hidden", fontVariant: ["tabular-nums"],
-  },
+  note: { ...type.body, color: colors.soft, marginTop: 10 },
+  bottom: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", marginTop: 12 },
+  bottomText: { alignItems: "flex-end", gap: 2 },
+  change: { fontFamily: fonts.bold, fontSize: 13, fontVariant: ["tabular-nums"] },
+  changeBig: { fontSize: 16 },
+  date: { ...type.small, color: colors.muted },
+  kind: { ...type.small, color: colors.muted, marginTop: 8 },
 });

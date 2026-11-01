@@ -65,3 +65,17 @@ export async function saveSeen(keys: string[]): Promise<void> {
   // Keep the list bounded so storage never grows without limit.
   await AsyncStorage.setItem(SEEN_KEY, JSON.stringify(keys.slice(0, 3000))).catch(() => {});
 }
+
+const ONBOARD_KEY = "onboarded:v1";
+
+export async function needsOnboarding(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem(ONBOARD_KEY)) !== "1";
+  } catch {
+    return false;
+  }
+}
+
+export async function finishOnboarding(): Promise<void> {
+  await AsyncStorage.setItem(ONBOARD_KEY, "1").catch(() => {});
+}

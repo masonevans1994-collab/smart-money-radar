@@ -1,9 +1,13 @@
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { amountLabel, changeLabel, isSell, money, related, signalKey, sourceFor, tagFor } from "./logic";
+import {
+  agencyLabel, amountLabel, isSell, money, related, shortDate, signalKey, sourceFor,
+  tagFor,
+} from "./logic";
 import { ChangeChip, ScoreBadge } from "./SignalCard";
-import { colors } from "./theme";
+import { Spark } from "./Spark";
+import { colors, fonts, type } from "./theme";
 import type { Signal } from "./types";
 
 type RowData = [label: string, value: string | number | null | undefined];
@@ -11,41 +15,43 @@ type RowData = [label: string, value: string | number | null | undefined];
 function Rows({ rows }: { rows: RowData[] }) {
   const shown = rows.filter(([, v]) => v !== undefined && v !== null && v !== "");
   return (
-    <>
+    <View style={styles.table}>
       {shown.map(([label, value], i) => (
         <View key={label} style={[styles.kv, i === shown.length - 1 && { borderBottomWidth: 0 }]}>
           <Text style={styles.k}>{label}</Text>
           <Text style={styles.v}>{String(value)}</Text>
         </View>
       ))}
-    </>
+    </View>
   );
 }
 
 function detailRows(s: Signal): RowData[] {
   if (s.kind === "contract") {
     return [
-      ["Company", s.company], ["Ticker", s.ticker], ["Award value", amountLabel(s)],
+      ["Company", `${s.company} (${s.ticker})`],
+      ["Awarding agency", s.agency], ["Branch or office", s.sub_agency],
+      ["Award value", amountLabel(s)],
       ["Company market value", s.market_cap ? money(s.market_cap) : null],
-      ["Award vs. company size", s.award_pct != null ? `${s.award_pct}%` : null],
-      ["Agency", s.agency], ["Branch / office", s.sub_agency], ["Awarded", s.trade_date],
-      ["Source", s.source], ["Award ID", s.award_id],
+      ["Award vs. company size", s.award_pct != null ? `${s.award_pct.toFixed(1)}%` : null],
+      ["Awarded", shortDate(s.trade_date)], ["Source", sourceFor(s)], ["Award ID", s.award_id],
     ];
   }
   if (s.kind === "insider") {
     return [
-      ["Who", s.who], ["Company", s.company], ["Role", s.role_label],
+      ["Who", s.who], ["Role", s.role_label], ["Company", `${s.company} (${s.ticker})`],
       ["Amount", amountLabel(s)], ["Shares", s.shares.toLocaleString("en-US")],
-      ["Avg price", s.avg_price != null ? `$${s.avg_price.toFixed(2)}` : null],
+      ["Price paid", s.avg_price != null ? `$${s.avg_price.toFixed(2)}` : null],
       ["Shares after", s.shares_after?.toLocaleString("en-US")],
-      ["Traded", s.trade_date], ["Disclosed", s.disclosed],
+      ["Traded", shortDate(s.trade_date)], ["Disclosed", shortDate(s.disclosed)],
     ];
   }
   return [
-    ["Who", s.who], ["Chamber", s.chamber], ["District", s.district], ["Owner", s.owner],
+    ["Member", s.who], ["Chamber", s.chamber], ["District", s.district], ["Owner", s.owner],
     ["Amount", amountLabel(s)],
     ["Asset", s.asset_type === "OP" ? "Options" : s.asset_type === "ST" ? "Stock" : s.asset_type],
-    ["Traded", s.trade_date], ["Disclosed", s.disclosed], ["Days to disclose", s.lag_days],
+    ["Traded", shortDate(s.trade_date)], ["Disclosed", shortDate(s.disclosed)],
+    ["Days to disclose", s.lag_days],
   ];
 }
 
@@ -53,21 +59,21 @@ function MiniList({ title, items, onOpen }: {
   title: string; items: Signal[]; onOpen: (s: Signal) => void;
 }) {
   if (!items.length) return null;
+  const shown = items.slice(0, 8);
   return (
     <>
       <Text style={styles.section}>{title}</Text>
-      <View style={styles.box}>
-        {items.slice(0, 8).map((x, i) => (
-          <Pressable key={`${x.kind}-${x.who}-${x.trade_date}-${i}`} onPress={() => onOpen(x)}
-            style={[styles.mini, i === Math.min(items.length, 8) - 1 && { borderBottomWidth: 0 }]}>
-            <Text style={[styles.miniScore, { color: x.score >= 70 ? colors.accent : colors.muted }]}>
-              {x.score}
-            </Text>
+      <View style={styles.table}>
+        {shown.map((x, i) => (
+          <Pressable key={`${signalKey(x)}-${i}`} onPress={() => onOpen(x)}
+            style={[styles.mini, i === shown.length - 1 && { borderBottomWidth: 0 }]}>
             <View style={{ flex: 1 }}>
+              <Text style={[styles.miniAmount, x.kind === "contract" && { color: colors.gold }]}>
+                {amountLabel(x)}
+              </Text>
               <Text style={styles.miniHead} numberOfLines={2}>{x.headline}</Text>
-              <Text style={styles.miniMeta}>{sourceFor(x)} · {x.trade_date ?? ""}</Text>
             </View>
-            <Text style={styles.chev}>›</Text>
+            <ScoreBadge score={x.score} />
           </Pressable>
         ))}
       </View>
@@ -80,6 +86,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
   onToggleStar: (ticker: string) => void; onOpen: (s: Signal) => void; onClose: () => void;
 }) {
   const rel = signal ? related(all, signal) : { sameTicker: [], sameWho: [] };
+  const contract = signal?.kind === "contract";
   return (
     <Modal visible={!!signal} animationType="slide" presentationStyle="pageSheet"
       onRequestClose={onClose}>
@@ -87,70 +94,82 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
         <SafeAreaView style={styles.wrap} edges={["top", "bottom"]}>
           {signal && (
             <>
-              <View style={styles.top}>
-                <Pressable onPress={onClose} hitSlop={12}>
-                  <Text style={styles.link}>Close</Text>
+              <View style={styles.bar}>
+                <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button">
+                  <Text style={styles.barLink}>Done</Text>
                 </Pressable>
-                <Pressable onPress={() => onToggleStar(signal.ticker)} hitSlop={12}>
-                  <Text style={[styles.link, { color: colors.warn }]}>
-                    {starred ? "★ Watching" : "☆ Watch"}
+                <Pressable onPress={() => onToggleStar(signal.ticker)} hitSlop={12} accessibilityRole="button">
+                  <Text style={[styles.barLink, { color: colors.gold }]}>
+                    {starred ? `★ Saved ${signal.ticker}` : `☆ Save ${signal.ticker}`}
                   </Text>
                 </Pressable>
               </View>
               <ScrollView key={signalKey(signal)} contentContainerStyle={styles.content}>
-                <View style={styles.hero}>
-                  <ScoreBadge score={signal.score} size={72} />
-                  <View style={{ flex: 1, gap: 4 }}>
-                    <Text style={styles.ticker}>{signal.ticker}</Text>
-                    <Text style={[styles.tag, { color: isSell(signal) ? colors.sell : colors.accent }]}>
-                      {tagFor(signal)} · {sourceFor(signal)}
+                <Text style={styles.kicker}>
+                  {contract ? `${tagFor(signal)} from ${agencyLabel(signal)}` : tagFor(signal)}
+                </Text>
+                <Text style={[styles.heroAmount,
+                  { color: contract ? colors.gold : isSell(signal) ? colors.down : colors.text }]}>
+                  {amountLabel(signal)}
+                </Text>
+                <View style={styles.who}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.company}>
+                      {signal.kind === "congress" ? signal.who : signal.company}
                     </Text>
-                    <View style={{ flexDirection: "row" }}><ChangeChip signal={signal} /></View>
+                    <Text style={styles.tickerLine}>
+                      {signal.ticker}
+                      {signal.kind === "insider" && signal.role_label ? `, bought by ${signal.who}` : ""}
+                    </Text>
                   </View>
+                  <ScoreBadge score={signal.score} size="lg" />
                 </View>
-                <Text style={styles.headline}>{signal.headline}</Text>
 
-                <Text style={styles.section}>Why it scored {signal.score}</Text>
+                {signal.spark && (
+                  <View style={styles.chartBox}>
+                    <View style={styles.chartHead}>
+                      <Text style={styles.chartTitle}>
+                        {signal.ticker} since {contract ? "the award" : "the trade"}
+                      </Text>
+                      <ChangeChip signal={signal} big />
+                    </View>
+                    <Spark data={signal.spark} mark={signal.spark_mark} width={300} height={72}
+                      up={(signal.change_pct ?? 0) >= 0} />
+                    <Text style={styles.chartFoot}>
+                      Gold bar marks {shortDate(signal.trade_date)}.
+                      {signal.price_then != null && signal.price_now != null
+                        ? ` $${signal.price_then.toFixed(2)} then, $${signal.price_now.toFixed(2)} now.` : ""}
+                    </Text>
+                  </View>
+                )}
+
+                <Text style={styles.section}>Why it stands out</Text>
                 {signal.reasons.map((r) => (
-                  <View key={r} style={styles.bulletRow}>
-                    <Text style={styles.reason}>•</Text>
-                    <Text style={[styles.reason, { flex: 1 }]}>{r}</Text>
+                  <View key={r} style={styles.reasonRow}>
+                    <View style={styles.reasonDot} />
+                    <Text style={styles.reason}>{r}</Text>
                   </View>
                 ))}
 
-                {signal.kind === "contract" && !!signal.description && (
+                {contract && !!signal.description && (
                   <>
-                    <Text style={styles.section}>What the contract is for</Text>
+                    <Text style={styles.section}>What the contract covers</Text>
                     <Text style={styles.desc}>{signal.description}</Text>
                   </>
                 )}
 
-                {signal.price_now !== undefined && (
-                  <>
-                    <Text style={styles.section}>Stock since then</Text>
-                    <View style={styles.box}>
-                      <Rows rows={[
-                        [signal.kind === "insider" && signal.avg_price ? "Insider paid" : "Price then",
-                          signal.price_then != null ? `$${signal.price_then.toFixed(2)}` : null],
-                        [`Price ${signal.price_date ?? "now"}`,
-                          signal.price_now != null ? `$${signal.price_now.toFixed(2)}` : null],
-                        ["Change", changeLabel(signal)?.replace(" since", "")],
-                      ]} />
-                    </View>
-                  </>
-                )}
-
                 <Text style={styles.section}>Details</Text>
-                <View style={styles.box}><Rows rows={detailRows(signal)} /></View>
+                <Rows rows={detailRows(signal)} />
 
-                <MiniList title={`Everything else in ${signal.ticker}`} items={rel.sameTicker} onOpen={onOpen} />
-                {signal.kind !== "contract" && (
+                <MiniList title={`More on ${signal.ticker}`} items={rel.sameTicker} onOpen={onOpen} />
+                {!contract && (
                   <MiniList title={`More from ${signal.who}`} items={rel.sameWho} onOpen={onOpen} />
                 )}
 
                 {!!signal.url && (
-                  <Pressable style={styles.button} onPress={() => Linking.openURL(signal.url)}>
-                    <Text style={styles.buttonText}>View original source</Text>
+                  <Pressable style={styles.button} onPress={() => Linking.openURL(signal.url)}
+                    accessibilityRole="link">
+                    <Text style={styles.buttonText}>Open the official record</Text>
                   </Pressable>
                 )}
                 <Text style={styles.disclaimer}>
@@ -167,42 +186,39 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
 
 const styles = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg },
-  top: { flexDirection: "row", justifyContent: "space-between", padding: 16 },
-  link: { color: colors.accent, fontSize: 16, fontWeight: "600" },
-  content: { padding: 20, paddingTop: 4, paddingBottom: 40 },
-  hero: { flexDirection: "row", alignItems: "center", gap: 16 },
-  ticker: { color: colors.text, fontSize: 30, fontWeight: "800" },
-  tag: { fontSize: 13, fontWeight: "600" },
-  headline: { color: colors.text, fontSize: 18, lineHeight: 25, marginTop: 16 },
-  section: {
-    color: colors.muted, fontSize: 12, fontWeight: "700", letterSpacing: 0.8,
-    textTransform: "uppercase", marginTop: 24, marginBottom: 8,
-  },
-  reason: { color: colors.soft, fontSize: 15, lineHeight: 22 },
-  bulletRow: { flexDirection: "row", gap: 8, marginBottom: 4 },
-  desc: { color: colors.soft, fontSize: 14, lineHeight: 21 },
-  box: {
-    backgroundColor: colors.panel, borderColor: colors.line, borderWidth: 1,
-    borderRadius: 12, paddingHorizontal: 14,
-  },
+  bar: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
+  barLink: { fontFamily: fonts.semibold, fontSize: 16, color: colors.text },
+  content: { paddingHorizontal: 20, paddingBottom: 48 },
+  kicker: { ...type.bodyStrong, color: colors.muted },
+  heroAmount: { ...type.hero, marginTop: 2, fontVariant: ["tabular-nums"] },
+  who: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 10 },
+  company: { ...type.title, color: colors.text },
+  tickerLine: { ...type.body, color: colors.soft, marginTop: 2 },
+  chartBox: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, marginTop: 20, gap: 12 },
+  chartHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  chartTitle: { ...type.bodyStrong, color: colors.text },
+  chartFoot: { ...type.small, color: colors.muted },
+  section: { ...type.title, fontSize: 17, color: colors.text, marginTop: 28, marginBottom: 10 },
+  reasonRow: { flexDirection: "row", gap: 10, marginBottom: 8 },
+  reasonDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.gold, marginTop: 8 },
+  reason: { ...type.lead, fontFamily: fonts.regular, color: colors.soft, flex: 1 },
+  desc: { ...type.body, color: colors.soft },
+  table: { backgroundColor: colors.panel, borderRadius: 16, paddingHorizontal: 16 },
   kv: {
-    flexDirection: "row", justifyContent: "space-between", gap: 12, paddingVertical: 11,
+    flexDirection: "row", justifyContent: "space-between", gap: 12, paddingVertical: 12,
     borderBottomColor: colors.line, borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  k: { color: colors.muted, fontSize: 14 },
-  v: { color: colors.text, fontSize: 14, flexShrink: 1, textAlign: "right" },
+  k: { ...type.body, color: colors.muted },
+  v: { ...type.bodyStrong, color: colors.text, flexShrink: 1, textAlign: "right" },
   mini: {
-    flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 10,
+    flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12,
     borderBottomColor: colors.line, borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  miniScore: { width: 28, fontWeight: "700", fontSize: 15, fontVariant: ["tabular-nums"] },
-  miniHead: { color: colors.text, fontSize: 14, lineHeight: 19 },
-  miniMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  chev: { color: colors.muted, fontSize: 22 },
+  miniAmount: { fontFamily: fonts.bold, fontSize: 15, color: colors.text, fontVariant: ["tabular-nums"] },
+  miniHead: { ...type.small, color: colors.soft, marginTop: 2 },
   button: {
-    backgroundColor: colors.text, borderRadius: 12, paddingVertical: 14,
-    alignItems: "center", marginTop: 24,
+    backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 15, alignItems: "center", marginTop: 28,
   },
-  buttonText: { color: colors.bg, fontWeight: "700", fontSize: 15 },
-  disclaimer: { color: colors.muted, fontSize: 12, textAlign: "center", marginTop: 16 },
+  buttonText: { fontFamily: fonts.bold, fontSize: 16, color: colors.bg },
+  disclaimer: { ...type.small, color: colors.muted, textAlign: "center", marginTop: 16 },
 });
