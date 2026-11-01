@@ -46,8 +46,6 @@ if (await first.count()) {
     console.log("compare: " + (await page.locator("body").innerText()).replace(/\n+/g, " | ").slice(0, 600));
     await page.getByText("‹ Back", { exact: true }).click();
     await page.waitForTimeout(300);
-    await first.click();
-    await page.waitForTimeout(500);
   }
   const why = page.getByText("Score?", { exact: true });
   if (await why.count()) {

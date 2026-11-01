@@ -3,7 +3,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
   agencyLabel, amountLabel, isSell, KEEP_IN_MIND, money, plainSummary, related, SCORE_GUIDE,
-  lastTimeDetail, lastTimeHeadline, lastTimeLines, peersFor, sectorLine, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel, tooSoon } from "./logic";
+  lastTimeDetail, lastTimeHeadline, lastTimeLines, peersFor, sectorLine, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel, tooSoon, shortName } from "./logic";
 import { useState, useMemo } from "react";
 import { agencyDescription } from "./agencies";
 import { CallBox } from "./CallBox";
@@ -238,7 +238,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                     <View style={{ flex: 1 }}>
                       <Text style={styles.compareTitle}>Compare with other {agencyLabel(signal)} winners</Text>
                       <Text style={styles.compareSub} numberOfLines={2}>
-                        {peersFor(all, signal).map((p) => p.ticker).join(", ")} also won from {agencyLabel(signal)} this month
+                        {peersFor(all, signal).map((p) => shortName(p)).join(", ")} also won from {agencyLabel(signal)} this month
                       </Text>
                     </View>
                     <Text style={styles.compareChev}>›</Text>
@@ -365,7 +365,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexDirection: "row", justifyContent: "space-between", gap: 12, paddingVertical: 12,
     borderBottomColor: colors.line, borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  k: { ...type.body, color: colors.muted },
+  k: { ...type.body, color: colors.muted, flexShrink: 0, marginRight: 12 },
   v: { ...type.bodyStrong, color: colors.text, flexShrink: 1, textAlign: "right" },
   mini: {
     flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12,

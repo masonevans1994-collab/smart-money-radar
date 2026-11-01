@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { amountLabel, money, moveLabel, recordSentence, shortDate, tickerHelp } from "./logic";
+import { amountLabel, money, moveLabel, recordSentence, shortDate, shortName, tickerHelp, tooSoon } from "./logic";
 import { Spark } from "./Spark";
 import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
@@ -40,15 +40,15 @@ export function CompanyPage({ view, saved, onToggleSave, onOpen, onClose }: {
             </Pressable>
           </View>
           <ScrollView contentContainerStyle={styles.content}>
-            <Text style={styles.name}>{view.name}</Text>
-            <Text style={styles.ticker}>{view.ticker}</Text>
+            <Text style={styles.name}>{shortName({ company: view.name, ticker: view.ticker })}</Text>
+            <Text style={styles.ticker}>{view.ticker}{shortName({ company: view.name, ticker: view.ticker }) !== view.name ? ` · ${view.name}` : ""}</Text>
             <Text style={styles.help}>{tickerHelp(a)}</Text>
 
             {a.spark && (
               <View style={styles.box}>
                 <View style={styles.rowBetween}>
                   <Text style={styles.boxTitle}>Stock lately</Text>
-                  <Text style={[styles.move, { color: (a.change_pct ?? 0) >= 0 ? colors.up : colors.down }]}>
+                  <Text style={[styles.move, { color: tooSoon(a) || !a.change_pct ? colors.soft : a.change_pct > 0 ? colors.up : colors.down }]}>
                     {moveLabel(a)}
                   </Text>
                 </View>

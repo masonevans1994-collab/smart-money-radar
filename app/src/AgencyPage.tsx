@@ -8,8 +8,8 @@ import { Spark } from "./Spark";
 import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
 
-export function AgencyPage({ summary, onOpen, onClose }: {
-  summary: AgencySummary | null; onOpen: (s: Signal) => void; onClose: () => void;
+export function AgencyPage({ summary, onOpen, onClose, stacked }: {
+  summary: AgencySummary | null; onOpen: (s: Signal) => void; onClose: () => void; stacked?: boolean;
 }) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -23,7 +23,7 @@ export function AgencyPage({ summary, onOpen, onClose }: {
             <>
               <View style={styles.bar}>
                 <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button">
-                  <Text style={styles.done}>Done</Text>
+                  <Text style={styles.done}>{stacked ? "‹ Back" : "Done"}</Text>
                 </Pressable>
               </View>
               <ScrollView contentContainerStyle={styles.content}>

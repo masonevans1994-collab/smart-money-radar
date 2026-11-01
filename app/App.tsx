@@ -378,21 +378,21 @@ function Radar({ appearance, onAppearance }: {
         onClose={() => setOpen(null)}
         onLegal={() => { setOpen(null); setLegal(true); }}
         onExplain={(term: string) => setGlossary(term)}
-        onAgency={(label: string) => { setOpen(null); setAgencyPage(label); }}
+        onAgency={(label: string) => setAgencyPage(label)}
         onCompany={(s: Signal) => {
           const items = signals.filter((x) => x.ticker === s.ticker);
           const anchor = items.find((x) => x.kind === "contract" && x.history) ?? items.find((x) => x.kind === "contract") ?? s;
-          const name = anchor.kind === "congress" ? anchor.ticker : anchor.company;
-          setOpen(null); setCompany({ ticker: s.ticker, name, anchor, items });
+          const name = anchor.kind === "congress" ? anchor.company ?? anchor.ticker : anchor.company;
+          setCompany({ ticker: s.ticker, name, anchor, items });
         }}
-        onCompare={(items: Signal[]) => { setOpen(null); setCompare(items); }}
+        onCompare={(items: Signal[]) => setCompare(items)}
       />
       <Compare items={compare} onOpen={(s) => { setCompare(null); openSignal(s); }} onClose={() => setCompare(null)} />
       {company && (
         <CompanyPage view={company} saved={watch.has(company.ticker)} onToggleSave={toggleStar}
           onOpen={(s) => { setCompany(null); openSignal(s); }} onClose={() => setCompany(null)} />
       )}
-      <AgencyPage summary={agencyPage ? agencySummary(signals, agencyPage) : null}
+      <AgencyPage summary={agencyPage ? agencySummary(signals, agencyPage) : null} stacked={!!open}
         onOpen={(s) => { setAgencyPage(null); openSignal(s); }} onClose={() => setAgencyPage(null)} />
       <Onboarding visible={onboard && !legal} onDone={() => { setOnboard(false); finishOnboarding(); }}
         onLegal={() => setLegal(true)} />

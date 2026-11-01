@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { type Call, type Direction } from "./game";
-import { shortDate } from "./logic";
+import { shortDate, shortName } from "./logic";
 import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
 
@@ -29,7 +29,7 @@ export function CallBox({ signal, call, onCall }: {
       ) : (
         <>
           <Text style={styles.body}>
-            Where will {signal.ticker} be in 30 days? Just a guess, no money involved. You'll see
+            Where will {shortName(signal)}'s stock ({signal.ticker}) be in 30 days? Just a guess, no money involved. You'll see
             how you did on the You tab.
           </Text>
           <View style={styles.row}>
