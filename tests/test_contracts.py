@@ -8,6 +8,7 @@ KTOS|Kratos Defense & Security Solutions, Inc. - Common Stock|Q|N|N|100|N|N
 PLTR|Palantir Technologies Inc. - Class A Common Stock|Q|N|N|100|N|N
 AVAV|AeroVironment, Inc. - Common Stock|Q|N|N|100|N|N
 GNRL|General Widget Corp - Common Stock|Q|N|N|100|N|N
+FRMI|Fermi Inc. - Common Stock|Q|N|N|100|N|N
 QQQ|Invesco QQQ Trust|G|N|N|100|Y|N
 File Creation Time: 1101202612:00|||||||"""
 OTHER = """ACT Symbol|Security Name|Exchange|CQS Symbol|ETF|Round Lot Size|Test Issue|NASDAQ Symbol
@@ -36,6 +37,8 @@ def test_symbol_matching():
     assert b.match("GENERAL ATOMICS AERONAUTICAL SYSTEMS") is None         # private
     assert b.match("GENERAL SERVICES CO") is None                          # too generic
     assert b.match("ANDURIL INDUSTRIES INC") is None                       # private
+    assert b.match("FERMI FORWARD DISCOVERY GROUP, LLC") is None            # not Fermi Inc
+    assert b.match("FERMI INC")[0] == "FRMI"
 
 
 USA = {"results": [

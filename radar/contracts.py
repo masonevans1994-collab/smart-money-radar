@@ -133,8 +133,10 @@ class SymbolBook:
                 key = " ".join(tokens[:k])
                 if key not in self.index:
                     continue
-                if k == 1 and (len(tokens[0]) < 5 or tokens[0] in GENERIC):
-                    break  # too ambiguous to trust on one word
+                if k == 1 and (len(tokens[0]) < 5 or tokens[0] in GENERIC or len(tokens) > 2):
+                    # One shared word is too weak when the full name says more
+                    # ("FERMI FORWARD DISCOVERY GROUP" is not Fermi Inc).
+                    break
                 return self.index[key], name
         return None
 
