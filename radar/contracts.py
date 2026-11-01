@@ -380,3 +380,49 @@ def match_awards(awards: list[dict], book: SymbolBook) -> tuple[list[dict], int]
                         "description": sentence_case(a.get("description") or ""),
                         "trade_date": a["award_date"], "disclosed": a["award_date"] or ""})
     return matched, private
+
+
+# ---------- one card per award ----------
+
+SOURCE_RANK = {"Company 8-K": 0, "DoD announcement": 1, "USAspending": 2,
+               "USAspending (modification)": 3}
+
+
+def dedupe(awards: list[dict], day_window: int = 5, value_tolerance: float = 0.15) -> list[dict]:
+    """Merge the same award reported by several sources into one record.
+
+    Same award = same award ID, or same ticker with a value within 15% and
+    dates within a few days. The freshest source wins; other sources are
+    listed in 'also_reported_by' and fill any missing description.
+    """
+    import datetime as dt
+
+    def day(a):
+        try:
+            return dt.date.fromisoformat((a.get("award_date") or "")[:10])
+        except ValueError:
+            return None
+
+    kept: list[dict] = []
+    for a in sorted(awards, key=lambda x: SOURCE_RANK.get(x.get("source", ""), 9)):
+        match = None
+        for k in kept:
+            if k["ticker"] != a["ticker"] or bool(k.get("is_modification")) != bool(a.get("is_modification")):
+                continue
+            if a.get("award_id") and a.get("award_id") == k.get("award_id"):
+                match = k
+                break
+            d1, d2 = day(a), day(k)
+            close_value = abs(a["value"] - k["value"]) <= value_tolerance * max(a["value"], k["value"])
+            if d1 and d2 and abs((d1 - d2).days) <= day_window and close_value:
+                match = k
+                break
+        if match:
+            match.setdefault("also_reported_by", []).append(a.get("source"))
+            if not match.get("description") and a.get("description"):
+                match["description"] = a["description"]
+            if a.get("sub_agency") and not match.get("sub_agency"):
+                match["sub_agency"] = a["sub_agency"]
+        else:
+            kept.append(dict(a))
+    return kept
