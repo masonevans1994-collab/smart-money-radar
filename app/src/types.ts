@@ -9,6 +9,23 @@ interface BaseSignal {
   trade_date: string | null;
   disclosed: string;
   url: string;
+  // Price move since the trade/award (absent when no price was found)
+  price_then?: number;
+  price_now?: number;
+  price_date?: string;
+  change_pct?: number;
+}
+
+export interface ContractSignal extends BaseSignal {
+  kind: "contract";
+  company: string;
+  value: number;
+  agency: string;
+  sub_agency: string;
+  description: string;
+  source: string; // "DoD announcement" | "USAspending"
+  award_id?: string | null;
+  congress_before?: number;
 }
 
 export interface InsiderSignal extends BaseSignal {
@@ -25,6 +42,7 @@ export interface InsiderSignal extends BaseSignal {
 
 export interface CongressSignal extends BaseSignal {
   kind: "congress";
+  chamber?: "House" | "Senate";
   district: string;
   type: string; // Purchase | Sale | Sale (partial) | Exchange
   owner: string;
@@ -34,11 +52,12 @@ export interface CongressSignal extends BaseSignal {
   lag_days?: number;
 }
 
-export type Signal = InsiderSignal | CongressSignal;
+export type Signal = ContractSignal | InsiderSignal | CongressSignal;
 
 export interface Feed {
   generated: string;
   demo: boolean;
+  contracts?: ContractSignal[];
   insiders: InsiderSignal[];
   congress: CongressSignal[];
   review: { member: string; url: string }[];

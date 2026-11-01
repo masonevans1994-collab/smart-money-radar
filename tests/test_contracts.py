@@ -1,0 +1,108 @@
+import datetime as dt
+import urllib.error
+
+from radar import contracts, scoring
+
+NASDAQ = """Symbol|Security Name|Market Category|Test Issue|Financial Status|Round Lot Size|ETF|NextShares
+KTOS|Kratos Defense & Security Solutions, Inc. - Common Stock|Q|N|N|100|N|N
+PLTR|Palantir Technologies Inc. - Class A Common Stock|Q|N|N|100|N|N
+AVAV|AeroVironment, Inc. - Common Stock|Q|N|N|100|N|N
+GNRL|General Widget Corp - Common Stock|Q|N|N|100|N|N
+QQQ|Invesco QQQ Trust|G|N|N|100|Y|N
+File Creation Time: 1101202612:00|||||||"""
+OTHER = """ACT Symbol|Security Name|Exchange|CQS Symbol|ETF|Round Lot Size|Test Issue|NASDAQ Symbol
+LMT|Lockheed Martin Corporation Common Stock|N|LMT|N|100|N|LMT
+BA|Boeing Company (The) Common Stock|N|BA|N|100|N|BA
+HII|Huntington Ingalls Industries, Inc. Common Stock|N|HII|N|100|N|HII
+CW|Curtiss-Wright Corporation Common Stock|N|CW|N|100|N|CW
+LMT$A|Lockheed Preferred|N|LMT$A|N|100|N|LMT$A
+File Creation Time: 1101202612:00||||||||"""
+
+
+def book():
+    return contracts.SymbolBook.from_symbol_files(NASDAQ, OTHER)
+
+
+def test_symbol_matching():
+    b = book()
+    assert b.match("LOCKHEED MARTIN CORPORATION")[0] == "LMT"
+    assert b.match("SIKORSKY AIRCRAFT CORPORATION")[0] == "LMT"           # alias
+    assert b.match("", "KRATOS DEFENSE & SECURITY SOLUTIONS, INC.")[0] == "KTOS"
+    assert b.match("THE BOEING COMPANY")[0] == "BA"
+    assert b.match("ELECTRIC BOAT CORP")[0] == "GD"
+    assert b.match("HUNTINGTON INGALLS INCORPORATED")[0] == "HII"
+    assert b.match("AEROVIRONMENT INC")[0] == "AVAV"
+    assert b.match("CURTISS-WRIGHT CONTROLS INC")[0] == "CW"
+    assert b.match("GENERAL ATOMICS AERONAUTICAL SYSTEMS") is None         # private
+    assert b.match("GENERAL SERVICES CO") is None                          # too generic
+    assert b.match("ANDURIL INDUSTRIES INC") is None                       # private
+
+
+USA = {"results": [
+    {"Award ID": "70CDCR26C0001", "Recipient Name": "PALANTIR USG INC",
+     "Recipient Parent Name": "PALANTIR TECHNOLOGIES INC", "Award Amount": 96000000.0,
+     "Awarding Agency": "Department of Homeland Security", "Awarding Sub Agency": "ICE",
+     "Start Date": "2026-10-20", "Description": "DATA PLATFORM", "generated_internal_id": "CONT_AWD_1"},
+    {"Award ID": "X", "Recipient Name": "SOME PRIVATE LLC", "Award Amount": 20000000.0,
+     "Awarding Agency": "Department of Energy", "Start Date": "2026-10-21",
+     "generated_internal_id": "CONT_AWD_2"},
+], "page_metadata": {"hasNext": False}}
+
+
+def test_usaspending_fetch_and_fallback():
+    calls = []
+
+    def post(url, body, ua):
+        calls.append(body["fields"])
+        if len(calls) == 1:
+            raise urllib.error.HTTPError(url, 422, "bad field", {}, None)
+        assert body["filters"]["time_period"][0]["date_type"] == "new_awards_only"
+        return USA
+    awards = contracts.fetch_usaspending("ua x@y.z", today=dt.date(2026, 11, 1), post=post,
+                                         log=lambda *_: None)
+    assert calls[1] == contracts.MIN_FIELDS and len(awards) == 2
+    matched, private = contracts.match_awards(awards, book())
+    assert private == 1 and matched[0]["ticker"] == "PLTR"
+    assert matched[0]["url"] == "https://www.usaspending.gov/award/CONT_AWD_1"
+
+
+RSS = """<rss><channel><item><title><![CDATA[Contracts For Oct. 30, 2026]]></title>
+<link>https://www.defense.gov/News/Contracts/Contract/Article/1234/</link>
+<pubDate>Fri, 30 Oct 2026 21:00:00 GMT</pubDate></item></channel></rss>"""
+ARTICLE = """<div class="body"><p style="text-align:center"><strong>NAVY</strong></p>
+<p>Huntington Ingalls Industries Inc., Newport News, Virginia, is awarded a $1,234,567,890 modification
+to previously awarded contract N00024-21-C-2101 for advance planning of carrier refueling.</p>
+<p><strong>ARMY</strong></p>
+<p>Anduril Industries Inc.,* Costa Mesa, California, was awarded a $99,500,000 firm-fixed-price contract
+for counter-drone systems. Bids were solicited via the internet with one received.</p>
+<p>Lockheed Martin Corp., Grand Prairie, Texas, has been awarded a $250,000,000 contract for
+missile production (W31P4Q-26-C-0001).</p>
+<p>*Small business</p></div>"""
+
+
+def test_dod_announcements():
+    pages = {contracts.DOD_RSS: RSS, "https://www.defense.gov/News/Contracts/Contract/Article/1234/": ARTICLE}
+    awards = contracts.fetch_dod(pages.__getitem__, today=dt.date(2026, 11, 1), log=lambda *_: None)
+    got = [(a["recipient"], a["value"], a["sub_agency"], a["award_date"]) for a in awards]
+    assert got == [
+        ("Huntington Ingalls Industries Inc.", 1234567890.0, "Navy", "2026-10-30"),
+        ("Anduril Industries Inc.", 99500000.0, "Army", "2026-10-30"),
+        ("Lockheed Martin Corp.", 250000000.0, "Army", "2026-10-30"),
+    ]
+    matched, private = contracts.match_awards(awards, book())
+    assert [m["ticker"] for m in matched] == ["HII", "LMT"] and private == 1
+
+
+def test_contract_scoring_flags_congress_buys():
+    matched, _ = contracts.match_awards(contracts.fetch_dod(
+        {contracts.DOD_RSS: RSS, "https://www.defense.gov/News/Contracts/Contract/Article/1234/": ARTICLE}.__getitem__,
+        today=dt.date(2026, 11, 1), log=lambda *_: None), book())
+    congress = [{"ticker": "LMT", "trade_date": "2026-10-01", "type": "Purchase", "who": "Sen. Jane Example"},
+                {"ticker": "LMT", "trade_date": "2026-11-15", "type": "Purchase", "who": "After"},
+                {"ticker": "HII", "trade_date": "2026-10-01", "type": "Sale", "who": "Seller"}]
+    ranked = scoring.score_contracts(matched, congress, [])
+    lmt = next(c for c in ranked if c["ticker"] == "LMT")
+    assert any("Sen. Jane Example bought LMT 29 days before" in r for r in lmt["reasons"])
+    hii = next(c for c in ranked if c["ticker"] == "HII")
+    assert not any("before this award" in r for r in hii["reasons"])
+    assert hii["score"] >= 40  # $1.2B award

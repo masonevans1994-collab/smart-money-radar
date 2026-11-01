@@ -1,6 +1,86 @@
 {
-  "generated": "2026-11-01T15:29:28+00:00",
+  "generated": "2026-11-01T16:10:36+00:00",
   "demo": true,
+  "contracts": [
+    {
+      "kind": "contract",
+      "source": "DoD announcement",
+      "ticker": "QRTZ",
+      "company": "Quartzline Semiconductors",
+      "who": "Quartzline Semiconductors",
+      "recipient": "Quartzline Semiconductors",
+      "parent": "",
+      "value": 480000000.0,
+      "agency": "Department of Defense",
+      "sub_agency": "Air Force",
+      "award_date": "2026-10-30",
+      "trade_date": "2026-10-30",
+      "disclosed": "2026-10-30",
+      "award_id": "DEMO-0001",
+      "description": "Radiation-hardened processors for satellite programs (demo).",
+      "url": "",
+      "congress_before": 2,
+      "score": 70,
+      "reasons": [
+        "Won a $480.0M contract from Air Force",
+        "Announced by the Pentagon (same-day news)",
+        "Hon. Lee Sample bought QRTZ 16 days before this award (+1 more)",
+        "Company insiders have been buying too"
+      ],
+      "headline": "Quartzline Semiconductors (QRTZ) won $480.0M from Air Force"
+    },
+    {
+      "kind": "contract",
+      "source": "DoD announcement",
+      "ticker": "DMRB",
+      "company": "Demo Robotics Inc",
+      "who": "Demo Robotics Inc",
+      "recipient": "Demo Robotics Inc",
+      "parent": "",
+      "value": 1200000000.0,
+      "agency": "Department of Defense",
+      "sub_agency": "Army",
+      "award_date": "2026-10-31",
+      "trade_date": "2026-10-31",
+      "disclosed": "2026-10-31",
+      "award_id": "DEMO-0001",
+      "description": "Autonomous ground vehicles, five-year contract (demo).",
+      "url": "",
+      "score": 55,
+      "reasons": [
+        "Won a $1.2B contract from Army",
+        "Announced by the Pentagon (same-day news)",
+        "Company insiders have been buying too"
+      ],
+      "headline": "Demo Robotics Inc (DMRB) won $1.2B from Army"
+    },
+    {
+      "kind": "contract",
+      "source": "USAspending",
+      "ticker": "SNDL",
+      "company": "Sandlot Energy Co",
+      "who": "Sandlot Energy Co",
+      "recipient": "Sandlot Energy Co",
+      "parent": "",
+      "value": 65000000.0,
+      "agency": "Department of Defense",
+      "sub_agency": "Defense Logistics Agency",
+      "award_date": "2026-10-27",
+      "trade_date": "2026-10-27",
+      "disclosed": "2026-10-27",
+      "award_id": "DEMO-0001",
+      "description": "Fuel supply for domestic bases (demo).",
+      "url": "",
+      "congress_before": 1,
+      "score": 50,
+      "reasons": [
+        "Won a $65.0M contract from Defense Logistics Agency",
+        "Hon. Pat Placeholder bought SNDL 65 days before this award",
+        "Company insiders have been buying too"
+      ],
+      "headline": "Sandlot Energy Co (SNDL) won $65.0M from Defense Logistics Agency"
+    }
+  ],
   "insiders": [
     {
       "kind": "insider",

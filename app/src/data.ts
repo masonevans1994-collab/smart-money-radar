@@ -48,3 +48,20 @@ export async function loadWatchlist(): Promise<Set<string>> {
 export async function saveWatchlist(list: Set<string>): Promise<void> {
   await AsyncStorage.setItem(WATCH_KEY, JSON.stringify([...list])).catch(() => {});
 }
+
+const SEEN_KEY = "seen:v1";
+
+/** Keys the user has already been shown. null means first launch. */
+export async function loadSeen(): Promise<Set<string> | null> {
+  try {
+    const raw = await AsyncStorage.getItem(SEEN_KEY);
+    return raw ? new Set(JSON.parse(raw) as string[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveSeen(keys: string[]): Promise<void> {
+  // Keep the list bounded so storage never grows without limit.
+  await AsyncStorage.setItem(SEEN_KEY, JSON.stringify(keys.slice(0, 3000))).catch(() => {});
+}

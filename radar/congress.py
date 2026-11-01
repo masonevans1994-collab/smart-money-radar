@@ -196,6 +196,7 @@ def fetch_house_trades(fetcher, days: int = 14, max_filings: int = 60,
         for r in rows:
             trades.append({
                 "kind": "congress",
+                "chamber": "House",
                 "who": f["member"],
                 "district": f["district"],
                 "disclosed": f["filing_date"].isoformat(),

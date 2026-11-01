@@ -1,7 +1,16 @@
 // Pure helpers (no React Native imports) so they're easy to test.
 import type { Feed, Signal } from "./types";
 
-export type Tab = "top" | "insider" | "congress" | "watch";
+export type Tab = "top" | "latest" | "contract" | "insider" | "congress" | "watch";
+
+export const TABS: { key: Tab; label: string }[] = [
+  { key: "top", label: "Top" },
+  { key: "latest", label: "Latest" },
+  { key: "contract", label: "Contracts" },
+  { key: "insider", label: "Insiders" },
+  { key: "congress", label: "Congress" },
+  { key: "watch", label: "★ Watchlist" },
+];
 
 export function money(v: number): string {
   if (v >= 1e9) return `$${(v / 1e9).toFixed(1)}B`;
@@ -11,21 +20,40 @@ export function money(v: number): string {
 }
 
 export function allSignals(feed: Feed): Signal[] {
-  return [...feed.insiders, ...feed.congress].sort((a, b) => b.score - a.score);
+  return [...(feed.contracts ?? []), ...feed.insiders, ...feed.congress]
+    .sort((a, b) => b.score - a.score);
+}
+
+/** Stable identity for a signal across refreshes (used for NEW badges). */
+export function signalKey(s: Signal): string {
+  const amount = s.kind === "congress" ? s.amount_low : s.value;
+  return `${s.kind}|${s.ticker}|${s.who}|${s.trade_date ?? ""}|${amount}`;
 }
 
 export function filterSignals(
   signals: Signal[], tab: Tab, query: string, watchlist: Set<string>,
 ): Signal[] {
   const q = query.trim().toLowerCase();
-  return signals.filter((s) => {
+  const rows = signals.filter((s) => {
+    if (tab === "contract" && s.kind !== "contract") return false;
     if (tab === "insider" && s.kind !== "insider") return false;
     if (tab === "congress" && s.kind !== "congress") return false;
     if (tab === "watch" && !watchlist.has(s.ticker)) return false;
     if (!q) return true;
-    const company = s.kind === "insider" ? s.company : "";
+    const company = s.kind === "congress" ? "" : s.company;
     return `${s.ticker} ${s.who} ${company}`.toLowerCase().includes(q);
   });
+  if (tab === "latest") {
+    return [...rows].sort((a, b) =>
+      (b.disclosed || "").localeCompare(a.disclosed || "") || b.score - a.score);
+  }
+  return rows;
+}
+
+export function related(all: Signal[], s: Signal) {
+  const sameTicker = all.filter((x) => x !== s && x.ticker === s.ticker);
+  const sameWho = all.filter((x) => x !== s && x.who === s.who && x.ticker !== s.ticker);
+  return { sameTicker, sameWho };
 }
 
 export function scoreColor(score: number): string {
@@ -37,14 +65,27 @@ export function isSell(s: Signal): boolean {
 }
 
 export function tagFor(s: Signal): string {
+  if (s.kind === "contract") return "Contract win";
   return s.kind === "insider" ? "Insider buy" : s.type;
 }
 
+export function sourceFor(s: Signal): string {
+  if (s.kind === "contract") return s.source === "DoD announcement" ? "PENTAGON" : "USASPENDING";
+  if (s.kind === "insider") return "SEC";
+  return (s.chamber ?? "Congress").toUpperCase();
+}
+
 export function amountLabel(s: Signal): string {
-  if (s.kind === "insider") return money(s.value);
+  if (s.kind !== "congress") return money(s.value);
   return s.amount_high
     ? `${money(s.amount_low)}–${money(s.amount_high)}`
     : `Over ${money(s.amount_low)}`;
+}
+
+export function changeLabel(s: Signal): string | null {
+  if (s.change_pct === undefined || s.change_pct === null) return null;
+  const sign = s.change_pct > 0 ? "+" : "";
+  return `${sign}${s.change_pct.toFixed(1)}% since`;
 }
 
 export function timeAgo(iso: string, now = Date.now()): string {

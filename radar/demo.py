@@ -59,3 +59,20 @@ def congress_trades():
         _con("Hon. Dana Example", "ZZ01", "BRKW", "Sale (partial)", 50_001, 100_000,
              30, 3, owner="Spouse"),
     ]
+
+
+def contract_awards():
+    def a(ticker, company, value, agency, days_ago, desc, source="DoD announcement"):
+        return {"kind": "contract", "source": source, "ticker": ticker, "company": company,
+                "who": company, "recipient": company, "parent": "", "value": value,
+                "agency": "Department of Defense", "sub_agency": agency,
+                "award_date": _d(days_ago), "trade_date": _d(days_ago), "disclosed": _d(days_ago),
+                "award_id": "DEMO-0001", "description": desc, "url": ""}
+    return [
+        a("QRTZ", "Quartzline Semiconductors", 480e6, "Air Force", 2,
+          "Radiation-hardened processors for satellite programs (demo)."),
+        a("DMRB", "Demo Robotics Inc", 1.2e9, "Army", 1,
+          "Autonomous ground vehicles, five-year contract (demo)."),
+        a("SNDL", "Sandlot Energy Co", 65e6, "Defense Logistics Agency", 5,
+          "Fuel supply for domestic bases (demo).", source="USAspending"),
+    ]

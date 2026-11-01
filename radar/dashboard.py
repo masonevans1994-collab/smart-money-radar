@@ -10,10 +10,11 @@ TEMPLATE = Path(__file__).with_name("dashboard_template.html")
 
 
 def render(insiders: list[dict], congress: list[dict], review: list[dict],
-           demo: bool = False) -> str:
+           demo: bool = False, contracts: list[dict] | None = None) -> str:
     payload = {
         "generated": dt.datetime.now().strftime("%b %d, %Y %I:%M %p"),
         "demo": demo,
+        "contracts": contracts or [],
         "insiders": insiders,
         "congress": congress,
         "review": review,

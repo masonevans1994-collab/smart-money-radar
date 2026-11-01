@@ -10,10 +10,11 @@ import argparse
 import json
 import os
 import sys
+import datetime as dt
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import congress, dashboard, demo, edgar, scoring
+from . import congress, contracts, dashboard, demo, edgar, prices, scoring, senate
 from .http import Fetcher
 
 
@@ -26,16 +27,24 @@ def main(argv=None) -> int:
                    help="calendar days of House filings to scan (default 14)")
     p.add_argument("--max-filings", type=int, default=600,
                    help="cap on Form 4 filings fetched (each is one request)")
-    p.add_argument("--no-congress", action="store_true", help="skip House filings")
+    p.add_argument("--no-congress", action="store_true", help="skip House and Senate filings")
+    p.add_argument("--no-senate", action="store_true", help="skip Senate filings")
+    p.add_argument("--no-prices", action="store_true", help="skip price performance")
+    p.add_argument("--contract-days", type=int, default=14,
+                   help="days of new contract awards to scan (default 14)")
+    p.add_argument("--min-contract", type=float, default=10e6,
+                   help="smallest contract award to include, in dollars (default 10M)")
+    p.add_argument("--no-contracts", action="store_true", help="skip contract awards")
     p.add_argument("--min-score", type=int, default=0, help="hide signals below this")
     p.add_argument("--demo", action="store_true", help="use made-up sample data")
     p.add_argument("--out", default="dashboard.html")
     p.add_argument("--json", default="signals.json")
     args = p.parse_args(argv)
 
-    review = []
+    review, awards = [], []
     if args.demo:
         ins_raw, con_raw = demo.insider_events(), demo.congress_trades()
+        awards = demo.contract_awards()
     else:
         ua = os.environ.get("SEC_USER_AGENT", "")
         try:
@@ -53,26 +62,71 @@ def main(argv=None) -> int:
                     fetcher, args.congress_days)
             except RuntimeError as e:
                 print(f"  skipped: {e}")
+            if not args.no_senate:
+                print("Scanning Senate periodic transaction reports...")
+                s_trades, s_review = senate.fetch_senate_trades(ua, args.congress_days)
+                con_raw += s_trades
+                review += s_review
+        if not args.no_contracts:
+            print("Scanning federal contract awards...")
+            awards = load_contracts(fetcher, ua, args)
 
     ins, con = scoring.score_insider(ins_raw), scoring.score_congress(con_raw)
     scoring.cross_signal(ins, con)
+    con_all = scoring.score_contracts(awards, con, ins)
+
+    if not args.demo and not args.no_prices and (ins or con or con_all):
+        print("Looking up price moves since each trade or award...")
+        everything = ins + con + con_all
+        dates = [x["trade_date"] for x in everything if x.get("trade_date")]
+        floor = dt.date.today() - dt.timedelta(days=400)
+        start = max(floor, dt.date.fromisoformat(min(dates)) - dt.timedelta(days=7)) \
+            if dates else dt.date.today() - dt.timedelta(days=120)
+        book = prices.PriceBook(fetcher, start)
+        prices.add_performance(everything, book)
+        print(f"  price sources: {book.source_ok}")
     ins = [x for x in ins if x["score"] >= args.min_score]
     con = [x for x in con if x["score"] >= args.min_score]
+    con_all = [x for x in con_all if x["score"] >= args.min_score]
 
     for p_ in (args.json, args.out):
         Path(p_).parent.mkdir(parents=True, exist_ok=True)
     Path(args.json).write_text(json.dumps({
         "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "demo": args.demo,
-        "insiders": ins, "congress": con, "review": review,
+        "contracts": con_all, "insiders": ins, "congress": con, "review": review,
     }, indent=2, default=str))
-    Path(args.out).write_text(dashboard.render(ins, con, review, demo=args.demo))
+    Path(args.out).write_text(dashboard.render(ins, con, review, demo=args.demo, contracts=con_all))
 
-    print(f"\n{len(ins)} insider buys, {len(con)} Congress trades.")
-    for x in sorted(ins + con, key=lambda x: x["score"], reverse=True)[:10]:
+    print(f"\n{len(con_all)} contract awards, {len(ins)} insider buys, {len(con)} Congress trades.")
+    for x in sorted(con_all + ins + con, key=lambda x: x["score"], reverse=True)[:15]:
         print(f"  [{x['score']:>3}] {x['headline']}")
     print(f"\nDashboard: {Path(args.out).resolve()}")
     return 0
+
+
+def load_contracts(fetcher, ua, args) -> list[dict]:
+    raw = contracts.fetch_usaspending(ua, args.contract_days, args.min_contract)
+
+    def get_text(url):
+        body = fetcher.get(url, cache="/Article/" in url)
+        if body is None:
+            raise RuntimeError("not found")
+        return body.decode("utf-8", "replace")
+
+    dod = contracts.fetch_dod(get_text, days=min(args.contract_days, 10))
+    raw += [a for a in dod if a["value"] >= args.min_contract]
+    try:
+        book = contracts.SymbolBook.from_symbol_files(
+            fetcher.get(contracts.NASDAQ_LISTED, cache=False).decode("utf-8", "replace"),
+            fetcher.get(contracts.OTHER_LISTED, cache=False).decode("utf-8", "replace"))
+        print(f"  symbol list: {len(book.index)} listed companies")
+    except Exception as e:  # noqa: BLE001 - aliases alone still match the big names
+        print(f"  symbol list unavailable ({e}); using built-in contractor list only")
+        book = contracts.SymbolBook()
+    matched, private = contracts.match_awards(raw, book)
+    print(f"  {len(matched)} awards to public companies ({private} to private companies skipped)")
+    return matched
 
 
 if __name__ == "__main__":

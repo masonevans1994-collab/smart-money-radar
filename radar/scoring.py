@@ -155,3 +155,49 @@ def cross_signal(insiders: list[dict], congress: list[dict]) -> None:
             x["reasons"].append("Company insiders AND members of Congress are both buying")
     insiders.sort(key=lambda x: x["score"], reverse=True)
     congress.sort(key=lambda x: x["score"], reverse=True)
+
+
+def score_contracts(contracts: list[dict], congress: list[dict],
+                    insiders: list[dict]) -> list[dict]:
+    """Rank contract awards; flag Congress members who traded the stock first."""
+    wins = defaultdict(int)
+    for c in contracts:
+        wins[c["ticker"]] += 1
+    out = []
+    for c in contracts:
+        score, why = 0, []
+        v = c["value"]
+        score += 40 if v >= 1e9 else 30 if v >= 250e6 else 22 if v >= 100e6 \
+            else 15 if v >= 50e6 else 8
+        agency = c.get("sub_agency") or c.get("agency") or "the government"
+        why.append(f"Won a {_money(v)} contract from {agency}")
+        if c.get("source") == "DoD announcement":
+            score += 5
+            why.append("Announced by the Pentagon (same-day news)")
+        if wins[c["ticker"]] >= 2:
+            score += 10
+            why.append(f"{wins[c['ticker']]} awards to {c['ticker']} in this period")
+
+        award_day = c.get("award_date")
+        buyers = []
+        for t in congress:
+            if t["ticker"] != c["ticker"] or not t.get("trade_date") or not award_day:
+                continue
+            gap = (dt.date.fromisoformat(award_day) - dt.date.fromisoformat(t["trade_date"])).days
+            if 0 <= gap <= 90 and t["type"] == "Purchase":
+                buyers.append((gap, t["who"]))
+        if buyers:
+            gap, who = min(buyers)
+            score += 25
+            more = f" (+{len(buyers) - 1} more)" if len(buyers) > 1 else ""
+            why.append(f"{who} bought {c['ticker']} {gap} days before this award{more}")
+            c["congress_before"] = len(buyers)
+        if any(e["ticker"] == c["ticker"] for e in insiders):
+            score += 10
+            why.append("Company insiders have been buying too")
+
+        c["score"] = max(0, min(100, score))
+        c["reasons"] = why
+        c["headline"] = f"{c['company']} ({c['ticker']}) won {_money(v)} from {agency}"
+        out.append(c)
+    return sorted(out, key=lambda x: x["score"], reverse=True)

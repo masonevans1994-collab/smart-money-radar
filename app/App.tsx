@@ -1,24 +1,19 @@
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text,
+  ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text,
   TextInput, View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { type FeedSource, loadFeed, loadWatchlist, saveWatchlist } from "./src/data";
-import { allSignals, filterSignals, type Tab, timeAgo } from "./src/logic";
+import {
+  type FeedSource, loadFeed, loadSeen, loadWatchlist, saveSeen, saveWatchlist,
+} from "./src/data";
+import { allSignals, filterSignals, signalKey, type Tab, TABS, timeAgo } from "./src/logic";
 import { SignalCard } from "./src/SignalCard";
 import { SignalDetail } from "./src/SignalDetail";
 import { colors } from "./src/theme";
 import type { Feed, Signal } from "./src/types";
-
-const TABS: { key: Tab; label: string }[] = [
-  { key: "top", label: "Top" },
-  { key: "insider", label: "Insiders" },
-  { key: "congress", label: "Congress" },
-  { key: "watch", label: "★ Watchlist" },
-];
 
 function Radar() {
   const [feed, setFeed] = useState<Feed | null>(null);
@@ -29,10 +24,17 @@ function Radar() {
   const [query, setQuery] = useState("");
   const [watch, setWatch] = useState<Set<string>>(new Set());
   const [open, setOpen] = useState<Signal | null>(null);
+  // Keys seen before this launch; anything else gets a NEW badge.
+  const [seenBefore, setSeenBefore] = useState<Set<string> | null>(null);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
     const r = await loadFeed();
+    const prev = await loadSeen();
+    const keys = allSignals(r.feed).map(signalKey);
+    // First launch: nothing is "new". Later: badge what wasn't there before.
+    setSeenBefore((cur) => cur ?? prev ?? new Set(keys));
+    saveSeen([...new Set([...keys, ...(prev ?? [])])]);
     setFeed(r.feed);
     setSource(r.source);
     setError(r.error);
@@ -58,6 +60,7 @@ function Radar() {
   const rows = useMemo(
     () => filterSignals(signals, tab, query, watch), [signals, tab, query, watch]);
   const hot = signals.filter((s) => s.score >= 70).length;
+  const newCount = seenBefore ? signals.filter((s) => !seenBefore.has(signalKey(s))).length : 0;
 
   if (!feed) {
     return (
@@ -76,6 +79,7 @@ function Radar() {
         <Text style={styles.sub}>
           {source === "live" ? "Updated " : source === "cached" ? "Offline · saved " : "Demo data · "}
           {timeAgo(feed.generated)}
+          {newCount > 0 ? ` · ${newCount} new since last visit` : ""}
         </Text>
       </View>
 
@@ -90,19 +94,23 @@ function Radar() {
       )}
 
       <View style={styles.stats}>
-        <Stat n={feed.insiders.length} label="Insider buys" />
+        <Stat n={feed.contracts?.length ?? 0} label="Contract wins" />
         <Stat n={feed.congress.length} label="Congress trades" />
-        <Stat n={hot} label="Scored 70+" />
+        <Stat n={feed.insiders.length} label="Insider buys" />
       </View>
 
-      <View style={styles.tabs}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabs} style={{ flexGrow: 0 }}>
         {TABS.map((t) => (
           <Pressable key={t.key} onPress={() => setTab(t.key)}
             style={[styles.tab, tab === t.key && styles.tabOn]}>
             <Text style={[styles.tabText, tab === t.key && styles.tabTextOn]}>{t.label}</Text>
           </Pressable>
         ))}
-      </View>
+      </ScrollView>
+      {hot > 0 && tab === "top" && !query && (
+        <Text style={styles.hint}>{hot} signals scored 70 or higher</Text>
+      )}
       <TextInput
         value={query}
         onChangeText={setQuery}
@@ -122,7 +130,9 @@ function Radar() {
         data={rows}
         keyExtractor={(s: Signal, i: number) => `${s.kind}-${s.ticker}-${s.who}-${s.trade_date}-${i}`}
         renderItem={({ item }: { item: Signal }) => (
-          <SignalCard signal={item} starred={watch.has(item.ticker)} onPress={() => setOpen(item)} />
+          <SignalCard signal={item} starred={watch.has(item.ticker)}
+            isNew={!!seenBefore && !seenBefore.has(signalKey(item))}
+            onPress={() => setOpen(item)} />
         )}
         ListHeaderComponent={header}
         ListEmptyComponent={
@@ -140,6 +150,8 @@ function Radar() {
       />
       <SignalDetail
         signal={open}
+        all={signals}
+        onOpen={setOpen}
         starred={!!open && watch.has(open.ticker)}
         onToggleStar={toggleStar}
         onClose={() => setOpen(null)}
@@ -186,7 +198,8 @@ const styles = StyleSheet.create({
   },
   statN: { color: colors.text, fontSize: 20, fontWeight: "700", fontVariant: ["tabular-nums"] },
   statL: { color: colors.muted, fontSize: 12 },
-  tabs: { flexDirection: "row", gap: 6, paddingHorizontal: 16, marginTop: 14, flexWrap: "wrap" },
+  tabs: { flexDirection: "row", gap: 6, paddingHorizontal: 16, marginTop: 14 },
+  hint: { color: colors.muted, fontSize: 12, marginHorizontal: 16, marginTop: 8 },
   tab: {
     backgroundColor: colors.chip, borderColor: colors.line, borderWidth: 1,
     borderRadius: 999, paddingHorizontal: 13, paddingVertical: 7,
