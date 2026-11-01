@@ -199,3 +199,17 @@ def test_transactions_include_new_awards_with_signing_date():
     got = contract_news.parse_modifications(rows, 50e6, min_new=10e6)
     assert [(g["award_id"], g["is_modification"], g["award_date"]) for g in got] == [("N1", False, "2026-10-30")]
     assert contract_news.parse_modifications(rows, 50e6) == []
+
+
+def test_dedupe_prefers_freshest_source():
+    a = lambda src, value, day, aid=None, desc="": {"ticker": "LMT", "source": src, "value": value,
+                                                    "award_date": day, "award_id": aid, "description": desc}
+    out = contracts.dedupe([
+        a("USAspending", 1.0e9, "2026-10-28", "W1", "Missile production"),
+        a("Company 8-K", 1.05e9, "2026-10-29"),
+        a("USAspending", 2e8, "2026-10-28", "W2"),          # different award
+        {**a("USAspending (modification)", 1.0e9, "2026-10-28", "W3"), "is_modification": True},
+    ])
+    assert len(out) == 3
+    top = next(x for x in out if x["source"] == "Company 8-K")
+    assert top["also_reported_by"] == ["USAspending"] and top["description"] == "Missile production"

@@ -179,7 +179,10 @@ def load_contracts(fetcher, ua, args) -> list[dict]:
     print(f"  {len(matched)} awards to public companies ({private} to private companies skipped)")
     matched += contract_news.fetch_8k_awards(fetcher, days=min(args.contract_days, 14),
                                              min_amount=args.min_contract)
-    return matched
+    merged = contracts.dedupe(matched)
+    if len(merged) < len(matched):
+        print(f"  merged {len(matched) - len(merged)} duplicate report(s) of the same award")
+    return merged
 
 
 def fetch_text(url: str) -> str | None:
