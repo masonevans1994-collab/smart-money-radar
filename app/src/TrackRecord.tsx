@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import { pct } from "./logic";
-import { colors } from "./theme";
+import { colors, fonts, type } from "./theme";
 import type { TrackRecord as TR } from "./types";
 
 export function TrackRecord({ record }: { record?: TR | null }) {
@@ -15,8 +15,8 @@ export function TrackRecord({ record }: { record?: TR | null }) {
   return (
     <View style={styles.wrap}>
       <Text style={styles.intro}>
-        How stocks did after each kind of signal, compared with the {record.benchmark}.
-        {record.demo ? " (Demo numbers.)" : ""}
+        Average stock moves after each kind of signal, compared with the {record.benchmark}.
+        {record.demo ? " These are sample numbers." : ""}
       </Text>
       {record.groups.map((g) => {
         const vs = g.avg_vs_spy ?? 0;
@@ -47,8 +47,9 @@ export function TrackRecord({ record }: { record?: TR | null }) {
         );
       })}
       <Text style={styles.foot}>
-        Past results don't predict future ones. Returns use daily closing prices from the
-        signal date (or the insider's own price) to today. Not investment advice.
+        These figures are calculated from daily closing prices, not from real trades, and don't
+        include fees, taxes or the delay before news becomes public. Past results don't predict
+        future results. Not investment advice.
       </Text>
     </View>
   );
@@ -64,22 +65,19 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { paddingHorizontal: 16, gap: 10, marginTop: 14 },
-  intro: { color: colors.soft, fontSize: 14, lineHeight: 20, marginBottom: 4 },
-  card: {
-    backgroundColor: colors.panel, borderColor: colors.line, borderWidth: 1,
-    borderRadius: 14, padding: 14, gap: 8,
-  },
-  label: { color: colors.text, fontSize: 16, fontWeight: "700" },
+  wrap: { paddingHorizontal: 16, gap: 10, marginTop: 4 },
+  intro: { ...type.body, color: colors.soft, marginBottom: 4 },
+  card: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, gap: 10 },
+  label: { ...type.lead, fontFamily: fonts.bold, color: colors.text },
   row: { flexDirection: "row", alignItems: "baseline", gap: 8 },
-  big: { fontSize: 28, fontWeight: "800", fontVariant: ["tabular-nums"] },
-  bigLabel: { color: colors.muted, fontSize: 13 },
+  big: { ...type.amount, fontVariant: ["tabular-nums"] },
+  bigLabel: { ...type.body, color: colors.muted },
   stats: { flexDirection: "row", gap: 8 },
-  stat: { flex: 1, backgroundColor: colors.chip, borderRadius: 10, padding: 8 },
-  statV: { color: colors.text, fontSize: 15, fontWeight: "700", fontVariant: ["tabular-nums"] },
-  statL: { color: colors.muted, fontSize: 11, marginTop: 2 },
-  muted: { color: colors.muted, fontSize: 12 },
-  best: { color: colors.soft, fontSize: 12 },
-  empty: { color: colors.muted, textAlign: "center", marginTop: 40, marginHorizontal: 24, lineHeight: 22 },
-  foot: { color: colors.muted, fontSize: 11, lineHeight: 16, marginTop: 6, marginBottom: 20 },
+  stat: { flex: 1, backgroundColor: colors.raised, borderRadius: 10, padding: 8 },
+  statV: { fontFamily: fonts.bold, fontSize: 15, color: colors.text, fontVariant: ["tabular-nums"] },
+  statL: { ...type.small, fontSize: 11, color: colors.muted, marginTop: 2 },
+  muted: { ...type.small, color: colors.muted },
+  best: { ...type.small, color: colors.soft },
+  empty: { ...type.lead, color: colors.muted, textAlign: "center", marginTop: 40, marginHorizontal: 24 },
+  foot: { ...type.small, fontSize: 11, color: colors.muted, marginTop: 6, marginBottom: 20 },
 });

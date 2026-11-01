@@ -10,3 +10,4 @@ app/node_modules/
 app/.expo/
 tools/node_modules/
 tools/package*.json
+.test-out/

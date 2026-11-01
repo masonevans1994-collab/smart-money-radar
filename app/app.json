@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Smart Money Radar",
+    "name": "Radar",
     "slug": "smart-money-radar",
     "version": "0.1.0",
     "orientation": "portrait",
@@ -8,14 +8,30 @@
     "backgroundColor": "#0d1117",
     "ios": {
       "bundleIdentifier": "com.smartmoneyradar.app",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "privacyManifests": {
+        "NSPrivacyTracking": false,
+        "NSPrivacyCollectedDataTypes": [],
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
+          }
+        ]
+      }
     },
     "android": {
       "package": "com.smartmoneyradar.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0d1117"
-      }
+      },
+      "permissions": []
     },
     "web": {
       "output": "single",

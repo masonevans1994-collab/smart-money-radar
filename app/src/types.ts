@@ -14,6 +14,8 @@ interface BaseSignal {
   price_now?: number;
   price_date?: string;
   change_pct?: number;
+  spark?: number[];     // daily closes from ~a week before through today
+  spark_mark?: number;  // index of the trade/award day in spark
 }
 
 export interface ContractSignal extends BaseSignal {
@@ -28,7 +30,8 @@ export interface ContractSignal extends BaseSignal {
   congress_before?: number;
   market_cap?: number;
   is_modification?: boolean;
-  committee_flag?: string; // "Sen. X · Armed Services" when a buyer oversees the agency
+  committee_flag?: string;
+  history_note?: string; // "Sen. X · Armed Services" when a buyer oversees the agency
   award_pct?: number; // award as % of company market value
 }
 
