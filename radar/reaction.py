@@ -125,6 +125,26 @@ def verdict(summary: dict) -> str:
 
 # ---------- per-company history for the feed ----------
 
+STOP = {"the", "inc", "inc.", "corp", "corp.", "corporation", "co", "co.", "company", "plc", "llc",
+        "ltd", "holdings", "group", "international", "technologies", "industries", "usa", "u.s."}
+
+
+def search_name(listed: str) -> str:
+    """USAspending's recipient search matches best on the distinctive first word(s):
+    'Fluor Corporation' -> 'Fluor'; 'L3Harris Technologies, Inc.' -> 'L3Harris';
+    'General Dynamics Corporation' -> 'General Dynamics'."""
+    words = [w.strip(",.") for w in listed.split(" (")[0].split()]
+    keep = []
+    for w in words:
+        if w.lower().strip(",.") in STOP and keep:
+            break
+        if w.lower().strip(",.") not in STOP:
+            keep.append(w)
+        if len(keep) == 2:
+            break
+    return " ".join(keep) or listed
+
+
 def closest_match(rows: list[dict], value: float, exclude_id: str | None = None) -> dict | None:
     """The past award nearest in size that has a 30-day result."""
     pool = [r for r in rows if r.get("d30_vs_spy") is not None and r.get("id") != exclude_id]
@@ -149,7 +169,7 @@ def company_history(contracts: list[dict], user_agent: str, book, min_amount: fl
         else:
             if len(seen) >= max_companies:
                 continue
-            name = (c.get("company") or "").split(" (")[0]
+            name = search_name(c.get("company") or c.get("recipient") or "")
             key = f"reaction|{name}|{min_amount}"
             awards = cache.get(key)
             if awards is None:

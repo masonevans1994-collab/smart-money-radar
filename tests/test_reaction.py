@@ -42,9 +42,18 @@ def test_closest_match_and_company_history():
         def get(self, k): return self.store.get(k)
         def put(self, k, v): self.store[k] = v
     cache = Cache()
-    cache.put("reaction|Fluor Corporation|25000000.0",
+    cache.put("reaction|Fluor|25000000.0",
               [{"date": "2026-01-10", "value": 5e7, "agency": "Navy", "id": "X"},
                {"date": "2026-01-12", "value": 6e7, "agency": "Navy", "id": "Y"}])
     cs = [{"ticker": "FLR", "company": "Fluor Corporation", "value": 5.5e7, "score": 40, "award_id": "Z"}]
     assert reaction.company_history(cs, "ua", Book(), cache=cache, log=lambda *_: None) == 1
     assert cs[0]["history"]["closest"]["value"] in (5e7, 6e7) and cs[0]["history"]["n"] == 2
+
+
+def test_search_name():
+    assert reaction.search_name("Fluor Corporation") == "Fluor"
+    assert reaction.search_name("L3Harris Technologies, Inc.") == "L3Harris"
+    assert reaction.search_name("Accenture plc") == "Accenture"
+    assert reaction.search_name("General Dynamics Corporation") == "General Dynamics"
+    assert reaction.search_name("Honeywell International Inc.") == "Honeywell"
+    assert reaction.search_name("The Boeing Company") == "Boeing"

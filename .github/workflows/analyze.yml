@@ -15,7 +15,7 @@ jobs:
       - run: pip install -r requirements.txt
       - env:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || format('Smart Money Radar {0}@users.noreply.github.com', github.repository_owner) }}
-        run: PYTHONPATH=. python tools/diag_names.py
+        run: PYTHONPATH=. python tools/analyze.py
       - uses: actions/upload-artifact@v4
         with: { name: reaction-report, path: public/reaction-report.json }
       - name: Save report to the 'screens' branch
