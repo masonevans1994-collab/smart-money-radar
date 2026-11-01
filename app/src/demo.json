@@ -1,0 +1,285 @@
+{
+  "generated": "2026-11-01T15:29:28+00:00",
+  "demo": true,
+  "insiders": [
+    {
+      "kind": "insider",
+      "ticker": "DMRB",
+      "company": "Demo Robotics Inc",
+      "who": "Avery Lin",
+      "roles": {
+        "title": "Chief Executive Officer",
+        "officer": true,
+        "director": true,
+        "ten_pct": false
+      },
+      "trade_date": "2026-10-28",
+      "disclosed": "2026-10-30",
+      "shares": 120000,
+      "avg_price": 18.4,
+      "value": 2208000.0,
+      "shares_before": 95000,
+      "shares_after": 215000,
+      "is_10b5_1": false,
+      "url": "",
+      "role_label": "Chief Executive Officer",
+      "pct_increase": 126.3,
+      "score": 90,
+      "reasons": [
+        "Bought $2.2M of stock on the open market",
+        "Buyer is the Chief Executive Officer, who knows the business best",
+        "More than doubled their stake (+126%)",
+        "Cluster buy: 3 insiders bought DMRB recently"
+      ],
+      "headline": "Avery Lin (Chief Executive Officer) bought $2.2M of DMRB"
+    },
+    {
+      "kind": "insider",
+      "ticker": "DMRB",
+      "company": "Demo Robotics Inc",
+      "who": "Sam Okafor",
+      "roles": {
+        "title": "Chief Financial Officer",
+        "officer": true,
+        "director": false,
+        "ten_pct": false
+      },
+      "trade_date": "2026-10-29",
+      "disclosed": "2026-10-31",
+      "shares": 22000,
+      "avg_price": 18.1,
+      "value": 398200.00000000006,
+      "shares_before": 60000,
+      "shares_after": 82000,
+      "is_10b5_1": false,
+      "url": "",
+      "role_label": "Chief Financial Officer",
+      "pct_increase": 36.7,
+      "score": 70,
+      "reasons": [
+        "Bought $398K of stock on the open market",
+        "Buyer is the Chief Financial Officer, who knows the business best",
+        "Grew their stake by 37%",
+        "Cluster buy: 3 insiders bought DMRB recently"
+      ],
+      "headline": "Sam Okafor (Chief Financial Officer) bought $398K of DMRB"
+    },
+    {
+      "kind": "insider",
+      "ticker": "SNDL",
+      "company": "Sandlot Energy Co",
+      "who": "Riley Moreno",
+      "roles": {
+        "title": "",
+        "officer": false,
+        "director": true,
+        "ten_pct": false
+      },
+      "trade_date": "2026-10-27",
+      "disclosed": "2026-10-29",
+      "shares": 250000,
+      "avg_price": 6.2,
+      "value": 1550000.0,
+      "shares_before": 0,
+      "shares_after": 250000,
+      "is_10b5_1": false,
+      "url": "",
+      "role_label": "Director",
+      "score": 70,
+      "reasons": [
+        "Bought $1.6M of stock on the open market",
+        "Brand-new position for this insider",
+        "Company insiders AND members of Congress are both buying"
+      ],
+      "headline": "Riley Moreno (Director) bought $1.6M of SNDL"
+    },
+    {
+      "kind": "insider",
+      "ticker": "QRTZ",
+      "company": "Quartzline Semiconductors",
+      "who": "Morgan Hale",
+      "roles": {
+        "title": "President",
+        "officer": true,
+        "director": false,
+        "ten_pct": false
+      },
+      "trade_date": "2026-10-30",
+      "disclosed": "2026-11-01",
+      "shares": 9000,
+      "avg_price": 142.0,
+      "value": 1278000.0,
+      "shares_before": 310000,
+      "shares_after": 319000,
+      "is_10b5_1": false,
+      "url": "",
+      "role_label": "President",
+      "pct_increase": 2.9,
+      "score": 70,
+      "reasons": [
+        "Bought $1.3M of stock on the open market",
+        "Buyer is the President, who knows the business best",
+        "Company insiders AND members of Congress are both buying"
+      ],
+      "headline": "Morgan Hale (President) bought $1.3M of QRTZ"
+    },
+    {
+      "kind": "insider",
+      "ticker": "DMRB",
+      "company": "Demo Robotics Inc",
+      "who": "Jordan Pike",
+      "roles": {
+        "title": "",
+        "officer": false,
+        "director": true,
+        "ten_pct": false
+      },
+      "trade_date": "2026-10-28",
+      "disclosed": "2026-10-30",
+      "shares": 15000,
+      "avg_price": 18.55,
+      "value": 278250.0,
+      "shares_before": 40000,
+      "shares_after": 55000,
+      "is_10b5_1": false,
+      "url": "",
+      "role_label": "Director",
+      "pct_increase": 37.5,
+      "score": 60,
+      "reasons": [
+        "Bought $278K of stock on the open market",
+        "Grew their stake by 38%",
+        "Cluster buy: 3 insiders bought DMRB recently"
+      ],
+      "headline": "Jordan Pike (Director) bought $278K of DMRB"
+    },
+    {
+      "kind": "insider",
+      "ticker": "BRKW",
+      "company": "Brookway Foods",
+      "who": "Casey Grant",
+      "roles": {
+        "title": "VP Operations",
+        "officer": true,
+        "director": false,
+        "ten_pct": false
+      },
+      "trade_date": "2026-10-26",
+      "disclosed": "2026-10-28",
+      "shares": 2000,
+      "avg_price": 31.75,
+      "value": 63500.0,
+      "shares_before": 18000,
+      "shares_after": 20000,
+      "is_10b5_1": true,
+      "url": "",
+      "role_label": "VP Operations",
+      "pct_increase": 11.1,
+      "score": 20,
+      "reasons": [
+        "Bought $64K of stock on the open market",
+        "Buyer is the VP Operations, who knows the business best",
+        "Pre-scheduled (10b5-1) plan, so less of a signal"
+      ],
+      "headline": "Casey Grant (VP Operations) bought $64K of BRKW"
+    }
+  ],
+  "congress": [
+    {
+      "kind": "congress",
+      "who": "Hon. Dana Example",
+      "district": "ZZ01",
+      "ticker": "QRTZ",
+      "type": "Purchase",
+      "amount_low": 250001,
+      "amount_high": 500000,
+      "owner": "Spouse",
+      "asset_type": "OP",
+      "trade_date": "2026-10-12",
+      "notified_date": "2026-10-15",
+      "disclosed": "2026-10-29",
+      "url": "",
+      "lag_days": 17,
+      "score": 75,
+      "reasons": [
+        "Spouse bought $250K\u2013$500K",
+        "Options trade: leveraged, short-dated bet",
+        "2 members made the same move in QRTZ",
+        "Company insiders AND members of Congress are both buying"
+      ],
+      "value_mid": 375000.5,
+      "headline": "Hon. Dana Example (spouse) bought $250K\u2013$500K of QRTZ"
+    },
+    {
+      "kind": "congress",
+      "who": "Hon. Lee Sample",
+      "district": "ZZ04",
+      "ticker": "QRTZ",
+      "type": "Purchase",
+      "amount_low": 15001,
+      "amount_high": 50000,
+      "owner": "Self",
+      "asset_type": "ST",
+      "trade_date": "2026-10-14",
+      "notified_date": "2026-10-17",
+      "disclosed": "2026-10-27",
+      "url": "",
+      "lag_days": 13,
+      "score": 50,
+      "reasons": [
+        "Member bought $15K\u2013$50K",
+        "2 members made the same move in QRTZ",
+        "Company insiders AND members of Congress are both buying"
+      ],
+      "value_mid": 32500.5,
+      "headline": "Hon. Lee Sample bought $15K\u2013$50K of QRTZ"
+    },
+    {
+      "kind": "congress",
+      "who": "Hon. Pat Placeholder",
+      "district": "ZZ07",
+      "ticker": "SNDL",
+      "type": "Purchase",
+      "amount_low": 1001,
+      "amount_high": 15000,
+      "owner": "Self",
+      "asset_type": "ST",
+      "trade_date": "2026-08-23",
+      "notified_date": "2026-08-26",
+      "disclosed": "2026-10-26",
+      "url": "",
+      "lag_days": 64,
+      "score": 45,
+      "reasons": [
+        "Member bought $1K\u2013$15K",
+        "Disclosed 64 days after the trade (limit is 45)",
+        "Company insiders AND members of Congress are both buying"
+      ],
+      "value_mid": 8000.5,
+      "headline": "Hon. Pat Placeholder bought $1K\u2013$15K of SNDL"
+    },
+    {
+      "kind": "congress",
+      "who": "Hon. Dana Example",
+      "district": "ZZ01",
+      "ticker": "BRKW",
+      "type": "Sale (partial)",
+      "amount_low": 50001,
+      "amount_high": 100000,
+      "owner": "Spouse",
+      "asset_type": "ST",
+      "trade_date": "2026-10-02",
+      "notified_date": "2026-10-05",
+      "disclosed": "2026-10-29",
+      "url": "",
+      "lag_days": 27,
+      "score": 20,
+      "reasons": [
+        "Spouse sold $50K\u2013$100K"
+      ],
+      "value_mid": 75000.5,
+      "headline": "Hon. Dana Example (spouse) sold $50K\u2013$100K of BRKW"
+    }
+  ],
+  "review": []
+}

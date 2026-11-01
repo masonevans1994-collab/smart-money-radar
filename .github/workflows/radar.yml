@@ -1,0 +1,91 @@
+# Free backend + phone app hosting on GitHub.
+#
+# Every run:
+#   1. tests the Python radar
+#   2. pulls live SEC Form 4 and House filings and writes signals.json
+#   3. builds the Expo app for the web (opens on any phone)
+#   4. publishes both to GitHub Pages:
+#        https://<user>.github.io/smart-money-radar/            -> the app
+#        https://<user>.github.io/smart-money-radar/signals.json -> the data feed
+#
+# Optional: add a repo secret SEC_USER_AGENT = "Your Name you@example.com"
+# (the SEC asks for a contact). Without it, your GitHub noreply address is used.
+
+name: radar
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Every 30 minutes, 8am-7pm Eastern, Monday-Friday (UTC times).
+    - cron: "*/30 12-23 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: radar
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python packages
+        run: pip install -r requirements.txt
+
+      - name: Test radar
+        run: python -m pytest -q
+
+      # Filings never change once published; caching means each run only
+      # downloads what's new.
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: sec-cache-${{ github.run_id }}
+          restore-keys: sec-cache-
+
+      - name: Pull live filings
+        env:
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || format('Smart Money Radar {0}@users.noreply.github.com', github.repository_owner) }}
+        run: |
+          python -m radar --days 3 --max-filings 2500 \
+            --out public/dashboard.html --json public/signals.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build phone app (web)
+        working-directory: app
+        run: |
+          npm install --no-audit --no-fund
+          npx expo install react-dom react-native-web @expo/metro-runtime
+          npx tsc --noEmit
+          npx expo export --platform web --output-dir dist
+          cp -r dist/. ../public/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

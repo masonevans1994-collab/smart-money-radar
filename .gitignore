@@ -1,0 +1,9 @@
+.cache/
+__pycache__/
+*.pyc
+signals*.json
+dashboard*.html
+
+# app
+app/node_modules/
+app/.expo/

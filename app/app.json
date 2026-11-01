@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Smart Money Radar",
+    "slug": "smart-money-radar",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0d1117",
+    "ios": {
+      "bundleIdentifier": "com.smartmoneyradar.app",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.smartmoneyradar.app"
+    },
+    "web": {
+      "output": "single",
+      "bundler": "metro",
+      "name": "Smart Money Radar",
+      "shortName": "Radar",
+      "themeColor": "#0d1117",
+      "backgroundColor": "#0d1117"
+    },
+    "experiments": {
+      "baseUrl": "/smart-money-radar"
+    }
+  }
+}
