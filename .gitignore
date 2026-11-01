@@ -1,8 +1,9 @@
 .cache/
 __pycache__/
 *.pyc
-signals*.json
-dashboard*.html
+/signals*.json
+/dashboard*.html
+/public/
 
 # app
 app/node_modules/

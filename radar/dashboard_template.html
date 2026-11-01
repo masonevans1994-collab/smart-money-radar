@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Money Radar</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #151b23; --line: #262f3a; --text: #e6edf3;
+    --muted: #8b98a8; --accent: #4cc38a; --warn: #f0b429; --sell: #f2735b;
+    --chip: #1d2530;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
+  header { padding: 22px 18px 10px; max-width: 860px; margin: 0 auto; }
+  h1 { margin: 0; font-size: 22px; letter-spacing: -0.3px; }
+  h1 span { color: var(--accent); }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .demo { background: #3a2d0a; color: var(--warn); border: 1px solid #5c4610;
+    border-radius: 8px; padding: 8px 12px; font-size: 13px; margin-top: 12px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .stat b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+  .stat small { color: var(--muted); font-size: 12px; }
+  nav { position: sticky; top: 0; background: var(--bg); z-index: 2;
+    border-bottom: 1px solid var(--line); }
+  .navin { max-width: 860px; margin: 0 auto; padding: 10px 18px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tab { background: var(--chip); color: var(--muted); border: 1px solid var(--line);
+    border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer; }
+  .tab.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+  input[type=search] { flex: 1; min-width: 140px; background: var(--panel); color: var(--text);
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 14px; }
+  main { max-width: 860px; margin: 0 auto; padding: 14px 18px 60px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px; margin-bottom: 10px; display: grid; grid-template-columns: 52px 1fr; gap: 12px; }
+  .score { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
+    font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums;
+    background: conic-gradient(var(--c) calc(var(--s) * 1%), var(--line) 0); position: relative; }
+  .score::before { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: var(--panel); }
+  .score span { position: relative; }
+  .top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .tick { font-weight: 700; font-size: 17px; }
+  .badge { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; padding: 2px 7px;
+    border-radius: 5px; background: var(--chip); color: var(--muted); }
+  .badge.buy { color: var(--accent); } .badge.sell { color: var(--sell); }
+  .head { margin: 3px 0 6px; }
+  ul { margin: 0; padding-left: 18px; color: #c4ced9; font-size: 14px; }
+  li { margin: 2px 0; }
+  .meta { color: var(--muted); font-size: 12.5px; margin-top: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .meta a { color: var(--accent); text-decoration: none; }
+  .empty { color: var(--muted); text-align: center; padding: 40px 0; }
+  footer { color: var(--muted); font-size: 12px; max-width: 860px; margin: 0 auto; padding: 0 18px 30px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Smart Money <span>Radar</span></h1>
+  <div class="sub" id="gen"></div>
+  <div class="demo" id="demo" hidden>Demo data: the companies, people and trades below are made up to show the layout.</div>
+  <div class="stats">
+    <div class="stat"><b id="n-ins">0</b><small>Insider buys</small></div>
+    <div class="stat"><b id="n-con">0</b><small>Congress trades</small></div>
+    <div class="stat"><b id="n-hot">0</b><small>Scored 70+</small></div>
+  </div>
+</header>
+<nav><div class="navin">
+  <button class="tab on" data-v="all">Top signals</button>
+  <button class="tab" data-v="insider">Insiders</button>
+  <button class="tab" data-v="congress">Congress</button>
+  <input type="search" id="q" placeholder="Filter by ticker or name">
+</div></nav>
+<main id="list"></main>
+<footer id="foot">Built from public SEC Form 4 and U.S. House disclosure filings. For information only, not investment advice.</footer>
+<script>
+const DATA = /*__DATA__*/null;
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let view = "all";
+
+$("#gen").textContent = "Updated " + DATA.generated;
+$("#demo").hidden = !DATA.demo;
+const all = [...DATA.insiders, ...DATA.congress].sort((a, b) => b.score - a.score);
+$("#n-ins").textContent = DATA.insiders.length;
+$("#n-con").textContent = DATA.congress.length;
+$("#n-hot").textContent = all.filter(x => x.score >= 70).length;
+
+function color(s) { return s >= 70 ? "var(--accent)" : s >= 45 ? "var(--warn)" : "var(--muted)"; }
+
+function card(x) {
+  const ins = x.kind === "insider";
+  const sell = !ins && x.type && x.type.startsWith("Sale");
+  const tag = ins ? "Insider buy" : x.type;
+  const sub = ins ? esc(x.company) : esc(x.district ? "Rep. · " + x.district : "House");
+  const dates = `Traded ${esc(x.trade_date)} · Disclosed ${esc(x.disclosed)}`;
+  return `<div class="card">
+    <div class="score" style="--s:${x.score};--c:${color(x.score)}"><span>${x.score}</span></div>
+    <div>
+      <div class="top"><span class="tick">${esc(x.ticker)}</span>
+        <span class="badge ${sell ? "sell" : "buy"}">${esc(tag)}</span>
+        <span class="badge">${ins ? "SEC Form 4" : "Congress"}</span></div>
+      <div class="head">${esc(x.headline)}</div>
+      <ul>${x.reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>
+      <div class="meta"><span>${sub}</span><span>${dates}</span>
+        ${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">Filing ↗</a>` : ""}</div>
+    </div></div>`;
+}
+
+function draw() {
+  const q = $("#q").value.trim().toLowerCase();
+  let rows = view === "all" ? all : all.filter(x => x.kind === view);
+  if (q) rows = rows.filter(x => [x.ticker, x.who, x.company].join(" ").toLowerCase().includes(q));
+  $("#list").innerHTML = rows.length ? rows.slice(0, 200).map(card).join("")
+    : `<div class="empty">No signals match.</div>`;
+}
+
+document.querySelectorAll(".tab").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("on"));
+  b.classList.add("on"); view = b.dataset.v; draw();
+});
+$("#q").oninput = draw;
+if (DATA.review.length) {
+  $("#foot").insertAdjacentHTML("afterbegin",
+    `${DATA.review.length} House filing(s) were scanned paper forms and need a manual look: ` +
+    DATA.review.slice(0, 10).map(r => `<a href="${esc(r.url)}" target="_blank" rel="noopener" style="color:var(--accent)">${esc(r.member)}</a>`).join(", ") + ".<br><br>");
+}
+draw();
+</script>
+</body>
+</html>
