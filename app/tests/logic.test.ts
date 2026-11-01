@@ -219,7 +219,7 @@ test("share text carries the plain-English story", () => {
     closest: { date: "2024-11-14", value: 206e6, agency: "Department of Defense", d1: -0.3, d30: -1.53, d30_vs_spy: -1.2 } };
   const hon = contract({ company: "Honeywell International Inc.", value: 323e6, change_pct: 0, history: hist, url: "https://x" } as Partial<Signal>);
   const t = shareText(hon);
-  assert.match(t, /^The Department of Energy agreed to pay Honeywell International Inc\. \$323M more/);
+  assert.match(t, /^The Department of Energy agreed to pay Honeywell \$323M more/);
   assert.match(t, /Last time Honeywell won a deal like this, its stock went down 2%\./);
   assert.match(t, /This adds money to a contract Honeywell already had/);
   assert.match(t, /Stock unchanged since Oct 30\./);
