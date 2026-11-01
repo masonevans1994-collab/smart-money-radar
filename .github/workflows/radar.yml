@@ -10,6 +10,8 @@
 #
 # Repo secrets (Settings > Secrets and variables > Actions):
 #   SEC_USER_AGENT       "Your Name you@example.com" - unlocks SEC data
+#   PRICE_PROVIDER + PRICE_API_KEY  optional: "tiingo" or "polygon" to use a
+#                        licensed price feed instead of the free ones
 #   DISCORD_WEBHOOK_URL  optional, phone alerts via Discord
 #   TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID  optional, alerts via Telegram
 
@@ -70,6 +72,8 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           ALERT_MIN_CONTRACT: ${{ vars.ALERT_MIN_CONTRACT }}
           ALERT_MIN_OTHER: ${{ vars.ALERT_MIN_OTHER }}
+          PRICE_PROVIDER: ${{ secrets.PRICE_PROVIDER }}
+          PRICE_API_KEY: ${{ secrets.PRICE_API_KEY }}
           SEND_DIGEST: ${{ (github.event.schedule == '30 12 * * 1') && '1' || '0' }}
         run: |
           python -m radar --days 3 --max-filings 2500 \

@@ -13,6 +13,12 @@ import datetime as dt
 import io
 import json
 
+# Licensed providers (set PRICE_PROVIDER + PRICE_API_KEY as repo secrets to switch).
+# Both offer plans that allow display in an app; check the plan you pick.
+TIINGO = "https://api.tiingo.com/tiingo/daily/{sym}/prices?startDate={start}&endDate={end}&token={key}"
+POLYGON = ("https://api.polygon.io/v2/aggs/ticker/{sym}/range/1/day/{start}/{end}"
+           "?adjusted=true&sort=asc&limit=50000&apiKey={key}")
+
 STOOQ = "https://stooq.com/q/d/l/?s={sym}&i=d&d1={d1}&d2={d2}"
 YAHOO = ("https://query1.finance.yahoo.com/v8/finance/chart/{sym}"
          "?interval=1d&period1={p1}&period2={p2}")
@@ -51,13 +57,47 @@ def parse_yahoo(text: str) -> list[tuple[str, float]]:
     return sorted(out)
 
 
+def parse_tiingo(text: str) -> list[tuple[str, float]]:
+    try:
+        rows = json.loads(text)
+        return sorted((r["date"][:10], float(r["adjClose"] if r.get("adjClose") is not None else r["close"]))
+                      for r in rows if r.get("close") is not None)
+    except (KeyError, TypeError, ValueError):
+        return []
+
+
+def parse_polygon(text: str) -> list[tuple[str, float]]:
+    try:
+        rows = json.loads(text).get("results") or []
+        return sorted((dt.datetime.fromtimestamp(r["t"] / 1000, dt.timezone.utc).date().isoformat(), float(r["c"]))
+                      for r in rows if r.get("c") is not None)
+    except (KeyError, TypeError, ValueError):
+        return []
+
+
+PROVIDERS = {
+    "tiingo": (TIINGO, parse_tiingo, lambda t: t.lower().replace(".", "-")),
+    "polygon": (POLYGON, parse_polygon, lambda t: t.upper().replace(".", "-")),
+}
+
+
 class PriceBook:
     """Looks up and caches closing-price history per ticker for one run."""
 
-    def __init__(self, fetcher, start: dt.date, today: dt.date | None = None, log=print):
+    def __init__(self, fetcher, start: dt.date, today: dt.date | None = None, log=print,
+                 provider: str | None = None, api_key: str | None = None):
+        import os
         self.fetcher = fetcher
         self.start = start
         self.today = today or dt.date.today()
+        self.provider = (provider or os.environ.get("PRICE_PROVIDER") or "").lower()
+        self.api_key = api_key or os.environ.get("PRICE_API_KEY") or ""
+        if self.provider and self.provider not in PROVIDERS:
+            log(f"  unknown PRICE_PROVIDER {self.provider!r}; using the free feeds")
+            self.provider = ""
+        elif self.provider and not self.api_key:
+            log(f"  PRICE_PROVIDER={self.provider} needs PRICE_API_KEY; using the free feeds")
+            self.provider = ""
         self.log = log
         self.hist: dict[str, list[tuple[str, float]]] = {}
         self.source_ok = {"stooq": 0, "yahoo": 0, "none": 0}
@@ -67,6 +107,19 @@ class PriceBook:
             return self.hist[ticker]
         d1, d2 = self.start.strftime("%Y%m%d"), self.today.strftime("%Y%m%d")
         rows: list[tuple[str, float]] = []
+        if self.provider:
+            url_t, parse, sym = PROVIDERS[self.provider]
+            try:
+                body = self.fetcher.get(url_t.format(sym=sym(ticker), start=self.start.isoformat(),
+                                                     end=self.today.isoformat(), key=self.api_key))
+                rows = parse(body.decode("utf-8", "replace")) if body else []
+                if rows:
+                    self.source_ok[self.provider] = self.source_ok.get(self.provider, 0) + 1
+            except Exception:  # noqa: BLE001
+                rows = []
+            if rows:
+                self.hist[ticker] = rows
+                return rows
         try:
             # Cached per day (URL contains today's date) to stay polite.
             body = self.fetcher.get(STOOQ.format(sym=stooq_symbol(ticker), d1=d1, d2=d2))

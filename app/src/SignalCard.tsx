@@ -44,7 +44,7 @@ function SignalCardBase({ signal, starred, isNew, onPress, linked }: {
   const name = signal.kind === "congress" ? signal.who : signal.company;
   const context = contract ? `${agencyLabel(signal)} contract` : signal.kind === "congress"
     ? `${signal.type}${signal.owner !== "Self" ? ` by ${signal.owner.toLowerCase()}` : ""}`
-    : `${signal.role_label ?? "Insider"}, open-market buy`;
+    : `${signal.role_label ?? "Company insider"} bought with their own money`;
   const up = (signal.change_pct ?? 0) >= 0;
   return (
     <Pressable

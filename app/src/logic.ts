@@ -558,3 +558,28 @@ export function agencySummary(all: Signal[], label: string): AgencySummary {
     contracts,
   };
 }
+
+/** A calm, specific note when a data source is down; null when all is well. */
+export function statusNote(feed: Feed): string | null {
+  const st = feed.status ?? {};
+  if (st.contracts === "stale") return "The contracts site isn't answering right now, so these are from the last good update.";
+  if (st.contracts === "unavailable") return "The contracts site isn't answering right now. Radar will try again at the next update.";
+  if (st.prices === "unavailable") return "Stock prices aren't available right now, so moves since each award are hidden.";
+  return null;
+}
+
+/** "Since you were last here: 4 new contracts worth $1.2B. Biggest: ..." */
+export function catchUp(signals: Signal[], seenBefore: Set<string> | null, lastOpen: string | null,
+  now = new Date()): string | null {
+  if (!seenBefore || !lastOpen) return null;
+  const daysAway = Math.round((now.getTime() - new Date(`${lastOpen}T12:00:00`).getTime()) / 86400000);
+  if (daysAway < 2) return null;
+  const fresh = signals.filter((s) => s.kind === "contract" && !seenBefore.has(signalKey(s)));
+  const since = dayLabel(lastOpen, now).replace(/^(Today|Yesterday)$/, (m) => m.toLowerCase());
+  if (!fresh.length) return `Welcome back. Nothing new in contracts since ${since}.`;
+  const total = fresh.reduce((t, c) => t + (c.kind === "contract" ? c.value : 0), 0);
+  const big = fresh.reduce((a, b) => ((b.kind === "contract" ? b.value : 0) > (a.kind === "contract" ? a.value : 0) ? b : a));
+  const name = big.kind === "contract" ? big.company : big.ticker;
+  return `Welcome back. ${fresh.length} new contract${fresh.length === 1 ? "" : "s"} worth ${money(total)} since `
+    + `${since}. Biggest: ${amountLabel(big)} to ${name}.`;
+}

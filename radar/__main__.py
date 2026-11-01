@@ -47,6 +47,7 @@ def main(argv=None) -> int:
     args = p.parse_args(argv)
 
     review, awards, roster = [], [], None
+    status = {}
     if args.demo:
         ins_raw, con_raw = demo.insider_events(), demo.congress_trades()
         awards = demo.contract_awards()
@@ -59,24 +60,40 @@ def main(argv=None) -> int:
             return 2
         print("Scanning SEC Form 4 filings...")
         ins_raw = edgar.fetch_insider_buys(fetcher, args.days, args.max_filings)
+        status["insiders"] = "ok" if ins_raw else "unavailable"
         con_raw = []
         if not args.no_congress:
             print("Scanning House periodic transaction reports...")
             try:
                 con_raw, review = congress.fetch_house_trades(
                     fetcher, args.congress_days)
+                status["house"] = "ok" if con_raw else "empty"
             except RuntimeError as e:
                 print(f"  skipped: {e}")
+                status["house"] = "unavailable"
             if not args.no_senate:
                 print("Scanning Senate periodic transaction reports...")
                 s_trades, s_review = senate.fetch_senate_trades(ua, args.congress_days)
                 con_raw += s_trades
                 review += s_review
+                status["senate"] = "ok" if s_trades else "unavailable"
         if not args.no_contracts:
             print("Scanning federal contract awards...")
             awards = load_contracts(fetcher, ua, args)
+            status["contracts"] = "ok" if awards else "unavailable"
             roster = load_roster(fetcher)
 
+    if not args.demo and not awards and not args.no_contracts:
+        prev_text = fetch_text(args.published + "signals.json") if args.published else None
+        try:
+            prev = json.loads(prev_text) if prev_text else {}
+        except ValueError:
+            prev = {}
+        if prev.get("contracts"):
+            print(f"  contract sources unavailable; keeping {len(prev['contracts'])} from the last good run")
+            awards = [{k: v for k, v in c.items() if k not in ("score", "reasons", "headline")}
+                      for c in prev["contracts"]]
+            status["contracts"] = "stale"
     ins, con = scoring.score_insider(ins_raw), scoring.score_congress(con_raw)
     scoring.cross_signal(ins, con)
     con_all = scoring.score_contracts(awards, con, ins)
@@ -111,6 +128,7 @@ def main(argv=None) -> int:
         history.reprice(hist_entries, book)
         track = history.summarize(hist_entries)
         print(f"  price sources: {book.source_ok}; history: {len(hist_entries)} signals tracked")
+        status["prices"] = "ok" if sum(v for k, v in book.source_ok.items() if k != "none") else "unavailable"
 
     ins = [x for x in ins if x["score"] >= args.min_score]
     con = [x for x in con if x["score"] >= args.min_score]
@@ -123,6 +141,7 @@ def main(argv=None) -> int:
         "demo": args.demo,
         "contracts": con_all, "insiders": ins, "congress": con, "review": review,
         "track_record": track,
+        "status": status,
     }, indent=2, default=str))
     if hist_entries:
         Path(args.history).parent.mkdir(parents=True, exist_ok=True)

@@ -157,7 +157,7 @@ test("weekly recap and agency descriptions", () => {
 });
 
 
-import { lastTimeDetail, lastTimeHeadline, lastTimeLines, whyLine } from "../src/logic";
+import { catchUp, lastTimeDetail, lastTimeHeadline, lastTimeLines, statusNote, whyLine } from "../src/logic";
 
 test("what-happened-last-time sentences use real past moves", () => {
   const s = contract({ history: { n: 25, verdict: "v", windows: {},
@@ -185,5 +185,17 @@ test("why lines come from measurable facts", () => {
   const addon = contract({ company: "Fluor Corporation", is_modification: true, history: hist } as Partial<Signal>);
   assert.match(whyLine(addon)!, /adds money to a contract Fluor already had/);
   assert.equal(whyLine(contract({ history: undefined, is_modification: false } as Partial<Signal>)), null);
+});
+
+test("welcome-back summary and status notes", () => {
+  const a = contract({ ticker: "A", company: "Alpha Co", value: 5e8 } as Partial<Signal>);
+  const b = contract({ ticker: "B", company: "Beta Co", value: 1e8 } as Partial<Signal>);
+  const seen = new Set([signalKey(b)]);
+  assert.equal(catchUp([a, b], seen, "2026-10-25", now),
+    "Welcome back. 1 new contract worth $500M since Sunday, Oct 25. Biggest: $500M to Alpha Co.");
+  assert.equal(catchUp([a, b], seen, "2026-10-31", now), null);           // only a day away
+  assert.equal(catchUp([b], seen, "2026-10-25", now), "Welcome back. Nothing new in contracts since Sunday, Oct 25.");
+  assert.equal(statusNote({ ...demo, status: { contracts: "stale" } }), "The contracts site isn't answering right now, so these are from the last good update.");
+  assert.equal(statusNote({ ...demo, status: { contracts: "ok", prices: "ok" } }), null);
 });
 console.log(`\n${passed} logic tests passed`);

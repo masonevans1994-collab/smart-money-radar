@@ -96,4 +96,5 @@ export interface Feed {
   congress: CongressSignal[];
   review: { member: string; url: string }[];
   track_record?: TrackRecord | null;
+  status?: Record<string, "ok" | "empty" | "unavailable" | "stale">;
 }

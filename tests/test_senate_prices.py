@@ -72,3 +72,24 @@ def test_price_parsers_and_performance():
     assert sigs[0]["spark"] == [100.0, 104.0, 110.0] and sigs[0]["spark_mark"] == 1
     assert sigs[1]["change_pct"] == -8.3  # uses the insider's own price
     assert prices.stooq_symbol("BRK.B") == "brk-b.us" and prices.yahoo_symbol("brk.b") == "BRK-B"
+
+
+def test_licensed_price_providers():
+    tiingo = '[{"date":"2026-10-01T00:00:00.000Z","close":100,"adjClose":99.5},{"date":"2026-10-02T00:00:00.000Z","close":101}]'
+    assert prices.parse_tiingo(tiingo) == [("2026-10-01", 99.5), ("2026-10-02", 101.0)]
+    poly = '{"results":[{"t":1790000000000,"c":50.5},{"t":1790086400000,"c":51}]}'
+    assert [c for _, c in prices.parse_polygon(poly)] == [50.5, 51.0]
+
+    calls = []
+
+    class F:
+        def get(self, url, cache=True):
+            calls.append(url)
+            return tiingo.encode() if "tiingo" in url else None
+    book = prices.PriceBook(F(), dt.date(2026, 9, 1), dt.date(2026, 11, 1), log=lambda *_: None,
+                            provider="tiingo", api_key="K")
+    assert book.history("BRK.B")[0] == ("2026-10-01", 99.5)
+    assert "brk-b" in calls[0] and "token=K" in calls[0] and len(calls) == 1
+    book2 = prices.PriceBook(F(), dt.date(2026, 9, 1), dt.date(2026, 11, 1), log=lambda *_: None,
+                             provider="tiingo", api_key="")   # no key -> free feeds
+    assert book2.provider == ""

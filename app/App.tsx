@@ -15,8 +15,8 @@ import {
   loadWatchlist, needsOnboarding, needsTour, saveAppearance, saveSeen, saveWatchlist,
 } from "./src/data";
 import {
-  agencySummary, allSignals, amountLabel, biggestThisWeek, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
-  savedStocks, type SortKey, type Tab, TABS, timeAgo, topAgencies, weeklyRecap, withDayHeaders,
+  agencySummary, allSignals, amountLabel, biggestThisWeek, catchUp, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
+  savedStocks, type SortKey, statusNote, type Tab, TABS, timeAgo, topAgencies, weeklyRecap, withDayHeaders,
 } from "./src/logic";
 import {
   callFor, checkIn, type Direction, loadProgress, makeCall, type Progress, EMPTY, resolveCalls,
@@ -62,6 +62,8 @@ function Radar({ appearance, onAppearance }: {
   const [agency, setAgency] = useState<string | null>(null);
   const [sort, setSort] = useState<SortKey>("newest");
   const [seenBefore, setSeenBefore] = useState<Set<string> | null>(null);
+  const [lastOpen, setLastOpen] = useState<string | null>(null);
+  const [catchUpHidden, setCatchUpHidden] = useState(false);
   const [onboard, setOnboard] = useState(false);
   const [guide, setGuide] = useState(false);
   const [legal, setLegal] = useState(false);
@@ -92,7 +94,7 @@ function Radar({ appearance, onAppearance }: {
     loadWatchlist().then(setWatch);
     needsOnboarding().then(setOnboard);
     needsTour().then(setTour);
-    loadProgress().then((p) => setProgress(() => checkIn(p)));
+    loadProgress().then((p) => { setLastOpen(p.lastOpen || null); setProgress(() => checkIn(p)); });
   }, [refresh, setProgress]);
 
   useEffect(() => {
@@ -166,6 +168,15 @@ function Radar({ appearance, onAppearance }: {
       )}
       {source === "cached" && !!error && (
         <Text style={styles.notice}>Couldn't refresh ({error}). Pull down to try again.</Text>
+      )}
+      {source === "live" && statusNote(feed) && (
+        <Text style={styles.notice}>{statusNote(feed)}</Text>
+      )}
+      {tab === "contract" && !catchUpHidden && catchUp(signals, seenBefore, lastOpen) && (
+        <Pressable onPress={() => setCatchUpHidden(true)} style={styles.catchUp} accessibilityRole="button">
+          <Text style={styles.catchUpText}>{catchUp(signals, seenBefore, lastOpen)}</Text>
+          <Text style={styles.catchUpHide}>Tap to dismiss</Text>
+        </Pressable>
       )}
 
       <View style={styles.hero}>
@@ -396,6 +407,10 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderLeftWidth: 3, borderLeftColor: colors.gold, paddingLeft: 10,
   },
   hero: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 18 },
+  catchUp: { marginHorizontal: 16, marginTop: 12, backgroundColor: colors.panel, borderRadius: 14, padding: 14,
+    borderLeftWidth: 3, borderLeftColor: colors.gold, gap: 4 },
+  catchUpText: { ...type.lead, fontFamily: fonts.regular, color: colors.text },
+  catchUpHide: { ...type.small, color: colors.muted },
   heroFigure: { ...type.hero, fontSize: 48, lineHeight: 52, fontVariant: ["tabular-nums"] },
   heroCaption: { ...type.lead, color: colors.soft, marginTop: 4, maxWidth: 320 },
   heroNew: { ...type.bodyStrong, color: colors.gold, marginTop: 8 },
