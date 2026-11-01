@@ -15,7 +15,7 @@ import {
   saveWatchlist,
 } from "./src/data";
 import {
-  allSignals, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
+  allSignals, amountLabel, biggestThisWeek, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
   type SortKey, type Tab, TABS, timeAgo, topAgencies, withDayHeaders,
 } from "./src/logic";
 import { Guide } from "./src/Guide";
@@ -98,6 +98,7 @@ function Radar() {
 
   const hero = heroFor(tab, feed, watch.size);
   const fresh = freshness(feed);
+  const biggest = biggestThisWeek(feed);
   const newCount = seenBefore
     ? signals.filter((s) => s.kind === "contract" && !seenBefore.has(signalKey(s))).length : 0;
   const status = source === "live" ? `Updated ${timeAgo(feed.generated)}`
@@ -130,6 +131,16 @@ function Radar() {
         <Text style={styles.heroCaption}>{hero.caption}</Text>
         {tab === "contract" && newCount > 0 && (
           <Text style={styles.heroNew}>{newCount} new since your last visit</Text>
+        )}
+        {tab === "contract" && biggest?.kind === "contract" && (
+          <Pressable onPress={() => setOpen(biggest)} style={styles.biggest} accessibilityRole="button"
+            accessibilityLabel={`Biggest award this week: ${biggest.headline}`}>
+            <Text style={styles.biggestLabel}>Biggest award this week</Text>
+            <Text style={styles.biggestText} numberOfLines={2}>
+              {biggest.company} ({biggest.ticker}), {amountLabel(biggest)}
+            </Text>
+            <Text style={styles.biggestOpen}>See what it means</Text>
+          </Pressable>
         )}
         {tab === "contract" && fresh.latest && (
           <Text style={styles.heroFresh}>
@@ -290,6 +301,11 @@ const styles = StyleSheet.create({
   heroFigure: { ...type.hero, fontSize: 48, lineHeight: 52, fontVariant: ["tabular-nums"] },
   heroCaption: { ...type.lead, color: colors.soft, marginTop: 4, maxWidth: 320 },
   heroNew: { ...type.bodyStrong, color: colors.gold, marginTop: 8 },
+  biggest: { marginTop: 16, backgroundColor: colors.panel, borderRadius: 14, padding: 14, gap: 2,
+    borderLeftWidth: 3, borderLeftColor: colors.gold },
+  biggestLabel: { ...type.small, color: colors.muted },
+  biggestText: { ...type.lead, fontFamily: fonts.bold, color: colors.text },
+  biggestOpen: { ...type.small, fontFamily: fonts.semibold, color: colors.gold, marginTop: 4 },
   heroFresh: { ...type.small, color: colors.muted, marginTop: 10, maxWidth: 340 },
   dayHead: {
     flexDirection: "row", alignItems: "baseline", justifyContent: "space-between",

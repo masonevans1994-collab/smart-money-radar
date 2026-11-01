@@ -363,3 +363,11 @@ export const KEEP_IN_MIND = [
   "Radar shows what happened. It isn't investment advice and doesn't tell you to buy or sell. Stocks can lose value.",
   "Public records can contain errors. Check the official record before relying on this.",
 ];
+
+/** Largest contract signed in the past 7 days (a factual starting point). */
+export function biggestThisWeek(feed: Feed, now = new Date()): Signal | null {
+  const cutoff = weekStart(now);
+  const recent = (feed.contracts ?? []).filter((c) => (c.trade_date ?? "") >= cutoff);
+  if (!recent.length) return null;
+  return recent.reduce((a, b) => (b.value > a.value ? b : a));
+}

@@ -22,9 +22,10 @@ export function ScoreBadge({ score, size = "sm" }: { score: number; size?: "sm" 
 export function ChangeChip({ signal, big }: { signal: Signal; big?: boolean }) {
   const label = moveLabel(signal);
   if (!label) return null;
-  const up = (signal.change_pct ?? 0) >= 0;
+  const v = signal.change_pct ?? 0;
+  const tint = v > 0 ? colors.up : v < 0 ? colors.down : colors.soft;
   return (
-    <Text style={[styles.change, big && styles.changeBig, { color: up ? colors.up : colors.down }]}>
+    <Text style={[styles.change, big && styles.changeBig, { color: tint }]}>
       {label}
     </Text>
   );
