@@ -97,11 +97,8 @@ def main(argv=None) -> int:
         hist_entries = history.merge(
             history.load(fetch_text(args.published + "history.json") if args.published else None),
             everything, dt.date.today())
-        dates = [x["trade_date"] for x in everything if x.get("trade_date")] + \
-            [e["date"] for e in hist_entries]
-        floor = dt.date.today() - dt.timedelta(days=365 * 3 + 60)  # 3y for past-award reactions
-        start = max(floor, dt.date.fromisoformat(min(dates)) - dt.timedelta(days=7)) \
-            if dates else dt.date.today() - dt.timedelta(days=120)
+        # Three years of prices so past-award reactions can be measured.
+        start = dt.date.today() - dt.timedelta(days=365 * 3 + 60)
         book = prices.PriceBook(fetcher, start)
         prices.add_performance(everything, book)
         n = marketcap.add_market_caps(con_all, fetcher)
