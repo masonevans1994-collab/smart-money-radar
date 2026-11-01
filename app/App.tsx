@@ -15,8 +15,8 @@ import {
   saveWatchlist,
 } from "./src/data";
 import {
-  allSignals, filterSignals, heroFor, refine, signalKey, type SortKey, type Tab, TABS, timeAgo,
-  topAgencies,
+  allSignals, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
+  type SortKey, type Tab, TABS, timeAgo, topAgencies, withDayHeaders,
 } from "./src/logic";
 import { Onboarding } from "./src/Onboarding";
 import { SignalCard } from "./src/SignalCard";
@@ -26,9 +26,9 @@ import { TrackRecord } from "./src/TrackRecord";
 import type { Feed, Signal } from "./src/types";
 
 const SORTS: { key: SortKey; label: string }[] = [
+  { key: "newest", label: "Newest" },
   { key: "score", label: "Most notable" },
   { key: "size", label: "Largest" },
-  { key: "newest", label: "Newest" },
 ];
 
 function Radar() {
@@ -42,7 +42,7 @@ function Radar() {
   const [watch, setWatch] = useState<Set<string>>(new Set());
   const [open, setOpen] = useState<Signal | null>(null);
   const [agency, setAgency] = useState<string | null>(null);
-  const [sort, setSort] = useState<SortKey>("score");
+  const [sort, setSort] = useState<SortKey>("newest");
   const [seenBefore, setSeenBefore] = useState<Set<string> | null>(null);
   const [onboard, setOnboard] = useState(false);
 
@@ -77,9 +77,10 @@ function Radar() {
 
   const signals = useMemo(() => (feed ? allSignals(feed) : []), [feed]);
   const agencies = useMemo(() => topAgencies(signals), [signals]);
-  const rows = useMemo(() => {
+  const items = useMemo<ListItem[]>(() => {
     const base = filterSignals(signals, tab, query, watch);
-    return refine(base, tab === "contract" ? agency : null, sort);
+    const rows = refine(base, tab === "contract" ? agency : null, sort);
+    return sort === "newest" ? withDayHeaders(rows) : rows;
   }, [signals, tab, query, watch, agency, sort]);
 
   if (!feed) {
@@ -91,6 +92,7 @@ function Radar() {
   }
 
   const hero = heroFor(tab, feed, watch.size);
+  const fresh = freshness(feed);
   const newCount = seenBefore
     ? signals.filter((s) => s.kind === "contract" && !seenBefore.has(signalKey(s))).length : 0;
   const status = source === "live" ? `Updated ${timeAgo(feed.generated)}`
@@ -120,6 +122,12 @@ function Radar() {
         <Text style={styles.heroCaption}>{hero.caption}</Text>
         {tab === "contract" && newCount > 0 && (
           <Text style={styles.heroNew}>{newCount} new since your last visit</Text>
+        )}
+        {tab === "contract" && fresh.latest && (
+          <Text style={styles.heroFresh}>
+            Most recent award signed {dayLabel(fresh.latest).replace(/^(Today|Yesterday)$/, (m) => m.toLowerCase())}.
+            {fresh.note ? ` ${fresh.note}` : ""}
+          </Text>
         )}
       </View>
 
@@ -168,9 +176,14 @@ function Radar() {
     <View style={styles.fill}>
       <SafeAreaView style={styles.fill} edges={["top"]}>
         <FlatList
-          data={rows}
-          keyExtractor={(s: Signal, i: number) => `${signalKey(s)}-${i}`}
-          renderItem={({ item }: { item: Signal }) => (
+          data={items}
+          keyExtractor={(x: ListItem, i: number) => (isHeader(x) ? x.key : `${signalKey(x)}-${i}`)}
+          renderItem={({ item }: { item: ListItem }) => isHeader(item) ? (
+            <View style={styles.dayHead} accessibilityRole="header">
+              <Text style={styles.dayTitle}>{item.header}</Text>
+              <Text style={styles.dayDetail}>{item.detail}</Text>
+            </View>
+          ) : (
             <SignalCard signal={item} starred={watch.has(item.ticker)}
               isNew={!!seenBefore && !seenBefore.has(signalKey(item))}
               onPress={() => setOpen(item)} />
@@ -255,6 +268,13 @@ const styles = StyleSheet.create({
   heroFigure: { ...type.hero, fontSize: 48, lineHeight: 52, fontVariant: ["tabular-nums"] },
   heroCaption: { ...type.lead, color: colors.soft, marginTop: 4, maxWidth: 320 },
   heroNew: { ...type.bodyStrong, color: colors.gold, marginTop: 8 },
+  heroFresh: { ...type.small, color: colors.muted, marginTop: 10, maxWidth: 340 },
+  dayHead: {
+    flexDirection: "row", alignItems: "baseline", justifyContent: "space-between",
+    marginHorizontal: 20, marginTop: 14, marginBottom: 10,
+  },
+  dayTitle: { fontFamily: fonts.bold, fontSize: 15, color: colors.text },
+  dayDetail: { ...type.small, color: colors.muted, fontVariant: ["tabular-nums"] },
   search: {
     ...type.lead, color: colors.text, backgroundColor: colors.panel, borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 11, marginHorizontal: 16,

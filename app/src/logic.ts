@@ -124,7 +124,8 @@ export function amountLabel(s: Signal): string {
 /** The one line that says why this row matters. */
 export function keyNote(s: Signal): string {
   if (s.kind === "contract") {
-    return s.history_note ?? s.reasons.find((r) => !r.startsWith("Won a")) ?? s.reasons[0] ?? "";
+    return s.history_note ?? s.reasons.find((r) => !r.startsWith("Won a"))
+      ?? (s.is_modification ? "Adds money to a contract the company already holds" : s.reasons[0] ?? "");
   }
   return s.reasons[1] ?? s.reasons[0] ?? "";
 }
@@ -157,17 +158,26 @@ export function timeAgo(iso: string, now = Date.now()): string {
   return `${Math.round(hrs / 24)} d ago`;
 }
 
+function weekStart(now = new Date()): string {
+  const d = new Date(now); d.setDate(d.getDate() - 7);
+  return isoDay(d);
+}
+
 export interface HeroText { figure: string; caption: string; gold: boolean }
 
 export function heroFor(tab: Tab, feed: Feed, watchCount: number): HeroText {
   const contracts = feed.contracts ?? [];
   if (tab === "contract") {
+    const f = freshness(feed);
+    if (f.weekCount > 0) {
+      const companies = new Set(contracts.filter((c) => (c.trade_date ?? "") >= weekStart())
+        .map((c) => c.ticker)).size;
+      return { figure: money(f.week), gold: true,
+        caption: `awarded to ${companies} public ${companies === 1 ? "company" : "companies"} in the past 7 days` };
+    }
     const total = contracts.reduce((sum, c) => sum + c.value, 0);
-    const companies = new Set(contracts.map((c) => c.ticker)).size;
-    return {
-      figure: money(total), gold: true,
-      caption: `awarded to ${companies} public ${companies === 1 ? "company" : "companies"} in the last 30 days`,
-    };
+    return { figure: money(total), gold: true,
+      caption: `awarded to public companies in the last 30 days` };
   }
   if (tab === "congress") {
     const buys = feed.congress.filter((t) => t.type === "Purchase").length;
@@ -188,4 +198,70 @@ export function heroFor(tab: Tab, feed: Feed, watchCount: number): HeroText {
 export function isFeed(x: unknown): x is Feed {
   const f = x as Feed;
   return !!f && Array.isArray(f.insiders) && Array.isArray(f.congress);
+}
+
+function isoDay(d: Date): string {
+  const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return z.toISOString().slice(0, 10);
+}
+
+/** "Today", "Yesterday", or "Friday, Oct 30". */
+export function dayLabel(iso: string | null | undefined, now = new Date()): string {
+  if (!iso) return "Date unknown";
+  const today = isoDay(now);
+  const y = new Date(now); y.setDate(y.getDate() - 1);
+  if (iso === today) return "Today";
+  if (iso === isoDay(y)) return "Yesterday";
+  const d = new Date(`${iso}T12:00:00`);
+  return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+}
+
+export interface DayHeader { header: string; detail: string; key: string }
+export type ListItem = Signal | DayHeader;
+
+export function isHeader(x: ListItem): x is DayHeader {
+  return (x as DayHeader).header !== undefined;
+}
+
+/** Insert a heading before each new day (rows must already be newest-first). */
+export function withDayHeaders(rows: Signal[], now = new Date()): ListItem[] {
+  const out: ListItem[] = [];
+  let i = 0;
+  while (i < rows.length) {
+    const day = rows[i].trade_date ?? "";
+    let j = i;
+    let total = 0;
+    while (j < rows.length && (rows[j].trade_date ?? "") === day) {
+      const r = rows[j];
+      total += r.kind === "congress" ? r.amount_low : r.value;
+      j++;
+    }
+    const n = j - i;
+    const contracts = rows[i].kind === "contract";
+    out.push({
+      key: `h-${day}`, header: dayLabel(day, now),
+      detail: contracts ? `${n} award${n === 1 ? "" : "s"}, ${money(total)}` : `${n} item${n === 1 ? "" : "s"}`,
+    });
+    out.push(...rows.slice(i, j));
+    i = j;
+  }
+  return out;
+}
+
+/** What the top of the Contracts tab should say about freshness. */
+export function freshness(feed: Feed, now = new Date()): { week: number; weekCount: number; latest: string | null; note: string | null } {
+  const contracts = feed.contracts ?? [];
+  const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+  const cutoff = isoDay(weekAgo);
+  const recent = contracts.filter((c) => (c.trade_date ?? "") >= cutoff);
+  const latest = contracts.map((c) => c.trade_date ?? "").sort().pop() || null;
+  const today = isoDay(now);
+  const weekend = now.getDay() === 0 || now.getDay() === 6;
+  let note: string | null = null;
+  if (latest && latest < today) {
+    note = weekend
+      ? "Agencies don't post awards on weekends. These are the most recent ones."
+      : "No awards posted yet today. Agencies usually report within a few business days.";
+  }
+  return { week: recent.reduce((s, c) => s + c.value, 0), weekCount: recent.length, latest, note };
 }
