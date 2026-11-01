@@ -8,7 +8,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "upgrade": "npx expo install expo@latest && npx expo install --fix",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:logic": "tsc tests/logic.test.ts --outDir .test-out --module commonjs --target es2022 --strict --skipLibCheck --resolveJsonModule --esModuleInterop --types node && node .test-out/tests/logic.test.js"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.10",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "@types/node": "*"
   }
 }
