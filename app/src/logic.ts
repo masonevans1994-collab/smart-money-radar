@@ -1,12 +1,13 @@
 // Pure helpers (no React Native imports) so they're easy to test.
 import type { Feed, Signal } from "./types";
 
-export type Tab = "top" | "latest" | "contract" | "insider" | "congress" | "watch";
+export type Tab = "top" | "latest" | "contract" | "insider" | "congress" | "watch" | "record";
 
 export const TABS: { key: Tab; label: string }[] = [
   { key: "contract", label: "Contracts" },
   { key: "top", label: "Top" },
   { key: "latest", label: "Latest" },
+  { key: "record", label: "Track record" },
   { key: "congress", label: "Congress" },
   { key: "insider", label: "Insiders" },
   { key: "watch", label: "★ Watchlist" },
@@ -33,6 +34,7 @@ export function signalKey(s: Signal): string {
 export function filterSignals(
   signals: Signal[], tab: Tab, query: string, watchlist: Set<string>,
 ): Signal[] {
+  if (tab === "record") return [];
   const q = query.trim().toLowerCase();
   const rows = signals.filter((s) => {
     if (tab === "contract" && s.kind !== "contract") return false;
@@ -65,12 +67,16 @@ export function isSell(s: Signal): boolean {
 }
 
 export function tagFor(s: Signal): string {
-  if (s.kind === "contract") return "Contract win";
+  if (s.kind === "contract") return s.is_modification ? "Contract expansion" : "Contract win";
   return s.kind === "insider" ? "Insider buy" : s.type;
 }
 
 export function sourceFor(s: Signal): string {
-  if (s.kind === "contract") return s.source === "DoD announcement" ? "PENTAGON" : "USASPENDING";
+  if (s.kind === "contract") {
+    if (s.source === "DoD announcement") return "PENTAGON";
+    if (s.source === "Company 8-K") return "SEC 8-K";
+    return "USASPENDING";
+  }
   if (s.kind === "insider") return "SEC";
   return (s.chamber ?? "Congress").toUpperCase();
 }
@@ -102,4 +108,9 @@ export function timeAgo(iso: string, now = Date.now()): string {
 export function isFeed(x: unknown): x is Feed {
   const f = x as Feed;
   return !!f && Array.isArray(f.insiders) && Array.isArray(f.congress);
+}
+
+export function pct(v: number | null | undefined, digits = 1): string {
+  if (v === null || v === undefined) return "–";
+  return `${v > 0 ? "+" : ""}${v.toFixed(digits)}%`;
 }

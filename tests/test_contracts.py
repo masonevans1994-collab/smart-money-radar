@@ -132,3 +132,39 @@ def test_market_cap_and_size_adjust():
     assert "Huge for this company" in cs[0]["reasons"][1]
     lmt = next(c for c in cs if c["ticker"] == "LMT")
     assert lmt["score"] == 40 and "0.42%" in lmt["reasons"][1]
+
+
+def test_8k_search_and_extract():
+    from radar import contract_news
+    efts = ('{"hits":{"hits":[{"_id":"0000936468-26-000123:ex99-1.htm","_source":{"ciks":["0000936468"],'
+            '"display_names":["LOCKHEED MARTIN CORP  (LMT)  (CIK 0000936468)"],"file_date":"2026-10-30"}},'
+            '{"_id":"0000000001-26-000001:ex99.htm","_source":{"ciks":["0000000001"],'
+            '"display_names":["SOME PRIVATE THING  (CIK 0000000001)"],"file_date":"2026-10-30"}}]}}')
+    docs = contract_news.parse_efts(efts)
+    assert len(docs) == 1 and docs[0]["ticker"] == "LMT"
+    assert docs[0]["url"] == "https://www.sec.gov/Archives/edgar/data/936468/000093646826000123/ex99-1.htm"
+    doc = ("<p>Third quarter revenue was $18.1 billion and backlog reached $160 billion.</p>"
+           "<p>BETHESDA, Md. &ndash; Lockheed Martin has been awarded a $1.25 billion contract by the "
+           "U.S. Army to produce PAC-3 interceptors.</p><p>The company also received a $5 million order.</p>")
+    a = contract_news.extract_award(doc)
+    assert a["value"] == 1.25e9 and a["agency"] == "U.S. Army"
+    assert "PAC-3" in a["sentence"]
+    assert contract_news.extract_award("<p>Revenue rose to $2 billion.</p>") is None
+
+
+def test_modifications():
+    from radar import contract_news
+    rows = [{"Award ID": "A1", "Recipient Name": "HUNTINGTON INGALLS INC", "Action Date": "2026-10-28",
+             "Transaction Amount": 900e6, "Awarding Agency": "Department of Defense",
+             "Awarding Sub Agency": "Department of the Navy", "Mod": "P00045", "generated_internal_id": "G1"},
+            {"Award ID": "A2", "Recipient Name": "X", "Action Date": "2026-10-28",
+             "Transaction Amount": 800e6, "Mod": "0"},
+            {"Award ID": "A3", "Recipient Name": "Y", "Action Date": "2026-10-28",
+             "Transaction Amount": 10e6, "Mod": "P1"}]
+    mods = contract_news.fetch_modifications(
+        "ua", today=dt.date(2026, 11, 1), post=lambda *a: {"results": rows, "page_metadata": {"hasNext": False}},
+        log=lambda *_: None)
+    assert [m["award_id"] for m in mods] == ["A1"] and mods[0]["is_modification"]
+    matched, _ = contracts.match_awards(mods, book())
+    ranked = scoring.score_contracts(matched, [], [])
+    assert ranked[0]["ticker"] == "HII" and "expansion" in ranked[0]["headline"]

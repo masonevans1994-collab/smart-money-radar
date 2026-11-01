@@ -27,6 +27,8 @@ export interface ContractSignal extends BaseSignal {
   award_id?: string | null;
   congress_before?: number;
   market_cap?: number;
+  is_modification?: boolean;
+  committee_flag?: string; // "Sen. X · Armed Services" when a buyer oversees the agency
   award_pct?: number; // award as % of company market value
 }
 
@@ -56,6 +58,25 @@ export interface CongressSignal extends BaseSignal {
 
 export type Signal = ContractSignal | InsiderSignal | CongressSignal;
 
+export interface TrackGroup {
+  id: string;
+  label: string;
+  n: number;
+  avg_return?: number;
+  avg_vs_spy?: number;
+  beat_spy_pct?: number;
+  n_30d?: number;
+  avg_vs_spy_30d?: number | null;
+  best?: string;
+  since?: string;
+}
+
+export interface TrackRecord {
+  benchmark: string;
+  demo?: boolean;
+  groups: TrackGroup[];
+}
+
 export interface Feed {
   generated: string;
   demo: boolean;
@@ -63,4 +84,5 @@ export interface Feed {
   insiders: InsiderSignal[];
   congress: CongressSignal[];
   review: { member: string; url: string }[];
+  track_record?: TrackRecord | null;
 }

@@ -12,6 +12,7 @@ import {
 import { allSignals, filterSignals, signalKey, type Tab, TABS, timeAgo } from "./src/logic";
 import { SignalCard } from "./src/SignalCard";
 import { SignalDetail } from "./src/SignalDetail";
+import { TrackRecord } from "./src/TrackRecord";
 import { colors } from "./src/theme";
 import type { Feed, Signal } from "./src/types";
 
@@ -111,7 +112,7 @@ function Radar() {
       {hot > 0 && (tab === "top" || tab === "contract") && !query && (
         <Text style={styles.hint}>{hot} signals scored 70 or higher</Text>
       )}
-      <TextInput
+      {tab !== "record" && <TextInput
         value={query}
         onChangeText={setQuery}
         placeholder="Search ticker, person or company"
@@ -120,7 +121,7 @@ function Radar() {
         autoCapitalize="characters"
         autoCorrect={false}
         clearButtonMode="while-editing"
-      />
+      />}
     </View>
   );
 
@@ -135,13 +136,13 @@ function Radar() {
             onPress={() => setOpen(item)} />
         )}
         ListHeaderComponent={header}
-        ListEmptyComponent={
+        ListEmptyComponent={tab === "record" ? <TrackRecord record={feed.track_record} /> : (
           <Text style={styles.empty}>
             {tab === "watch" && !query
               ? "Your watchlist is empty.\nOpen any signal and tap ☆ Watch."
               : "No signals match."}
           </Text>
-        }
+        )}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.accent} />
         }

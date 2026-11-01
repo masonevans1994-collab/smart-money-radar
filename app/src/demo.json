@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-01T16:29:31+00:00",
+  "generated": "2026-11-01T16:43:50+00:00",
   "demo": true,
   "contracts": [
     {
@@ -382,5 +382,71 @@
       "headline": "Hon. Dana Example (spouse) sold $50K\u2013$100K of BRKW"
     }
   ],
-  "review": []
+  "review": [],
+  "track_record": {
+    "benchmark": "S&P 500 (SPY)",
+    "demo": true,
+    "groups": [
+      {
+        "id": "contracts",
+        "label": "Contract wins",
+        "n": 48,
+        "avg_return": 4.1,
+        "avg_vs_spy": 1.9,
+        "beat_spy_pct": 56,
+        "n_30d": 24,
+        "avg_vs_spy_30d": 1.2,
+        "best": "Demo Robotics Inc (DMRB) won $1.2B from Army",
+        "since": "2026-07-04"
+      },
+      {
+        "id": "contracts_big",
+        "label": "Contract wins scored 70+",
+        "n": 11,
+        "avg_return": 9.8,
+        "avg_vs_spy": 6.7,
+        "beat_spy_pct": 73,
+        "n_30d": 5,
+        "avg_vs_spy_30d": 4.4,
+        "best": "Demo Robotics Inc (DMRB) won $1.2B from Army",
+        "since": "2026-07-04"
+      },
+      {
+        "id": "contracts_congress",
+        "label": "Contracts where Congress bought first",
+        "n": 4,
+        "avg_return": 12.5,
+        "avg_vs_spy": 9.1,
+        "beat_spy_pct": 75,
+        "n_30d": 2,
+        "avg_vs_spy_30d": null,
+        "best": "Demo Robotics Inc (DMRB) won $1.2B from Army",
+        "since": "2026-07-04"
+      },
+      {
+        "id": "congress_buys",
+        "label": "Congress purchases",
+        "n": 130,
+        "avg_return": 3.0,
+        "avg_vs_spy": 0.4,
+        "beat_spy_pct": 51,
+        "n_30d": 65,
+        "avg_vs_spy_30d": 0.2,
+        "best": "Demo Robotics Inc (DMRB) won $1.2B from Army",
+        "since": "2026-07-04"
+      },
+      {
+        "id": "insider_buys",
+        "label": "Insider buys",
+        "n": 0,
+        "avg_return": 0,
+        "avg_vs_spy": 0,
+        "beat_spy_pct": 0,
+        "n_30d": 0,
+        "avg_vs_spy_30d": null,
+        "best": "Demo Robotics Inc (DMRB) won $1.2B from Army",
+        "since": "2026-07-04"
+      }
+    ]
+  }
 }

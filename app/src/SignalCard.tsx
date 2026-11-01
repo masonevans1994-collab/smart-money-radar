@@ -43,6 +43,9 @@ function SignalCardBase({ signal, starred, isNew, onPress }: {
           <Text style={styles.ticker}>{signal.ticker}</Text>
           {starred && <Text style={styles.star}>★</Text>}
           {isNew && <Text style={styles.newTag}>NEW</Text>}
+          {signal.kind === "contract" && !!signal.committee_flag && (
+            <Text style={styles.flagTag}>COMMITTEE</Text>
+          )}
           <Text style={[styles.tag, { color: sell ? colors.sell : colors.accent }]}>
             {tagFor(signal).toUpperCase()}
           </Text>
@@ -82,6 +85,10 @@ const styles = StyleSheet.create({
   star: { color: colors.warn, fontSize: 14 },
   newTag: {
     color: colors.bg, backgroundColor: colors.warn, fontSize: 10, fontWeight: "800",
+    paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4, overflow: "hidden",
+  },
+  flagTag: {
+    color: "#fff", backgroundColor: "#8a2b1f", fontSize: 10, fontWeight: "800",
     paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4, overflow: "hidden",
   },
   tag: {

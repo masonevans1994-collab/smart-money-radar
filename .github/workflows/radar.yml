@@ -8,8 +8,10 @@
 #        https://<user>.github.io/smart-money-radar/            -> the app
 #        https://<user>.github.io/smart-money-radar/signals.json -> the data feed
 #
-# Optional: add a repo secret SEC_USER_AGENT = "Your Name you@example.com"
-# (the SEC asks for a contact). Without it, your GitHub noreply address is used.
+# Repo secrets (Settings > Secrets and variables > Actions):
+#   SEC_USER_AGENT       "Your Name you@example.com" - unlocks SEC data
+#   DISCORD_WEBHOOK_URL  optional, phone alerts via Discord
+#   TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID  optional, alerts via Telegram
 
 name: radar
 
@@ -55,12 +57,19 @@ jobs:
           key: sec-cache-${{ github.run_id }}
           restore-keys: sec-cache-
 
-      - name: Pull live filings
+      - name: Pull live data, update track record, send alerts
         env:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || format('Smart Money Radar {0}@users.noreply.github.com', github.repository_owner) }}
+          PUBLISHED_BASE: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ALERT_MIN_CONTRACT: ${{ vars.ALERT_MIN_CONTRACT }}
+          ALERT_MIN_OTHER: ${{ vars.ALERT_MIN_OTHER }}
         run: |
           python -m radar --days 3 --max-filings 2500 \
-            --out public/dashboard.html --json public/signals.json
+            --out public/dashboard.html --json public/signals.json \
+            --history public/history.json
 
       - uses: actions/setup-node@v4
         with:

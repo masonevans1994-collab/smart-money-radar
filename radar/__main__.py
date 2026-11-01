@@ -14,7 +14,8 @@ import datetime as dt
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import congress, contracts, dashboard, demo, edgar, marketcap, prices, scoring, senate
+from . import (alerts, committees, congress, contract_news, contracts, dashboard, demo,
+               edgar, history, marketcap, prices, scoring, senate)
 from .http import Fetcher
 
 
@@ -39,9 +40,12 @@ def main(argv=None) -> int:
     p.add_argument("--demo", action="store_true", help="use made-up sample data")
     p.add_argument("--out", default="dashboard.html")
     p.add_argument("--json", default="signals.json")
+    p.add_argument("--history", default="history.json", help="track-record file to write")
+    p.add_argument("--published", default=os.environ.get("PUBLISHED_BASE", ""),
+                   help="URL folder of the last published signals.json/history.json")
     args = p.parse_args(argv)
 
-    review, awards = [], []
+    review, awards, roster = [], [], None
     if args.demo:
         ins_raw, con_raw = demo.insider_events(), demo.congress_trades()
         awards = demo.contract_awards()
@@ -70,26 +74,39 @@ def main(argv=None) -> int:
         if not args.no_contracts:
             print("Scanning federal contract awards...")
             awards = load_contracts(fetcher, ua, args)
+            roster = load_roster(fetcher)
 
     ins, con = scoring.score_insider(ins_raw), scoring.score_congress(con_raw)
     scoring.cross_signal(ins, con)
     con_all = scoring.score_contracts(awards, con, ins)
+    scoring.committee_flags(con_all, roster)
     if args.demo:
         scoring.size_adjust(con_all)
 
-    if not args.demo and not args.no_prices and (ins or con or con_all):
-        print("Looking up price moves since each trade or award...")
-        everything = ins + con + con_all
-        dates = [x["trade_date"] for x in everything if x.get("trade_date")]
-        floor = dt.date.today() - dt.timedelta(days=400)
+    track, hist_entries, prev_feed = None, [], None
+    if args.demo:
+        track = demo.track_record()
+    elif not args.no_prices and (ins or con or con_all):
+        print("Looking up price moves and the track record...")
+        everything = con_all + ins + con
+        prev_feed = fetch_text(args.published + "signals.json") if args.published else None
+        hist_entries = history.merge(
+            history.load(fetch_text(args.published + "history.json") if args.published else None),
+            everything, dt.date.today())
+        dates = [x["trade_date"] for x in everything if x.get("trade_date")] + \
+            [e["date"] for e in hist_entries]
+        floor = dt.date.today() - dt.timedelta(days=history.KEEP_DAYS)
         start = max(floor, dt.date.fromisoformat(min(dates)) - dt.timedelta(days=7)) \
             if dates else dt.date.today() - dt.timedelta(days=120)
         book = prices.PriceBook(fetcher, start)
         prices.add_performance(everything, book)
-        print(f"  price sources: {book.source_ok}")
         n = marketcap.add_market_caps(con_all, fetcher)
         print(f"  company sizes found for {n} of {len(con_all)} contract winners")
         scoring.size_adjust(con_all)
+        history.reprice(hist_entries, book)
+        track = history.summarize(hist_entries)
+        print(f"  price sources: {book.source_ok}; history: {len(hist_entries)} signals tracked")
+
     ins = [x for x in ins if x["score"] >= args.min_score]
     con = [x for x in con if x["score"] >= args.min_score]
     con_all = [x for x in con_all if x["score"] >= args.min_score]
@@ -100,7 +117,20 @@ def main(argv=None) -> int:
         "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "demo": args.demo,
         "contracts": con_all, "insiders": ins, "congress": con, "review": review,
+        "track_record": track,
     }, indent=2, default=str))
+    if hist_entries:
+        Path(args.history).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.history).write_text(json.dumps({"entries": hist_entries}, default=str))
+    if not args.demo:
+        print("Checking for new alerts...")
+        prev = alerts.previous_keys(prev_feed)
+        if prev is None:
+            print("  no previous feed to compare against; alerts start next run")
+        new = alerts.pick_new(con_all + ins + con, prev,
+                              int(os.environ.get("ALERT_MIN_CONTRACT") or 60),
+                              int(os.environ.get("ALERT_MIN_OTHER") or 85))
+        alerts.send(new, args.published)
     Path(args.out).write_text(dashboard.render(ins, con, review, demo=args.demo, contracts=con_all))
 
     print(f"\n{len(con_all)} contract awards, {len(ins)} insider buys, {len(con)} Congress trades.")
@@ -129,9 +159,34 @@ def load_contracts(fetcher, ua, args) -> list[dict]:
     except Exception as e:  # noqa: BLE001 - aliases alone still match the big names
         print(f"  symbol list unavailable ({e}); using built-in contractor list only")
         book = contracts.SymbolBook()
+    raw += contract_news.fetch_modifications(ua, min(args.contract_days, 21))
     matched, private = contracts.match_awards(raw, book)
     print(f"  {len(matched)} awards to public companies ({private} to private companies skipped)")
+    matched += contract_news.fetch_8k_awards(fetcher, days=min(args.contract_days, 14),
+                                             min_amount=args.min_contract)
     return matched
+
+
+def fetch_text(url: str) -> str | None:
+    """Fetch the previously published file (fresh, not cached)."""
+    import urllib.request
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "smart-money-radar"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return r.read().decode("utf-8")
+    except Exception:  # noqa: BLE001 - first run, or Pages not up yet
+        return None
+
+
+def load_roster(fetcher):
+    try:
+        texts = [fetcher.get(committees.BASE + f, cache=False).decode("utf-8") for f in committees.FILES]
+        r = committees.Roster.from_json(*texts)
+        print(f"  committee rosters: {len(r.people)} members of Congress")
+        return r
+    except Exception as e:  # noqa: BLE001
+        print(f"  committee rosters unavailable ({e})")
+        return None
 
 
 if __name__ == "__main__":

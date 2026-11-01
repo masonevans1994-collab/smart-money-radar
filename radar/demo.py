@@ -82,3 +82,17 @@ def contract_awards():
         c.update(market_cap=cap, award_pct=round(c["value"] / cap * 100, 2), price_now=now,
                  price_then=then, price_date=_d(0), change_pct=round((now - then) / then * 100, 1))
     return out
+
+
+def track_record():
+    g = lambda gid, label, n, ret, vs, beat, v30: {
+        "id": gid, "label": label, "n": n, "avg_return": ret, "avg_vs_spy": vs,
+        "beat_spy_pct": beat, "n_30d": n // 2, "avg_vs_spy_30d": v30,
+        "best": "Demo Robotics Inc (DMRB) won $1.2B from Army", "since": _d(120)}
+    return {"benchmark": "S&P 500 (SPY)", "demo": True, "groups": [
+        g("contracts", "Contract wins", 48, 4.1, 1.9, 56, 1.2),
+        g("contracts_big", "Contract wins scored 70+", 11, 9.8, 6.7, 73, 4.4),
+        g("contracts_congress", "Contracts where Congress bought first", 4, 12.5, 9.1, 75, None),
+        g("congress_buys", "Congress purchases", 130, 3.0, 0.4, 51, 0.2),
+        g("insider_buys", "Insider buys", 0, 0, 0, 0, None),
+    ]}
