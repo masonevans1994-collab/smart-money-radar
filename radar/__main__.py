@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import (alerts, committees, congress, contract_context, contract_news, contracts,
-               dashboard, demo, reaction,
+               dashboard, demo, reaction, sectors,
                edgar, history, marketcap, prices, scoring, senate)
 from .http import Fetcher
 
@@ -104,6 +104,7 @@ def main(argv=None) -> int:
         n = marketcap.add_market_caps(con_all, fetcher)
         print(f"  company sizes found for {n} of {len(con_all)} contract winners")
         scoring.size_adjust(con_all)
+        sectors.add_sector_context(con_all, book)
         if con_all:
             print("Looking up how each company's stock reacted to its past awards...")
             reaction.company_history(con_all, ua, book)
@@ -135,6 +136,11 @@ def main(argv=None) -> int:
                               int(os.environ.get("ALERT_MIN_CONTRACT") or 60),
                               int(os.environ.get("ALERT_MIN_OTHER") or 85))
         alerts.send(new, args.published)
+        if os.environ.get("SEND_DIGEST") == "1":
+            digest = alerts.weekly_digest(con_all, dt.date.today(), args.published)
+            if digest:
+                alerts.send([{"headline": digest, "ticker": "Weekly", "score": 0, "reasons": [],
+                              "kind": "digest", "url": ""}], "")
     Path(args.out).write_text(dashboard.render(ins, con, review, demo=args.demo, contracts=con_all))
 
     print(f"\n{len(con_all)} contract awards, {len(ins)} insider buys, {len(con)} Congress trades.")

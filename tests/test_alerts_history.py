@@ -54,3 +54,15 @@ def test_history_merge_reprice_summary():
     assert g["contracts_big"]["n"] == 1 and g["contracts_big"]["avg_vs_spy"] == 17.0
     assert g["contracts_congress"]["n"] == 1
     assert g["insider_buys"]["n"] == 0
+
+
+def test_weekly_digest():
+    cs = [{"ticker": "HON", "company": "Honeywell", "value": 323e6, "trade_date": "2026-10-30", "change_pct": 0.0},
+          {"ticker": "FLR", "company": "Fluor", "value": 372e6, "trade_date": "2026-10-27", "change_pct": 1.0},
+          {"ticker": "OLD", "company": "Old", "value": 9e9, "trade_date": "2026-09-01", "change_pct": 5.0}]
+    d = alerts.weekly_digest(cs, dt.date(2026, 11, 1), "https://app")
+    assert "2 contracts worth $695M went to 2 public companies." in d
+    assert "• $372M to Fluor (FLR) (stock +1.0% since)" in d
+    assert "Best mover: FLR +1.0%" in d and "Worst mover: HON +0.0%" in d
+    assert alerts.weekly_digest([], dt.date(2026, 11, 1)) is None
+    assert alerts.format_alert({"kind": "digest", "headline": d}) == d

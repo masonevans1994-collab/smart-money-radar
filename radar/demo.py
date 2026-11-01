@@ -86,6 +86,8 @@ def contract_awards():
                             then + (now - then) * (i - 8) / (steps - 9) + then * 0.006 * ((i * 3) % 4 - 1.5), 2)
                       for i in range(steps)]
         c["spark_mark"] = 8
+    for c, (lab, pct) in zip(out, [("defense and aerospace stocks", 2.1), ("defense and aerospace stocks", 1.4), ("energy stocks", -0.6)]):
+        c["sector"], c["sector_pct"] = lab, pct
     out[0]["history"] = {"n": 11, "verdict": "After its last 11 big awards, this stock beat the market over the next month 73% of the time, by +4.4% on average. On the day itself it moved +0.6% on average.",
                          "windows": {"1": {"n": 11, "avg_vs_spy": 0.6, "median_vs_spy": 0.3, "beat_pct": 64, "avg_raw": 0.7},
                                      "30": {"n": 11, "avg_vs_spy": 4.4, "median_vs_spy": 3.1, "beat_pct": 73, "avg_raw": 6.0}},

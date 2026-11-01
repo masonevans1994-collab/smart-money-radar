@@ -3,7 +3,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
   agencyLabel, amountLabel, isSell, KEEP_IN_MIND, money, plainSummary, related, SCORE_GUIDE,
-  lastTimeDetail, lastTimeHeadline, lastTimeLines, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel,
+  lastTimeDetail, lastTimeHeadline, lastTimeLines, sectorLine, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel,
 } from "./logic";
 import { useState, useMemo } from "react";
 import { agencyDescription } from "./agencies";
@@ -92,11 +92,11 @@ function MiniList({ title, items, onOpen }: {
 }
 
 export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClose, onLegal, call,
-  onCall, onOpenRecord, onExplain }: {
+  onCall, onOpenRecord, onExplain, onAgency }: {
   signal: Signal | null; all: Signal[]; starred: boolean;
   onToggleStar: (ticker: string) => void; onOpen: (s: Signal) => void; onClose: () => void;
   onLegal: () => void; call?: Call; onCall: (s: Signal, d: Direction) => void; onOpenRecord: () => void;
-  onExplain: (term: string) => void;
+  onExplain: (term: string) => void; onAgency: (label: string) => void;
 }) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -128,9 +128,16 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                 </View>
               </View>
               <ScrollView key={signalKey(signal)} contentContainerStyle={styles.content}>
-                <Text style={styles.kicker}>
-                  {contract ? `${tagFor(signal)} from ${agencyLabel(signal)}` : tagFor(signal)}
-                </Text>
+                {contract ? (
+                  <Pressable onPress={() => onAgency(agencyLabel(signal))} hitSlop={6} accessibilityRole="button"
+                    accessibilityLabel={`See all recent contracts from ${agencyLabel(signal)}`}>
+                    <Text style={styles.kicker}>
+                      {tagFor(signal)} from <Text style={styles.kickerLink}>{agencyLabel(signal)} ›</Text>
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <Text style={styles.kicker}>{tagFor(signal)}</Text>
+                )}
                 <Text maxFontSizeMultiplier={1.3} style={[styles.heroAmount,
                   { color: contract ? colors.gold : isSell(signal) ? colors.down : colors.text }]}>
                   {amountLabel(signal)}
@@ -191,6 +198,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                         <Text style={styles.axisText}>${Math.min(...signal.spark).toFixed(2)}</Text>
                       </View>
                     </View>
+                    {sectorLine(signal) && <Text style={styles.sectorLine}>{sectorLine(signal)}</Text>}
                     <Text style={styles.chartFoot}>
                       Each bar is one day's closing price. The gold bar is {shortDate(signal.trade_date)}, when it was {contract ? "signed" : "traded"}.
                       {signal.price_then != null && signal.price_now != null
@@ -298,6 +306,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   axisText: { ...type.small, fontSize: 11, color: colors.muted, fontVariant: ["tabular-nums"] },
   content: { paddingHorizontal: 20, paddingBottom: 48 },
   kicker: { ...type.bodyStrong, color: colors.muted },
+  kickerLink: { color: colors.gold },
   heroAmount: { ...type.hero, marginTop: 2, fontVariant: ["tabular-nums"] },
   who: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 10 },
   company: { ...type.title, color: colors.text },
@@ -322,6 +331,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   chartHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   chartTitle: { ...type.bodyStrong, color: colors.text },
   chartFoot: { ...type.small, color: colors.muted },
+  sectorLine: { ...type.body, color: colors.text },
   section: { ...type.title, fontSize: 17, color: colors.text, marginTop: 28, marginBottom: 10 },
   reasonRow: { flexDirection: "row", gap: 10, marginBottom: 8 },
   reasonDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.gold, marginTop: 8 },

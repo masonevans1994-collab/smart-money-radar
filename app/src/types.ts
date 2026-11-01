@@ -32,6 +32,8 @@ export interface ContractSignal extends BaseSignal {
   is_modification?: boolean;
   committee_flag?: string;
   history_note?: string;
+  sector?: string;       // "defense and aerospace stocks"
+  sector_pct?: number;   // peer group's move over the same window
   history?: {
     n: number;
     verdict: string;

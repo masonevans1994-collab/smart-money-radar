@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-01T20:25:59+00:00",
+  "generated": "2026-11-01T20:46:01+00:00",
   "demo": true,
   "contracts": [
     {
@@ -52,6 +52,8 @@
         41.69
       ],
       "spark_mark": 8,
+      "sector": "defense and aerospace stocks",
+      "sector_pct": 2.1,
       "history": {
         "n": 11,
         "verdict": "After its last 11 big awards, this stock beat the market over the next month 73% of the time, by +4.4% on average. On the day itself it moved +0.6% on average.",
@@ -141,6 +143,8 @@
         19.89
       ],
       "spark_mark": 8,
+      "sector": "defense and aerospace stocks",
+      "sector_pct": 1.4,
       "history": {
         "n": 25,
         "verdict": "After its last 25 big awards, this stock usually trailed the market over the next month (36% of the time it beat it; -1.4% on average). On the day itself it moved -0.4% on average.",
@@ -228,6 +232,8 @@
         6.03
       ],
       "spark_mark": 8,
+      "sector": "energy stocks",
+      "sector_pct": -0.6,
       "congress_before": 1,
       "score": 60,
       "reasons": [

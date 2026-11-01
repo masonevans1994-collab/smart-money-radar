@@ -521,3 +521,40 @@ export function whyLine(s: Signal): string | null {
   }
   return null;
 }
+
+/** "Defense stocks overall are up 2.1% over the same stretch, so most of this move is the sector." */
+export function sectorLine(s: Signal): string | null {
+  if (s.kind !== "contract" || s.sector_pct === undefined || s.change_pct === undefined || !s.sector) return null;
+  const sec = s.sector_pct, own = s.change_pct;
+  const label = s.sector.charAt(0).toUpperCase() + s.sector.slice(1);
+  const dir = sec > 0.2 ? `up ${sec.toFixed(1)}%` : sec < -0.2 ? `down ${Math.abs(sec).toFixed(1)}%` : "flat";
+  const gap = own - sec;
+  let verdict: string;
+  if (Math.abs(own) < 0.5 && Math.abs(sec) < 0.5) verdict = "Neither has moved much.";
+  else if (Math.abs(gap) < 1) verdict = "So this stock is just moving with its group, not because of the contract.";
+  else if (gap > 0) verdict = `So this stock has done ${gap.toFixed(1)} points better than its group.`;
+  else verdict = `So this stock has done ${Math.abs(gap).toFixed(1)} points worse than its group.`;
+  return `${label} overall are ${dir} over the same stretch. ${verdict}`;
+}
+
+export interface AgencySummary {
+  label: string;
+  count: number;
+  total: number;
+  avgMove: number | null;
+  upCount: number;
+  contracts: Signal[];
+}
+
+export function agencySummary(all: Signal[], label: string): AgencySummary {
+  const contracts = all.filter((s) => s.kind === "contract" && agencyLabel(s) === label)
+    .sort((a, b) => (b.trade_date ?? "").localeCompare(a.trade_date ?? ""));
+  const moved = contracts.filter((c) => c.change_pct !== undefined);
+  return {
+    label, count: contracts.length,
+    total: contracts.reduce((s, c) => s + (c.kind === "contract" ? c.value : 0), 0),
+    avgMove: moved.length ? moved.reduce((s, c) => s + (c.change_pct ?? 0), 0) / moved.length : null,
+    upCount: moved.filter((c) => (c.change_pct ?? 0) > 0).length,
+    contracts,
+  };
+}

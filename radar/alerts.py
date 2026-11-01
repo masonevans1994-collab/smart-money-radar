@@ -47,6 +47,8 @@ def pick_new(signals: list[dict], prev: set[str] | None, min_contract: int = 60,
 
 
 def format_alert(s: dict, app_url: str = "") -> str:
+    if s.get("kind") == "digest":
+        return s["headline"]
     icon = {"contract": "🏛️", "congress": "🗳️", "insider": "💼"}.get(s.get("kind"), "•")
     lines = [f"{icon} {s['ticker']} · score {s['score']}", s["headline"]]
     lines += [f"• {r}" for r in s.get("reasons", [])[1:4]]
@@ -90,3 +92,34 @@ def send(alerts: list[dict], app_url: str = "", env=os.environ, post=_post, log=
             break
     log(f"  sent {sent} alert(s)")
     return sent
+
+
+def _mv(x: dict) -> str:
+    v = x.get("change_pct")
+    return "" if v is None else f" (stock {v:+.1f}% since)"
+
+
+def weekly_digest(contracts: list[dict], today, app_url: str = "") -> str | None:
+    """Plain-language summary of the past 7 days' contract awards."""
+    import datetime as dt
+    cutoff = (today - dt.timedelta(days=7)).isoformat()
+    recent = [c for c in contracts if (c.get("trade_date") or "") >= cutoff]
+    if not recent:
+        return None
+    total = sum(c["value"] for c in recent)
+    companies = {c["ticker"] for c in recent}
+    big = sorted(recent, key=lambda c: c["value"], reverse=True)[:3]
+    movers = sorted((c for c in recent if c.get("change_pct") is not None),
+                    key=lambda c: c["change_pct"], reverse=True)
+    lines = [f"📋 Your week in government contracts",
+             f"{len(recent)} contract{'s' if len(recent) != 1 else ''} worth ${total / 1e6:,.0f}M went to "
+             f"{len(companies)} public compan{'ies' if len(companies) != 1 else 'y'}.", "",
+             "Biggest:"]
+    lines += [f"• ${c['value'] / 1e6:,.0f}M to {c.get('company', c['ticker'])} ({c['ticker']}){_mv(c)}" for c in big]
+    if movers:
+        lines += ["", f"Best mover: {movers[0]['ticker']} {movers[0]['change_pct']:+.1f}% since its award",
+                  f"Worst mover: {movers[-1]['ticker']} {movers[-1]['change_pct']:+.1f}% since its award"]
+    if app_url:
+        lines += ["", f"Open Radar: {app_url}"]
+    lines += ["", "From public records. Not investment advice."]
+    return "\n".join(lines)

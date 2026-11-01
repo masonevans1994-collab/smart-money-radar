@@ -15,13 +15,14 @@ import {
   loadWatchlist, needsOnboarding, needsTour, saveAppearance, saveSeen, saveWatchlist,
 } from "./src/data";
 import {
-  allSignals, amountLabel, biggestThisWeek, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
+  agencySummary, allSignals, amountLabel, biggestThisWeek, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
   savedStocks, type SortKey, type Tab, TABS, timeAgo, topAgencies, weeklyRecap, withDayHeaders,
 } from "./src/logic";
 import {
   callFor, checkIn, type Direction, loadProgress, makeCall, type Progress, EMPTY, resolveCalls,
   saveProgress,
 } from "./src/game";
+import { AgencyPage } from "./src/AgencyPage";
 import { Glossary } from "./src/Glossary";
 import { Guide } from "./src/Guide";
 import { Legal, SHORT_DISCLAIMER } from "./src/Legal";
@@ -67,6 +68,7 @@ function Radar({ appearance, onAppearance }: {
   const [recapHidden, setRecapHidden] = useState(false);
   const [glossary, setGlossary] = useState<string | null | false>(false);
   const [tour, setTour] = useState(false);
+  const [agencyPage, setAgencyPage] = useState<string | null>(null);
   const [progress, setProgressState] = useState<Progress>(EMPTY);
   const setProgress = useCallback((fn: (p: Progress) => Progress) => {
     setProgressState((p) => { const n = fn(p); if (n !== p) saveProgress(n); return n; });
@@ -227,6 +229,9 @@ function Radar({ appearance, onAppearance }: {
                 <Chip key={a ?? "all"} label={a ?? "All agencies"} on={agency === a}
                   onPress={() => setAgency(a)} />
               ))}
+              {agency && (
+                <Chip label={`About ${agency} ›`} on={false} onPress={() => setAgencyPage(agency)} />
+              )}
             </ScrollView>
           )}
           <View style={{ height: 14 }} />
@@ -323,7 +328,10 @@ function Radar({ appearance, onAppearance }: {
         onClose={() => setOpen(null)}
         onLegal={() => { setOpen(null); setLegal(true); }}
         onExplain={(term: string) => setGlossary(term)}
+        onAgency={(label: string) => { setOpen(null); setAgencyPage(label); }}
       />
+      <AgencyPage summary={agencyPage ? agencySummary(signals, agencyPage) : null}
+        onOpen={(s) => { setAgencyPage(null); openSignal(s); }} onClose={() => setAgencyPage(null)} />
       <Onboarding visible={onboard && !legal} onDone={() => { setOnboard(false); finishOnboarding(); }}
         onLegal={() => setLegal(true)} />
       <Guide visible={guide && !legal} onClose={() => setGuide(false)} onLegal={() => setLegal(true)} />
