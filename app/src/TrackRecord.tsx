@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { pct } from "./logic";
+import { pct, recordSentence } from "./logic";
 import { fonts, type, type Palette, useColors } from "./theme";
 import type { TrackRecord as TR } from "./types";
 
@@ -27,9 +27,8 @@ export function TrackRecord({ record }: { record?: TR | null }) {
         return (
           <View key={g.id} style={styles.card}>
             <Text style={styles.label}>{g.label}</Text>
-            {g.n === 0 ? (
-              <Text style={styles.muted}>Not enough history yet</Text>
-            ) : (
+            <Text style={styles.sentence}>{recordSentence(g)}</Text>
+            {g.n === 0 ? null : (
               <>
                 <View style={styles.row}>
                   <Text style={[styles.big, { color: up ? colors.up : colors.down }]}>{pct(g.avg_vs_spy)}</Text>
@@ -74,6 +73,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   intro: { ...type.body, color: colors.soft, marginBottom: 4 },
   card: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, gap: 10 },
   label: { ...type.lead, fontFamily: fonts.bold, color: colors.text },
+  sentence: { ...type.body, fontSize: 15, lineHeight: 22, color: colors.text },
   row: { flexDirection: "row", alignItems: "baseline", gap: 8 },
   big: { ...type.amount, fontVariant: ["tabular-nums"] },
   bigLabel: { ...type.body, color: colors.muted },

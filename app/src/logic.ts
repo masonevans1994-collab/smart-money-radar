@@ -1,6 +1,6 @@
 // Pure helpers (no React Native imports) so they're easy to test.
 import { matchesQuery } from "./topics";
-import type { Feed, Signal } from "./types";
+import type { Feed, Signal, TrackGroup } from "./types";
 
 export type Tab = "contract" | "people" | "watch" | "record" | "you";
 export type SortKey = "score" | "size" | "newest" | "move";
@@ -292,10 +292,18 @@ export function contractsByTicker(feed: Feed): Map<string, Signal> {
 }
 
 export function shareText(s: Signal): string {
-  const lines = [s.headline];
-  const note = keyNote(s);
-  if (note && !s.headline.includes(note)) lines.push(note);
-  if (s.change_pct !== undefined) lines.push(`Stock ${pct(s.change_pct)} since ${shortDate(s.trade_date)}.`);
+  const lines: string[] = [];
+  const story = plainSummary(s);
+  if (story.length) lines.push(story[0]);
+  else lines.push(s.headline);
+  if (s.kind === "contract") {
+    const last = lastTimeHeadline(s);
+    if (last) lines.push(last);
+    const why = whyLine(s);
+    if (why) lines.push(why.replace(/^Why\? /, ""));
+  }
+  const mv = moveLabel(s);
+  if (mv && s.trade_date) lines.push(`${mv} since ${shortDate(s.trade_date)}.`);
   if (s.url) lines.push(s.url);
   lines.push("Via Radar. From public records. Not investment advice.");
   return lines.join("\n");
@@ -581,4 +589,21 @@ export function catchUp(signals: Signal[], seenBefore: Set<string> | null, lastO
   const name = big.kind === "contract" ? big.company : big.ticker;
   return `Welcome back. ${fresh.length} new contract${fresh.length === 1 ? "" : "s"} worth ${money(total)} since `
     + `${since}. Biggest: ${amountLabel(big)} to ${name}.`;
+}
+
+export function recapShareText(r: Recap): string {
+  const lines = [`This week the government signed ${r.count} contract${r.count === 1 ? "" : "s"} worth ${money(r.total)} with ${r.companies} public compan${r.companies === 1 ? "y" : "ies"}${r.topAgency ? `, led by ${r.topAgency}` : ""}.`];
+  if (r.biggest) lines.push(`Biggest: ${amountLabel(r.biggest)} to ${r.biggest.kind === "contract" ? r.biggest.company : r.biggest.ticker}.`);
+  if (r.bestMover) lines.push(`Best mover: ${r.bestMover.ticker}, ${moveLabel(r.bestMover)?.toLowerCase().replace("stock ", "")} since its award.`);
+  lines.push("Via Radar. From public records. Not investment advice.");
+  return lines.join("\n");
+}
+
+/** One plain sentence per track-record group. */
+export function recordSentence(g: TrackGroup): string {
+  if (!g.n) return "Not enough history yet.";
+  const vs = g.avg_vs_spy ?? 0;
+  const dir = vs > 0.5 ? `did better than the market by ${vs.toFixed(1)} points on average`
+    : vs < -0.5 ? `did worse than the market by ${Math.abs(vs).toFixed(1)} points on average` : "moved about like the market";
+  return `After ${g.n} of these, the stock ${dir}. It beat the market ${g.beat_pct ?? 0}% of the time.`;
 }

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Share, StyleSheet, Text, View } from "react-native";
 
-import { agencyLabel, amountLabel, money, moveLabel, type Recap as RecapData } from "./logic";
+import { agencyLabel, amountLabel, money, moveLabel, type Recap as RecapData, recapShareText } from "./logic";
 import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
 
@@ -14,9 +14,15 @@ export function RecapCard({ recap, onOpen, onDismiss }: {
     <View style={styles.card}>
       <View style={styles.head}>
         <Text style={styles.title}>Your week in contracts</Text>
-        <Pressable onPress={onDismiss} hitSlop={10} accessibilityRole="button" accessibilityLabel="Dismiss">
-          <Text style={styles.dismiss}>Hide</Text>
-        </Pressable>
+        <View style={{ flexDirection: "row", gap: 16 }}>
+          <Pressable onPress={() => Share.share({ message: recapShareText(recap) }).catch(() => {})}
+            hitSlop={10} accessibilityRole="button">
+            <Text style={styles.dismiss}>Share</Text>
+          </Pressable>
+          <Pressable onPress={onDismiss} hitSlop={10} accessibilityRole="button" accessibilityLabel="Dismiss">
+            <Text style={styles.dismiss}>Hide</Text>
+          </Pressable>
+        </View>
       </View>
       <Text style={styles.period}>{recap.periodLabel}</Text>
       <Text style={styles.line}>

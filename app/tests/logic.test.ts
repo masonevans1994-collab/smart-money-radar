@@ -157,7 +157,7 @@ test("weekly recap and agency descriptions", () => {
 });
 
 
-import { catchUp, lastTimeDetail, lastTimeHeadline, lastTimeLines, statusNote, whyLine } from "../src/logic";
+import { catchUp, lastTimeDetail, lastTimeHeadline, lastTimeLines, recordSentence, shareText, statusNote, whyLine } from "../src/logic";
 
 test("what-happened-last-time sentences use real past moves", () => {
   const s = contract({ history: { n: 25, verdict: "v", windows: {},
@@ -212,5 +212,26 @@ test("plain-word search and topics", () => {
   assert.ok(!matchesQuery(meds, "ships"));
   assert.ok(matchesQuery(meds, "mdln"));
   assert.deepEqual(suggestedTopics([ship, ship, meds])[0], "ships");
+});
+
+test("share text carries the plain-English story", () => {
+  const hist = { n: 25, verdict: "v", windows: { "30": { n: 25, beat_pct: 36, avg_vs_spy: -1.4, median_vs_spy: -1, avg_raw: 1.8 } },
+    closest: { date: "2024-11-14", value: 206e6, agency: "Department of Defense", d1: -0.3, d30: -1.53, d30_vs_spy: -1.2 } };
+  const hon = contract({ company: "Honeywell International Inc.", value: 323e6, change_pct: 0, history: hist, url: "https://x" } as Partial<Signal>);
+  const t = shareText(hon);
+  assert.match(t, /^The Department of Energy agreed to pay Honeywell International Inc\. \$323M more/);
+  assert.match(t, /Last time Honeywell won a deal like this, its stock went down 2%\./);
+  assert.match(t, /This adds money to a contract Honeywell already had/);
+  assert.match(t, /Stock unchanged since Oct 30\./);
+  assert.match(t, /Not investment advice\.$/);
+  assert.doesNotMatch(t, /Why\?/);
+});
+
+test("record sentences", () => {
+  assert.equal(recordSentence({ id: "x", label: "L", n: 0 }), "Not enough history yet.");
+  assert.equal(recordSentence({ id: "x", label: "L", n: 11, avg_vs_spy: 6.7, beat_pct: 73 }),
+    "After 11 of these, the stock did better than the market by 6.7 points on average. It beat the market 73% of the time.");
+  assert.equal(recordSentence({ id: "x", label: "L", n: 40, avg_vs_spy: 0.2, beat_pct: 50 }),
+    "After 40 of these, the stock moved about like the market. It beat the market 50% of the time.");
 });
 console.log(`\n${passed} logic tests passed`);
