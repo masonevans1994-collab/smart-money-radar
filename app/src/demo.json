@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-01T17:14:22+00:00",
+  "generated": "2026-11-01T17:28:32+00:00",
   "demo": true,
   "contracts": [
     {
@@ -56,10 +56,10 @@
       "score": 100,
       "reasons": [
         "Won a $480.0M contract from Air Force",
-        "Huge for this company: 23% of its whole market value",
-        "Announced by the Pentagon (same-day news)",
-        "Hon. Lee Sample bought QRTZ 16 days before this award (+1 more)",
-        "Company insiders have been buying too"
+        "Huge for this company: the award equals 23% of what the whole company is worth",
+        "Announced by the Pentagon the same day it was signed",
+        "Hon. Lee Sample bought QRTZ stock 16 days before this award (+1 more)",
+        "The company's own executives have been buying its stock"
       ],
       "headline": "Quartzline Semiconductors (QRTZ) won $480.0M from Air Force"
     },
@@ -116,9 +116,9 @@
       "score": 85,
       "reasons": [
         "Won a $1.2B contract from Army",
-        "Huge for this company: 35% of its whole market value",
-        "Announced by the Pentagon (same-day news)",
-        "Company insiders have been buying too"
+        "Huge for this company: the award equals 35% of what the whole company is worth",
+        "Announced by the Pentagon the same day it was signed",
+        "The company's own executives have been buying its stock"
       ],
       "headline": "Demo Robotics Inc (DMRB) won $1.2B from Army"
     },
@@ -176,9 +176,9 @@
       "score": 60,
       "reasons": [
         "Won a $65.0M contract from Defense Logistics Agency",
-        "Meaningful: 1.1% of its $6.2B market value",
-        "Hon. Pat Placeholder bought SNDL 65 days before this award",
-        "Company insiders have been buying too"
+        "Noticeable: 1.1% of the company's $6.2B total value",
+        "Hon. Pat Placeholder bought SNDL stock 65 days before this award",
+        "The company's own executives have been buying its stock"
       ],
       "headline": "Sandlot Energy Co (SNDL) won $65.0M from Defense Logistics Agency"
     }

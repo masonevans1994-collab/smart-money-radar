@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { agencyLabel, amountLabel, changeLabel, isSell, keyNote, scoreTier, shortDate } from "./logic";
+import { agencyLabel, amountLabel, isSell, keyNote, moveLabel, scoreTier, shortDate, tierLabel } from "./logic";
 import { Spark } from "./Spark";
 import { colors, fonts, type } from "./theme";
 import type { Signal } from "./types";
@@ -20,12 +20,12 @@ export function ScoreBadge({ score, size = "sm" }: { score: number; size?: "sm" 
 }
 
 export function ChangeChip({ signal, big }: { signal: Signal; big?: boolean }) {
-  const label = changeLabel(signal);
+  const label = moveLabel(signal);
   if (!label) return null;
   const up = (signal.change_pct ?? 0) >= 0;
   return (
     <Text style={[styles.change, big && styles.changeBig, { color: up ? colors.up : colors.down }]}>
-      {up ? "▲" : "▼"} {label}
+      {label}
     </Text>
   );
 }
@@ -65,7 +65,10 @@ function SignalCardBase({ signal, starred, isNew, onPress, linked }: {
           {context}
           {contract && signal.who !== signal.company ? `, via ${signal.who}` : ""}
         </Text>
-        {contract && signal.is_modification && <Text style={styles.pill}>Expansion</Text>}
+        {contract && signal.is_modification && <Text style={styles.pill}>Add-on</Text>}
+        {signal.score >= 45 && (
+          <Text style={[styles.pill, signal.score >= 70 && styles.standout]}>{tierLabel(signal.score)}</Text>
+        )}
         {isNew && <Text style={[styles.pill, styles.newPill]}>New</Text>}
       </View>
 
@@ -84,7 +87,7 @@ function SignalCardBase({ signal, starred, isNew, onPress, linked }: {
         <View style={styles.bottomText}>
           <ChangeChip signal={signal} />
           <Text style={styles.date}>
-            {contract ? "Awarded" : "Traded"} {shortDate(signal.trade_date)}
+            since {contract ? "signed" : "traded"} {shortDate(signal.trade_date)}
           </Text>
         </View>
       </View>
@@ -129,6 +132,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7, paddingVertical: 1, borderRadius: 6, overflow: "hidden",
   },
   newPill: { color: colors.bg, backgroundColor: colors.gold },
+  standout: { color: colors.up, backgroundColor: "#173a33" },
   flag: {
     ...type.small, fontFamily: fonts.semibold, color: "#F3B4A8", marginTop: 10,
     borderLeftWidth: 3, borderLeftColor: colors.seal, paddingLeft: 8,

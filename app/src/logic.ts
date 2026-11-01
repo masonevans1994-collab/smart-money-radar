@@ -100,7 +100,7 @@ export function isSell(s: Signal): boolean {
 }
 
 export function tagFor(s: Signal): string {
-  if (s.kind === "contract") return s.is_modification ? "Contract expansion" : "New contract";
+  if (s.kind === "contract") return s.is_modification ? "More money on a contract" : "New contract";
   return s.kind === "insider" ? "Insider buy" : s.type;
 }
 
@@ -125,7 +125,7 @@ export function amountLabel(s: Signal): string {
 export function keyNote(s: Signal): string {
   if (s.kind === "contract") {
     return s.history_note ?? s.reasons.find((r) => !r.startsWith("Won a"))
-      ?? (s.is_modification ? "Adds money to a contract the company already holds" : s.reasons[0] ?? "");
+      ?? (s.is_modification ? "More money on a contract the company already had" : s.reasons[0] ?? "");
   }
   return s.reasons[1] ?? s.reasons[0] ?? "";
 }
@@ -292,4 +292,73 @@ export const SCORE_GUIDE: [string, string][] = [
   ["70 to 100", "Stands out. Large for the company, its biggest win in years, or traded by a member of Congress beforehand."],
   ["45 to 69", "Worth a look. A sizable award or trade with at least one unusual detail."],
   ["Under 45", "Routine. Real money, but ordinary for this company or this kind of filing."],
+];
+
+// ---------- plain-English layer for people new to investing ----------
+
+export function tierLabel(score: number): string {
+  return score >= 70 ? "Stands out" : score >= 45 ? "Worth a look" : "Routine";
+}
+
+export function moveLabel(s: Signal): string | null {
+  if (s.change_pct === undefined || s.change_pct === null) return null;
+  const v = Math.abs(s.change_pct).toFixed(1);
+  if (s.change_pct === 0) return "Stock unchanged";
+  return s.change_pct > 0 ? `Stock up ${v}%` : `Stock down ${v}%`;
+}
+
+function agencyFull(s: Signal): string {
+  if (s.kind !== "contract") return "";
+  const sub = s.sub_agency && s.sub_agency !== s.agency ? s.sub_agency : "";
+  const name = sub || s.agency || "A government agency";
+  return /^(the |department|u\.s\.|army|navy|air force|space force|marine corps|defense logistics|missile defense)/i
+    .test(name) ? `The ${name.replace(/^the /i, "")}` : name;
+}
+
+/** A short story of what happened, in everyday words. */
+export function plainSummary(s: Signal): string[] {
+  const out: string[] = [];
+  if (s.kind === "contract") {
+    out.push(s.is_modification
+      ? `${agencyFull(s)} agreed to pay ${s.company} ${money(s.value)} more on a contract the company already had.`
+      : `${agencyFull(s)} hired ${s.company} for a new contract worth ${money(s.value)}.`);
+    if (s.award_pct != null && s.market_cap) {
+      const p = s.award_pct;
+      out.push(p >= 3
+        ? `That's a lot for this company: about ${p.toFixed(p >= 10 ? 0 : 1)}% of what the whole company is worth (${money(s.market_cap)}).`
+        : p < 0.5
+          ? `For a company worth ${money(s.market_cap)}, that's a small amount, so on its own it may not change much.`
+          : `That's about ${p.toFixed(1)}% of what the whole company is worth (${money(s.market_cap)}).`);
+    } else if (s.history_note) {
+      out.push(`${s.history_note}.`);
+    }
+    if (s.congress_before) {
+      out.push("A member of Congress bought this stock before the award was signed. That doesn't prove anything improper, but it's the kind of timing people watch.");
+    }
+  } else if (s.kind === "insider") {
+    out.push(`${s.who}, ${s.role_label ? `the company's ${s.role_label.toLowerCase()}` : "a company insider"}, spent ${money(s.value)} of their own money on ${s.company} stock.`);
+    out.push("Executives sell for lots of reasons, but they usually buy for one: they think the stock is worth more than its price.");
+  } else {
+    const who = s.owner === "Self" ? s.who : `${s.who}'s ${s.owner.toLowerCase()}`;
+    const verb = s.type.startsWith("Sale") ? "sold" : s.type === "Purchase" ? "bought" : "traded";
+    out.push(`${who} ${verb} ${amountLabel(s).replace("–", " to ")} of ${s.ticker} stock. Members of Congress only have to report a range, not the exact amount.`);
+    if (s.lag_days && s.lag_days > 45) {
+      out.push(`They reported it ${s.lag_days} days later. The law allows 45.`);
+    }
+  }
+  const mv = moveLabel(s);
+  if (mv && s.trade_date) {
+    out.push(`${mv.replace("Stock", "The stock is")} since ${shortDate(s.trade_date)}.`);
+  }
+  return out;
+}
+
+export function tickerHelp(s: Signal): string {
+  return `${s.ticker} is the company's stock symbol, the name you'd search for in any investing app.`;
+}
+
+export const KEEP_IN_MIND = [
+  "News like this is public. Professional traders often react within minutes, so the price may already reflect it.",
+  "Contracts can be cut, delayed or paid out over many years.",
+  "Radar shows what happened. It doesn't tell you to buy or sell, and stocks can lose value.",
 ];

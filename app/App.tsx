@@ -18,6 +18,7 @@ import {
   allSignals, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
   type SortKey, type Tab, TABS, timeAgo, topAgencies, withDayHeaders,
 } from "./src/logic";
+import { Guide } from "./src/Guide";
 import { Onboarding } from "./src/Onboarding";
 import { SignalCard } from "./src/SignalCard";
 import { SignalDetail } from "./src/SignalDetail";
@@ -45,6 +46,7 @@ function Radar() {
   const [sort, setSort] = useState<SortKey>("newest");
   const [seenBefore, setSeenBefore] = useState<Set<string> | null>(null);
   const [onboard, setOnboard] = useState(false);
+  const [guide, setGuide] = useState(false);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -104,8 +106,11 @@ function Radar() {
     <View>
       <View style={styles.topBar}>
         <Text style={styles.brand}>Radar</Text>
-        <Text style={styles.status}>{status}</Text>
+        <Pressable onPress={() => setGuide(true)} hitSlop={10} accessibilityRole="button">
+          <Text style={styles.help}>How it works</Text>
+        </Pressable>
       </View>
+      <Text style={styles.status}>{status}</Text>
 
       {source === "demo" && (
         <Text style={styles.notice}>
@@ -137,7 +142,7 @@ function Radar() {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder={tab === "contract" ? "Search company or ticker" : "Search name or ticker"}
+            placeholder={tab === "contract" ? "Search company or stock symbol" : "Search name or stock symbol"}
             placeholderTextColor={colors.muted}
             style={styles.search}
             autoCorrect={false}
@@ -225,6 +230,7 @@ function Radar() {
         onClose={() => setOpen(null)}
       />
       <Onboarding visible={onboard} onDone={() => { setOnboard(false); finishOnboarding(); }} />
+      <Guide visible={guide} onClose={() => setGuide(false)} />
     </View>
   );
 }
@@ -263,7 +269,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 10,
   },
   brand: { fontFamily: fonts.black, fontSize: 20, color: colors.gold },
-  status: { ...type.small, color: colors.muted },
+  status: { ...type.small, color: colors.muted, paddingHorizontal: 20, marginTop: 2 },
+  help: { fontFamily: fonts.semibold, fontSize: 14, color: colors.soft },
   notice: {
     ...type.small, color: colors.soft, marginHorizontal: 20, marginTop: 12,
     borderLeftWidth: 3, borderLeftColor: colors.gold, paddingLeft: 10,

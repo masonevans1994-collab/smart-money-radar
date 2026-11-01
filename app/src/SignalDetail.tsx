@@ -2,8 +2,8 @@ import { Linking, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } 
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
-  agencyLabel, amountLabel, isSell, money, related, SCORE_GUIDE, shareText, shortDate, signalKey,
-  sourceFor, tagFor,
+  agencyLabel, amountLabel, isSell, KEEP_IN_MIND, money, plainSummary, related, SCORE_GUIDE,
+  shareText, shortDate, signalKey, sourceFor, tagFor, tickerHelp, tierLabel,
 } from "./logic";
 import { useState } from "react";
 import { ChangeChip, ScoreBadge } from "./SignalCard";
@@ -154,6 +154,11 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                   </View>
                 )}
 
+                <View style={styles.plain}>
+                  {plainSummary(signal).map((p) => <Text key={p} style={styles.plainText}>{p}</Text>)}
+                  <Text style={styles.plainHelp}>{tickerHelp(signal)}</Text>
+                </View>
+
                 {signal.spark && (
                   <View style={styles.chartBox}>
                     <View style={styles.chartHead}>
@@ -171,14 +176,14 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                       </View>
                     </View>
                     <Text style={styles.chartFoot}>
-                      Gold bar is {shortDate(signal.trade_date)}, when it was {contract ? "signed" : "traded"}.
+                      Each bar is one day's closing price. The gold bar is {shortDate(signal.trade_date)}, when it was {contract ? "signed" : "traded"}.
                       {signal.price_then != null && signal.price_now != null
                         ? ` Price then $${signal.price_then.toFixed(2)}, latest $${signal.price_now.toFixed(2)}.` : ""}
                     </Text>
                   </View>
                 )}
 
-                <Text style={styles.section}>Why it stands out</Text>
+                <Text style={styles.section}>Why it scored {signal.score}: {tierLabel(signal.score).toLowerCase()}</Text>
                 {signal.reasons.map((r) => (
                   <View key={r} style={styles.reasonRow}>
                     <View style={styles.reasonDot} />
@@ -192,6 +197,11 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                     <Text style={styles.desc}>{signal.description}</Text>
                   </>
                 )}
+
+                <Text style={styles.section}>Keep in mind</Text>
+                <View style={styles.caution}>
+                  {KEEP_IN_MIND.map((k) => <Text key={k} style={styles.cautionText}>{k}</Text>)}
+                </View>
 
                 <Text style={styles.section}>Details</Text>
                 <Rows rows={detailRows(signal)} />
@@ -239,6 +249,11 @@ const styles = StyleSheet.create({
   who: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 10 },
   company: { ...type.title, color: colors.text },
   tickerLine: { ...type.body, color: colors.soft, marginTop: 2 },
+  plain: { marginTop: 18, gap: 8 },
+  plainText: { ...type.lead, fontFamily: fonts.regular, fontSize: 17, lineHeight: 25, color: colors.text },
+  plainHelp: { ...type.small, color: colors.muted },
+  caution: { borderLeftWidth: 3, borderLeftColor: colors.line, paddingLeft: 12, gap: 8 },
+  cautionText: { ...type.body, color: colors.soft },
   chartBox: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, marginTop: 20, gap: 12 },
   chartHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   chartTitle: { ...type.bodyStrong, color: colors.text },

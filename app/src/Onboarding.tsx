@@ -4,9 +4,9 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { colors, fonts, type } from "./theme";
 
 const POINTS: [string, string][] = [
-  ["Federal contract wins", "When the government awards a public company a contract, you see the amount, the agency and how the stock has moved since."],
-  ["Why each one matters", "Every award gets a score from 0 to 100, with the reasons spelled out: size next to the company, its biggest win in years, or members of Congress who bought first."],
-  ["Straight from the record", "Everything comes from public government data: USAspending.gov, SEC filings and congressional disclosures. Tap any item to open the original."],
+  ["See where the money goes", "When the government hires a company you can invest in, Radar shows how much, for what, and what the company's stock has done since."],
+  ["Explained in plain English", "No trading experience needed. Every item says what happened, why people watch it and what to keep in mind."],
+  ["Straight from public records", "Everything comes from government data anyone can check. Tap any item to see the original record."],
 ];
 
 export function Onboarding({ visible, onDone }: { visible: boolean; onDone: () => void }) {
@@ -16,7 +16,7 @@ export function Onboarding({ visible, onDone }: { visible: boolean; onDone: () =
         <SafeAreaView style={styles.wrap} edges={["top", "bottom"]}>
           <View style={styles.body}>
             <Text style={styles.brand}>Radar</Text>
-            <Text style={styles.title}>Follow the money the government awards.</Text>
+            <Text style={styles.title}>Follow the money the government spends.</Text>
             {POINTS.map(([h, b]) => (
               <View key={h} style={styles.point}>
                 <View style={styles.rule} />
