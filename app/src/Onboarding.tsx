@@ -9,7 +9,9 @@ const POINTS: [string, string][] = [
   ["Straight from public records", "Everything comes from government data anyone can check. Tap any item to see the original record."],
 ];
 
-export function Onboarding({ visible, onDone }: { visible: boolean; onDone: () => void }) {
+export function Onboarding({ visible, onDone, onLegal }: {
+  visible: boolean; onDone: () => void; onLegal: () => void;
+}) {
   return (
     <Modal visible={visible} animationType="fade" onRequestClose={onDone}>
       <SafeAreaProvider>
@@ -29,11 +31,14 @@ export function Onboarding({ visible, onDone }: { visible: boolean; onDone: () =
           </View>
           <View style={styles.footer}>
             <Text style={styles.legal}>
-              For information only. Radar is not investment advice, and past results don't
-              predict future ones.
+              Radar is for information only. It isn't investment advice, it never tells you to buy
+              or sell, and stocks can lose value. Public records can contain errors.
             </Text>
+            <Pressable onPress={onLegal} hitSlop={8} accessibilityRole="link">
+              <Text style={styles.link}>Read the full disclaimers</Text>
+            </Pressable>
             <Pressable style={styles.button} onPress={onDone} accessibilityRole="button">
-              <Text style={styles.buttonText}>Show me the awards</Text>
+              <Text style={styles.buttonText}>I understand, show me the awards</Text>
             </Pressable>
           </View>
         </SafeAreaView>
@@ -52,7 +57,8 @@ const styles = StyleSheet.create({
   pointHead: { ...type.lead, fontFamily: fonts.bold, color: colors.text },
   pointBody: { ...type.body, color: colors.soft, marginTop: 4 },
   footer: { paddingHorizontal: 24, paddingBottom: 16, gap: 14 },
-  legal: { ...type.small, color: colors.muted },
+  legal: { ...type.body, color: colors.soft },
+  link: { fontFamily: fonts.semibold, fontSize: 14, color: colors.gold },
   button: { backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 16, alignItems: "center" },
   buttonText: { fontFamily: fonts.bold, fontSize: 16, color: colors.bg },
 });

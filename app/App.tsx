@@ -19,6 +19,7 @@ import {
   type SortKey, type Tab, TABS, timeAgo, topAgencies, withDayHeaders,
 } from "./src/logic";
 import { Guide } from "./src/Guide";
+import { Legal, SHORT_DISCLAIMER } from "./src/Legal";
 import { Onboarding } from "./src/Onboarding";
 import { SignalCard } from "./src/SignalCard";
 import { SignalDetail } from "./src/SignalDetail";
@@ -47,6 +48,7 @@ function Radar() {
   const [seenBefore, setSeenBefore] = useState<Set<string> | null>(null);
   const [onboard, setOnboard] = useState(false);
   const [guide, setGuide] = useState(false);
+  const [legal, setLegal] = useState(false);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -199,6 +201,12 @@ function Radar() {
           )}
           ListHeaderComponent={header}
           ListEmptyComponent={empty}
+          ListFooterComponent={
+            <Pressable onPress={() => setLegal(true)} style={styles.footer} accessibilityRole="link">
+              <Text style={styles.footerText}>{SHORT_DISCLAIMER}</Text>
+              <Text style={styles.footerLink}>Disclaimers</Text>
+            </Pressable>
+          }
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.gold} />
           }
@@ -228,9 +236,12 @@ function Radar() {
         starred={!!open && watch.has(open.ticker)}
         onToggleStar={toggleStar}
         onClose={() => setOpen(null)}
+        onLegal={() => { setOpen(null); setLegal(true); }}
       />
-      <Onboarding visible={onboard} onDone={() => { setOnboard(false); finishOnboarding(); }} />
-      <Guide visible={guide} onClose={() => setGuide(false)} />
+      <Onboarding visible={onboard && !legal} onDone={() => { setOnboard(false); finishOnboarding(); }}
+        onLegal={() => setLegal(true)} />
+      <Guide visible={guide && !legal} onClose={() => setGuide(false)} onLegal={() => setLegal(true)} />
+      <Legal visible={legal} onClose={() => setLegal(false)} />
     </View>
   );
 }
@@ -295,6 +306,9 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: colors.text },
   chipText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.soft },
   chipTextOn: { color: colors.bg },
+  footer: { marginHorizontal: 24, marginTop: 18, alignItems: "center", gap: 4 },
+  footerText: { ...type.small, color: colors.muted, textAlign: "center" },
+  footerLink: { ...type.small, fontFamily: fonts.semibold, color: colors.soft, textDecorationLine: "underline" },
   empty: { ...type.lead, color: colors.muted, textAlign: "center", marginTop: 48, marginHorizontal: 32 },
   tabBar: {
     position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row",

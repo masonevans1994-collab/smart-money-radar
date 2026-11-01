@@ -284,7 +284,7 @@ export function shareText(s: Signal): string {
   if (note && !s.headline.includes(note)) lines.push(note);
   if (s.change_pct !== undefined) lines.push(`Stock ${pct(s.change_pct)} since ${shortDate(s.trade_date)}.`);
   if (s.url) lines.push(s.url);
-  lines.push("Via Radar. Public records, not investment advice.");
+  lines.push("Via Radar. From public records. Not investment advice.");
   return lines.join("\n");
 }
 
@@ -333,7 +333,7 @@ export function plainSummary(s: Signal): string[] {
       out.push(`${s.history_note}.`);
     }
     if (s.congress_before) {
-      out.push("A member of Congress bought this stock before the award was signed. That doesn't prove anything improper, but it's the kind of timing people watch.");
+      out.push("Public filings show a member of Congress bought this stock before the award was signed. That's a fact about timing only; it doesn't mean anyone did anything wrong.");
     }
   } else if (s.kind === "insider") {
     out.push(`${s.who}, ${s.role_label ? `the company's ${s.role_label.toLowerCase()}` : "a company insider"}, spent ${money(s.value)} of their own money on ${s.company} stock.`);
@@ -360,5 +360,6 @@ export function tickerHelp(s: Signal): string {
 export const KEEP_IN_MIND = [
   "News like this is public. Professional traders often react within minutes, so the price may already reflect it.",
   "Contracts can be cut, delayed or paid out over many years.",
-  "Radar shows what happened. It doesn't tell you to buy or sell, and stocks can lose value.",
+  "Radar shows what happened. It isn't investment advice and doesn't tell you to buy or sell. Stocks can lose value.",
+  "Public records can contain errors. Check the official record before relying on this.",
 ];

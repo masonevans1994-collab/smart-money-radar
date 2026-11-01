@@ -74,7 +74,7 @@ function SignalCardBase({ signal, starred, isNew, onPress, linked }: {
 
       {contract && !!signal.committee_flag && (
         <Text style={styles.flag} numberOfLines={2}>
-          Conflict check: {signal.committee_flag.replace(" · ", " sits on ")}
+          Committee overlap: {signal.committee_flag.replace(" · ", " sits on ")}
         </Text>
       )}
       <Text style={styles.note} numberOfLines={2}>{keyNote(signal)}</Text>

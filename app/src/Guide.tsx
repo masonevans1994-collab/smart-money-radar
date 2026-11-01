@@ -19,7 +19,7 @@ const SECTIONS: [string, string[]][] = [
   ]],
   ["What the score means", SCORE_GUIDE.map(([r, t]) => `${r}: ${t}`)],
   ["Congress and insiders", [
-    "Members of Congress and company executives have to report when they buy or sell stock. Radar shows those trades, and points out when someone bought a company's stock shortly before it won a government contract.",
+    "Members of Congress and company executives have to report when they buy or sell stock. Radar shows those trades and notes when a trade happened shortly before a related contract. That's a fact about timing only, not a claim that anyone did anything wrong.",
   ]],
   ["Before you invest any money", [
     "Radar is for information only. It's not financial advice, and it never tells you what to buy.",
@@ -28,7 +28,9 @@ const SECTIONS: [string, string[]][] = [
   ]],
 ];
 
-export function Guide({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+export function Guide({ visible, onClose, onLegal }: {
+  visible: boolean; onClose: () => void; onLegal: () => void;
+}) {
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <SafeAreaProvider>
@@ -46,6 +48,9 @@ export function Guide({ visible, onClose }: { visible: boolean; onClose: () => v
                 {paras.map((p) => <Text key={p} style={styles.p}>{p}</Text>)}
               </View>
             ))}
+            <Pressable onPress={onLegal} style={styles.legalBtn} accessibilityRole="link">
+              <Text style={styles.legalText}>Read the full disclaimers</Text>
+            </Pressable>
           </ScrollView>
         </SafeAreaView>
       </SafeAreaProvider>
@@ -63,4 +68,6 @@ const styles = StyleSheet.create({
   section: { marginTop: 18, gap: 8 },
   title: { ...type.lead, fontFamily: fonts.bold, color: colors.text },
   p: { ...type.body, fontSize: 15, lineHeight: 22, color: colors.soft },
+  legalBtn: { marginTop: 24 },
+  legalText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.gold },
 });

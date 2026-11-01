@@ -84,9 +84,10 @@ function MiniList({ title, items, onOpen }: {
   );
 }
 
-export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClose }: {
+export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClose, onLegal }: {
   signal: Signal | null; all: Signal[]; starred: boolean;
   onToggleStar: (ticker: string) => void; onOpen: (s: Signal) => void; onClose: () => void;
+  onLegal: () => void;
 }) {
   const rel = signal ? related(all, signal) : { sameTicker: [], sameWho: [] };
   const [explain, setExplain] = useState(false);
@@ -218,8 +219,12 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                   </Pressable>
                 )}
                 <Text style={styles.disclaimer}>
-                  From public government records. For information only, not investment advice.
+                  From public records, which can contain errors. For information only. Not investment
+                  advice, and not a recommendation to buy or sell.
                 </Text>
+                <Pressable onPress={onLegal} hitSlop={8} accessibilityRole="link">
+                  <Text style={styles.disclaimerLink}>Disclaimers</Text>
+                </Pressable>
               </ScrollView>
             </>
           )}
@@ -281,4 +286,6 @@ const styles = StyleSheet.create({
   },
   buttonText: { fontFamily: fonts.bold, fontSize: 16, color: colors.bg },
   disclaimer: { ...type.small, color: colors.muted, textAlign: "center", marginTop: 16 },
+  disclaimerLink: { ...type.small, fontFamily: fonts.semibold, color: colors.soft, textAlign: "center",
+    marginTop: 6, textDecorationLine: "underline" },
 });

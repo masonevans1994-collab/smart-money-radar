@@ -47,8 +47,9 @@ export function TrackRecord({ record }: { record?: TR | null }) {
         );
       })}
       <Text style={styles.foot}>
-        Past results don't predict future ones. Returns use daily closing prices from the
-        signal date (or the insider's own price) to today. Not investment advice.
+        These figures are calculated from daily closing prices, not from real trades, and don't
+        include fees, taxes or the delay before news becomes public. Past results don't predict
+        future results. Not investment advice.
       </Text>
     </View>
   );
