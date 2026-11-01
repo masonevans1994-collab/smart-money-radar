@@ -80,6 +80,47 @@ ALIASES = [
 ]
 
 
+SMALL = {"and", "of", "the", "for", "in", "on", "at", "by", "to"}
+KEEP_UPPER = {"LLC", "LP", "LLP", "USA", "US", "USG", "IBM", "KBR", "CACI", "SAIC", "BAE", "GE",
+              "AECOM", "ICF", "BWX", "BWXT", "HII", "L3", "L3HARRIS", "V2X", "II", "III", "IV", "NA",
+              "AI", "IT", "PLC", "AG", "SA", "NV", "SE", "DBA"}
+
+
+def nice_case(name: str) -> str:
+    """'FLUOR MARINE PROPULSION, LLC' -> 'Fluor Marine Propulsion, LLC'."""
+    words = []
+    for i, w in enumerate(name.split()):
+        core = re.sub(r"[^A-Za-z0-9&]", "", w)
+        if core.upper() in KEEP_UPPER or (core.isupper() and len(core) <= 3 and core.isalpha()
+                                          and core.upper() not in {"INC", "CO", "THE", "AND", "FOR"}):
+            words.append(w.upper())
+        elif i and core.lower() in SMALL:
+            words.append(w.lower())
+        else:
+            words.append(w[:1].upper() + w[1:].lower())
+    return " ".join(words)
+
+
+def listed_name(security: str) -> str:
+    """'Fluor Corporation Common Stock' -> 'Fluor Corporation'."""
+    name = security.split(" - ")[0]
+    name = re.sub(r"\s+(Common Stock|Class [A-C].*|Ordinary Shares.*|American Depositary.*|"
+                  r"New Common Stock|Common Shares.*)$", "", name, flags=re.I)
+    return re.sub(r"\s*\(The\)", "", name).strip(" ,")
+
+
+def sentence_case(text: str) -> str:
+    """Tame ALL-CAPS government descriptions into readable sentences."""
+    letters = [c for c in text if c.isalpha()]
+    if not letters or sum(c.isupper() for c in letters) / len(letters) < 0.8:
+        return text
+    out = text.lower()
+    out = re.sub(r"(^|[.!?]\s+)([a-z])", lambda m: m.group(1) + m.group(2).upper(), out)
+    for w in ("u.s.", "dod", "nasa", "va", "idiq", "fy"):
+        out = re.sub(rf"\b{re.escape(w)}(?=\W|$)", w.upper(), out, flags=re.I)
+    return out
+
+
 def normalize(name: str) -> list[str]:
     name = name.upper().split(" - ")[0]
     name = re.sub(r"\b(COMMON STOCK|CLASS [A-C]|ORDINARY SHARES|AMERICAN DEPOSITARY SHARES?)\b",
@@ -96,12 +137,14 @@ def normalize(name: str) -> list[str]:
 class SymbolBook:
     """Maps company names to tickers using aliases plus listed securities."""
 
-    def __init__(self, listed: dict[str, str] | None = None):
+    def __init__(self, listed: dict[str, str] | None = None, names: dict[str, str] | None = None):
         self.index = listed or {}
+        self.names = names or {}  # ticker -> listed company name
 
     @classmethod
     def from_symbol_files(cls, nasdaq_txt: str, other_txt: str) -> "SymbolBook":
         index: dict[str, str] = {}
+        names: dict[str, str] = {}
         for text, sym_col in ((nasdaq_txt, "Symbol"), (other_txt, "ACT Symbol")):
             lines = [ln for ln in text.splitlines() if ln and not ln.startswith("File Creation")]
             if not lines:
@@ -117,7 +160,8 @@ class SymbolBook:
                 key = " ".join(normalize(name))
                 if key and key not in index:
                     index[key] = sym
-        return cls(index)
+                names.setdefault(sym, listed_name(name))
+        return cls(index, names)
 
     def match(self, *names: str | None) -> tuple[str, str] | None:
         """Return (ticker, matched_name) for the first name that matches."""
@@ -329,7 +373,9 @@ def match_awards(awards: list[dict], book: SymbolBook) -> tuple[list[dict], int]
             private += 1
             continue
         ticker, name = hit
+        listed = book.names.get(ticker) or nice_case(name)
         matched.append({**a, "kind": "contract", "ticker": ticker,
-                        "company": name.title(), "who": a["recipient"].title(),
+                        "company": listed, "who": nice_case(a["recipient"]),
+                        "description": sentence_case(a.get("description") or ""),
                         "trade_date": a["award_date"], "disclosed": a["award_date"] or ""})
     return matched, private

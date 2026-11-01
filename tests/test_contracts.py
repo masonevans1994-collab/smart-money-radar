@@ -171,3 +171,18 @@ def test_modifications():
     matched, _ = contracts.match_awards(mods, book())
     ranked = scoring.score_contracts(matched, [], [])
     assert ranked[0]["ticker"] == "HII" and "expansion" in ranked[0]["headline"]
+
+
+def test_names_and_descriptions():
+    b = book()
+    assert b.names["LMT"] == "Lockheed Martin Corporation" and b.names["BA"] == "Boeing Company"
+    assert contracts.nice_case("FLUOR MARINE PROPULSION, LLC") == "Fluor Marine Propulsion, LLC"
+    assert contracts.nice_case("HONEYWELL FEDERAL MANUFACTURING & TECHNOLOGIES, LLC") == \
+        "Honeywell Federal Manufacturing & Technologies, LLC"
+    assert contracts.sentence_case("THE PURPOSE OF THIS MODIFICATION IS TO INCREASE FUNDING. DOD WORK.") == \
+        "The purpose of this modification is to increase funding. DOD work."
+    assert contracts.sentence_case("Already fine text") == "Already fine text"
+    m, _ = contracts.match_awards([{"recipient": "LOCKHEED MARTIN CORP", "parent": "", "value": 1e8,
+                                    "award_date": "2026-10-01", "description": "SPARE PARTS"}], b)
+    assert m[0]["company"] == "Lockheed Martin Corporation" and m[0]["who"] == "Lockheed Martin Corp"
+    assert m[0]["description"] == "Spare parts"
