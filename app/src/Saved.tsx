@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { amountLabel, moveLabel, money, type SavedStock, shortDate } from "./logic";
+import { amountLabel, moveLabel, money, type SavedStock, shortDate, plainHeadline, shortName } from "./logic";
 import { Spark } from "./Spark";
 import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
@@ -27,8 +27,8 @@ export function Saved({ stocks, onOpen, onRemove }: {
           <View key={st.ticker} style={styles.card}>
             <View style={styles.head}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.company} numberOfLines={1}>{st.company}</Text>
-                <Text style={styles.ticker}>{st.ticker}</Text>
+                <Text style={styles.company} numberOfLines={1}>{shortName(st)}</Text>
+                <Text style={styles.ticker} numberOfLines={1}>{st.ticker}{shortName(st) !== st.company ? ` · ${st.company}` : ""}</Text>
               </View>
               <Pressable onPress={() => onRemove(st.ticker)} hitSlop={10} accessibilityRole="button"
                 accessibilityLabel={`Stop following ${st.ticker}`}>
@@ -45,7 +45,7 @@ export function Saved({ stocks, onOpen, onRemove }: {
               <Pressable onPress={() => onOpen(latest)} style={styles.latest} accessibilityRole="button">
                 <View style={{ flex: 1 }}>
                   <Text style={styles.latestLabel}>Most recent</Text>
-                  <Text style={styles.latestText} numberOfLines={2}>{latest.headline}</Text>
+                  <Text style={styles.latestText} numberOfLines={2}>{plainHeadline(latest)}</Text>
                   <Text style={styles.latestMeta}>
                     {amountLabel(latest)} · {shortDate(latest.trade_date)}
                     {moveLabel(latest) ? ` · ${moveLabel(latest)}` : ""}

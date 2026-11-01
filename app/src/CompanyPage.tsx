@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { amountLabel, money, moveLabel, recordSentence, shortDate, shortName, tickerHelp, tooSoon } from "./logic";
+import { amountLabel, money, moveLabel, recordSentence, shortDate, shortName, tickerHelp, tooSoon, plainHeadline } from "./logic";
 import { Spark } from "./Spark";
 import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
@@ -115,7 +115,7 @@ export function CompanyPage({ view, saved, onToggleSave, onOpen, onClose }: {
                     <Pressable key={`${t.who}-${t.trade_date}-${i}`} onPress={() => onOpen(t)} accessibilityRole="button"
                       style={[styles.item, i === Math.min(trades.length, 8) - 1 && { borderBottomWidth: 0 }]}>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.itemText}>{t.headline}</Text>
+                        <Text style={styles.itemText}>{plainHeadline(t)}</Text>
                         <Text style={styles.small}>{shortDate(t.trade_date)}</Text>
                       </View>
                       <Text style={styles.chev}>›</Text>

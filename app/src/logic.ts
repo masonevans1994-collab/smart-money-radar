@@ -127,6 +127,20 @@ export function amountLabel(s: Signal): string {
 }
 
 /** The one line that says why this row matters. */
+/** One-line headline in everyday words, for lists: "Honeywell: $323M more from Energy". */
+export function plainHeadline(s: Signal): string {
+  if (s.kind === "contract") {
+    return s.is_modification
+      ? `${shortName(s)}: ${amountLabel(s)} more from ${agencyLabel(s)}`
+      : `${shortName(s)}: new ${amountLabel(s)} contract from ${agencyLabel(s)}`;
+  }
+  if (s.kind === "congress") {
+    const verb = s.type.startsWith("Sale") ? "sold" : s.type === "Purchase" ? "bought" : "traded";
+    return `${s.who} ${verb} ${amountLabel(s)} of ${shortName(s)}`;
+  }
+  return `${s.who} bought ${amountLabel(s)} of ${shortName(s)} stock`;
+}
+
 export function keyNote(s: Signal): string {
   if (s.kind === "contract") {
     const h = lastTimeHeadline(s);

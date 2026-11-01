@@ -3,7 +3,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
   agencyLabel, amountLabel, isSell, KEEP_IN_MIND, money, plainSummary, related, SCORE_GUIDE,
-  lastTimeDetail, lastTimeHeadline, lastTimeLines, peersFor, sectorLine, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel, tooSoon, shortName } from "./logic";
+  lastTimeDetail, lastTimeHeadline, lastTimeLines, peersFor, sectorLine, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel, tooSoon, shortName, plainHeadline } from "./logic";
 import { useState, useMemo } from "react";
 import { agencyDescription } from "./agencies";
 import { CallBox } from "./CallBox";
@@ -80,7 +80,7 @@ function MiniList({ title, items, onOpen }: {
               <Text style={[styles.miniAmount, x.kind === "contract" && { color: colors.gold }]}>
                 {amountLabel(x)}
               </Text>
-              <Text style={styles.miniHead} numberOfLines={2}>{x.headline}</Text>
+              <Text style={styles.miniHead} numberOfLines={2}>{plainHeadline(x)}</Text>
             </View>
             <ScoreBadge score={x.score} />
           </Pressable>

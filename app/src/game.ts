@@ -2,7 +2,7 @@
 // Design rule: reward learning and attention, never trading with real money.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { signalKey } from "./logic";
+import { plainHeadline, signalKey } from "./logic";
 import type { Signal } from "./types";
 
 export type Direction = "up" | "down" | "flat";
@@ -79,7 +79,7 @@ export function makeCall(p: Progress, s: Signal, direction: Direction, now = new
   if (s.price_now === undefined || callFor(p, s)) return p;
   const madeOn = today(now);
   const call: Call = {
-    key: signalKey(s), ticker: s.ticker, headline: s.headline, direction, madeOn,
+    key: signalKey(s), ticker: s.ticker, headline: plainHeadline(s), direction, madeOn,
     priceThen: s.price_now, resolveOn: addDays(madeOn, 30),
   };
   return { ...p, calls: [call, ...p.calls].slice(0, 500) };

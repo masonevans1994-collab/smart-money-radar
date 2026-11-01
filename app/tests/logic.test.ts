@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   allSignals, amountLabel, biggestThisWeek, dayLabel, filterSignals, freshness, keyNote, money,
-  moveLabel, plainSummary, refine, signalKey, tierLabel, withDayHeaders, isHeader, shortName,
+  moveLabel, plainSummary, refine, signalKey, tierLabel, withDayHeaders, isHeader, shortName, plainHeadline,
 } from "../src/logic";
 import type { Feed, Signal } from "../src/types";
 
@@ -260,6 +260,11 @@ test("a Friday award viewed on the weekend says too soon, not unchanged", () => 
   assert.match(plainSummary(fri).join(" "), /hasn't had a trading day/);
   const mon = contract({ trade_date: "2026-10-30", price_date: "2026-11-02", price_then: 218.33, price_now: 218.33, change_pct: 0 });
   assert.equal(moveLabel(mon), "Stock unchanged");
+});
+
+test("plain headlines for lists", () => {
+  assert.equal(plainHeadline(contract()), "Fluor: $373M more from Energy");
+  assert.equal(plainHeadline(contract({ is_modification: false })), "Fluor: new $373M contract from Energy");
 });
 
 console.log(`\n${passed} logic tests passed`);
