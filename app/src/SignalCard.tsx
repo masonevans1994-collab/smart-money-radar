@@ -17,7 +17,7 @@ export function ScoreBadge({ score, size = "sm" }: { score: number; size?: "sm" 
   return (
     <View style={[styles.score, { borderColor: c }, lg && styles.scoreLg]}
       accessibilityLabel={`Score ${score} out of 100`}>
-      <Text style={[styles.scoreText, { color: c }, lg && styles.scoreTextLg]}>{score}</Text>
+      <Text style={[styles.scoreText, { color: c }, lg && styles.scoreTextLg]} maxFontSizeMultiplier={1.2}>{score}</Text>
     </View>
   );
 }
@@ -63,7 +63,7 @@ function SignalCardBase({ signal, starred, isNew, onPress, linked }: {
       </View>
 
       <View style={styles.nameRow}>
-        <Text style={styles.name} numberOfLines={1}>{name}</Text>
+        <Text style={styles.name} numberOfLines={2}>{name}</Text>
         <Text style={styles.ticker}>{signal.ticker}</Text>
         {starred && <Text style={styles.star} accessibilityLabel="Saved">★</Text>}
       </View>
@@ -86,7 +86,7 @@ function SignalCardBase({ signal, starred, isNew, onPress, linked }: {
           Committee overlap: {signal.committee_flag.replace(" · ", " sits on ")}
         </Text>
       )}
-      <Text style={styles.note} numberOfLines={2}>{keyNote(signal)}</Text>
+      <Text style={styles.note} numberOfLines={3}>{keyNote(signal)}</Text>
       {!contract && linked?.kind === "contract" && (
         <Text style={styles.linked} numberOfLines={2}>{linkedLine(signal, linked)}</Text>
       )}
@@ -124,13 +124,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   amount: { ...type.amount, flexShrink: 1, fontVariant: ["tabular-nums"] },
   score: {
-    minWidth: 34, height: 26, paddingHorizontal: 6, borderRadius: 13, borderWidth: 1.5,
+    minWidth: 34, minHeight: 26, paddingHorizontal: 6, borderRadius: 13, borderWidth: 1.5,
     alignItems: "center", justifyContent: "center",
   },
   scoreLg: { minWidth: 56, height: 40, borderRadius: 20, borderWidth: 2 },
   scoreText: { fontFamily: fonts.bold, fontSize: 13, fontVariant: ["tabular-nums"] },
   scoreTextLg: { fontSize: 18 },
-  nameRow: { flexDirection: "row", alignItems: "baseline", gap: 8, marginTop: 6 },
+  nameRow: { flexDirection: "row", alignItems: "baseline", gap: 8, marginTop: 6, flexWrap: "wrap" },
   name: { ...type.lead, color: colors.text, flexShrink: 1 },
   ticker: { fontFamily: fonts.bold, fontSize: 13, color: colors.soft, letterSpacing: 0.3 },
   star: { color: colors.gold, fontSize: 13 },

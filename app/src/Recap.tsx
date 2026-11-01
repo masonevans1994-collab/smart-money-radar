@@ -25,7 +25,7 @@ export function RecapCard({ recap, onOpen, onDismiss }: {
         </View>
       </View>
       <Text style={styles.period}>{recap.periodLabel}</Text>
-      <Text style={styles.line}>
+      <Text style={styles.line} maxFontSizeMultiplier={1.6}>
         The government signed <Text style={styles.strong}>{recap.count}</Text> contract{recap.count === 1 ? "" : "s"} worth{" "}
         <Text style={[styles.strong, { color: colors.gold }]}>{money(recap.total)}</Text> with{" "}
         {recap.companies} public compan{recap.companies === 1 ? "y" : "ies"}
@@ -58,7 +58,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   dismiss: { ...type.small, fontFamily: fonts.semibold, color: colors.muted },
   period: { ...type.small, color: colors.muted },
   line: { ...type.body, fontSize: 15, lineHeight: 22, color: colors.soft, marginTop: 4 },
-  strong: { fontFamily: fonts.bold, color: colors.text },
+  strong: { fontFamily: fonts.bold, color: colors.text, fontSize: 15, lineHeight: 22 },
   row: { flexDirection: "row", gap: 10, alignItems: "flex-start", marginTop: 6 },
   rowLabel: { ...type.small, fontFamily: fonts.semibold, color: colors.muted, width: 78, paddingTop: 2 },
   rowText: { ...type.body, color: colors.text, flex: 1 },

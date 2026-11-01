@@ -150,14 +150,14 @@ function Radar({ appearance, onAppearance }: {
   const header = (
     <View>
       <View style={styles.topBar}>
-        <Text style={styles.brand}>Radar{progress.streak > 1 ? <Text style={styles.streak}>  {progress.streak}-day streak</Text> : null}</Text>
+        <Text style={styles.brand} maxFontSizeMultiplier={1.4}>Radar{progress.streak > 1 ? <Text style={styles.streak}>  {progress.streak}-day streak</Text> : null}</Text>
         <View style={{ flexDirection: "row", gap: 16 }}>
           <Pressable onPress={() => setGlossary(null)} hitSlop={10} accessibilityRole="button">
-            <Text style={styles.help}>Glossary</Text>
+            <Text style={styles.help} maxFontSizeMultiplier={1.4}>Glossary</Text>
           </Pressable>
           <Pressable onPress={() => { setGuide(true); setProgress((p) => ({ ...p, guideRead: true })); }}
             hitSlop={10} accessibilityRole="button">
-            <Text style={styles.help}>How it works</Text>
+            <Text style={styles.help} maxFontSizeMultiplier={1.4}>How it works</Text>
           </Pressable>
         </View>
       </View>
@@ -332,7 +332,7 @@ function Radar({ appearance, onAppearance }: {
             }}
               style={styles.tabItem} accessibilityRole="tab" accessibilityState={{ selected: on }}>
               <View style={[styles.tabMark, on && styles.tabMarkOn]} />
-              <Text style={[styles.tabText, on && styles.tabTextOn]}>{t.label}</Text>
+              <Text style={[styles.tabText, on && styles.tabTextOn]} maxFontSizeMultiplier={1.3} numberOfLines={1}>{t.label}</Text>
             </Pressable>
           );
         })}
@@ -407,7 +407,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   center: { alignItems: "center", justifyContent: "center" },
   topBar: {
     flexDirection: "row", alignItems: "baseline", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingTop: 10,
+    paddingHorizontal: 20, paddingTop: 10, flexWrap: "wrap", gap: 6,
   },
   brand: { fontFamily: fonts.black, fontSize: 20, color: colors.gold },
   streak: { fontFamily: fonts.semibold, fontSize: 12, color: colors.soft },
