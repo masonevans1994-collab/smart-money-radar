@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { pct, recordSentence } from "./logic";
+import { pct, recordSentence, shortDate } from "./logic";
 import { fonts, type, type Palette, useColors } from "./theme";
 import type { TrackRecord as TR } from "./types";
 
@@ -40,9 +40,9 @@ export function TrackRecord({ record }: { record?: TR | null }) {
                   <Stat label="vs. the market after 30 days" value={pct(g.avg_vs_spy_30d)} />
                 </View>
                 <Text style={styles.muted}>
-                  {g.n} signal{g.n === 1 ? "" : "s"} since {g.since}
+                  {g.n} signal{g.n === 1 ? "" : "s"} since {shortDate(g.since)}
                 </Text>
-                {!!g.best && <Text style={styles.best} numberOfLines={2}>Best: {g.best}</Text>}
+                {!!g.best && <Text style={styles.best} numberOfLines={2}>Best: {g.best.replace(/\bLlc\b/g, "LLC").replace(/ from (the )?Department of /, " from ")}</Text>}
               </>
             )}
           </View>
