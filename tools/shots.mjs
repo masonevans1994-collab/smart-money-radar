@@ -18,6 +18,26 @@ if (await first.count()) {
   await first.click();
   await page.waitForTimeout(800);
   await page.screenshot({ path: `${outDir}/3-detail.png` });
+  // Lower half of the detail page: scroll the modal's own scroll view.
+  for (let i = 1; i <= 3; i++) {
+    await page.mouse.move(195, 600);
+    await page.mouse.wheel(0, 700);
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: `${outDir}/3-detail-${i}.png` });
+  }
+  await page.mouse.wheel(0, -4000);
+  await page.waitForTimeout(300);
+  // Save it, then open the company page.
+  const save = page.getByText(/^☆ Save$/);
+  if (await save.count()) { await save.first().click(); await page.waitForTimeout(200); }
+  const companyLink = page.locator('[aria-label^="More about"]').first();
+  if (await companyLink.count()) {
+    await companyLink.click();
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: `${outDir}/3d-company.png` });
+    await page.getByText("‹ Back", { exact: true }).click();
+    await page.waitForTimeout(300);
+  }
   const cmp = page.getByText(/Compare with other/);
   if (await cmp.count()) {
     await cmp.click();
@@ -37,6 +57,9 @@ if (await first.count()) {
   }
   await page.getByText("Done", { exact: true }).click();
 }
+await page.getByText("Saved", { exact: true }).last().click();
+await page.waitForTimeout(500);
+await page.screenshot({ path: `${outDir}/4b-saved.png` });
 await page.getByText("People", { exact: true }).last().click();
 await page.waitForTimeout(500);
 await page.screenshot({ path: `${outDir}/5-people.png` });
