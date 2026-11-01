@@ -10,11 +10,17 @@ print("==== DoD RSS")
 rss = f.get(contracts.DOD_RSS, cache=False).decode("utf-8", "replace")
 items = contracts.parse_dod_rss(rss)
 print(items[:3])
-if items:
-    page = f.get(items[0]["url"], cache=False).decode("utf-8", "replace")
-    i = page.find("awarded")
-    print("page len", len(page), "first 'awarded' at", i)
-    print(page[max(0, i - 3000): i + 1500])
+i = rss.find("<item>")
+print("RSS len", len(rss)); print(rss[i:i+4000])
+BROWSER = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+for agent in (ua, BROWSER):
+    try:
+        req = urllib.request.Request(items[0]["url"], headers={"User-Agent": agent, "Accept": "text/html"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            page = r.read().decode("utf-8", "replace")
+            j = page.find("awarded"); print("ARTICLE OK", agent[:15], len(page)); print(page[max(0,j-2500):j+800])
+    except Exception as e:
+        print("ARTICLE FAIL", agent[:15], e)
 
 print("==== USAspending unmatched names")
 raw = contracts.fetch_usaspending(ua, 14, 10e6)
