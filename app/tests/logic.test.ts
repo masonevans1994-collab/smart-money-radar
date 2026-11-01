@@ -229,9 +229,9 @@ test("share text carries the plain-English story", () => {
 
 test("record sentences", () => {
   assert.equal(recordSentence({ id: "x", label: "L", n: 0 }), "Not enough history yet.");
-  assert.equal(recordSentence({ id: "x", label: "L", n: 11, avg_vs_spy: 6.7, beat_pct: 73 }),
+  assert.equal(recordSentence({ id: "x", label: "L", n: 11, avg_vs_spy: 6.7, beat_spy_pct: 73 }),
     "After 11 of these, the stock did better than the market by 6.7 points on average. It beat the market 73% of the time.");
-  assert.equal(recordSentence({ id: "x", label: "L", n: 40, avg_vs_spy: 0.2, beat_pct: 50 }),
+  assert.equal(recordSentence({ id: "x", label: "L", n: 40, avg_vs_spy: 0.2, beat_spy_pct: 50 }),
     "After 40 of these, the stock moved about like the market. It beat the market 50% of the time.");
 });
 console.log(`\n${passed} logic tests passed`);

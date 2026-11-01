@@ -605,5 +605,5 @@ export function recordSentence(g: TrackGroup): string {
   const vs = g.avg_vs_spy ?? 0;
   const dir = vs > 0.5 ? `did better than the market by ${vs.toFixed(1)} points on average`
     : vs < -0.5 ? `did worse than the market by ${Math.abs(vs).toFixed(1)} points on average` : "moved about like the market";
-  return `After ${g.n} of these, the stock ${dir}. It beat the market ${g.beat_pct ?? 0}% of the time.`;
+  return `After ${g.n} of these, the stock ${dir}. It beat the market ${g.beat_spy_pct ?? 0}% of the time.`;
 }
