@@ -83,29 +83,11 @@ jobs:
           npm install --no-audit --no-fund
           npx expo install react-dom react-native-web @expo/metro-runtime expo-font
           npx tsc --noEmit
+          npm run test:logic
           npx expo export --platform web --output-dir dist
           cp -r dist/. ../public/
           python ../tools/pwa.py ../public /${{ github.event.repository.name }}
           cp ../tools/static/* ../public/
-
-      - name: Build the redesign preview (from the 'redesign' branch, if it exists)
-        run: |
-          if git ls-remote --exit-code --heads origin redesign >/dev/null; then
-            git fetch --depth 1 origin redesign
-            git worktree add /tmp/redesign FETCH_HEAD
-            cd /tmp/redesign/app
-            python3 -c "import json;p='app.json';d=json.load(open(p));d['expo']['experiments']={'baseUrl':'/${{ github.event.repository.name }}/preview'};json.dump(d,open(p,'w'),indent=2)"
-            npm install --no-audit --no-fund
-            npx expo install react-dom react-native-web @expo/metro-runtime expo-font
-            npx tsc --noEmit
-            if grep -q '"test:logic"' package.json; then npm run test:logic; fi
-            npx expo export --platform web --output-dir dist
-            mkdir -p "$GITHUB_WORKSPACE/public/preview"
-            cp -r dist/. "$GITHUB_WORKSPACE/public/preview/"
-            python "$GITHUB_WORKSPACE/tools/pwa.py" "$GITHUB_WORKSPACE/public/preview" /${{ github.event.repository.name }}/preview
-          else
-            echo "no redesign branch; skipping preview"
-          fi
 
       - name: Check the app renders on a phone-size screen
         run: |
@@ -114,10 +96,8 @@ jobs:
           cd tools && npm init -y >/dev/null && npm install --no-audit --no-fund playwright@1
           npx playwright install --with-deps chromium >/dev/null
           node smoke.mjs http://localhost:8080/smart-money-radar/
-          if [ -d /tmp/site/smart-money-radar/preview ]; then
-            mkdir -p /tmp/shots
-            node shots.mjs http://localhost:8080/smart-money-radar/preview/ /tmp/shots || echo "screenshots failed (not blocking)"
-          fi
+          mkdir -p /tmp/shots
+          node shots.mjs http://localhost:8080/smart-money-radar/ /tmp/shots || echo "screenshots failed (not blocking)"
 
       - name: Save review screenshots to the 'screens' branch
         if: github.event_name != 'schedule'

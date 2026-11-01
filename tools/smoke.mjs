@@ -7,9 +7,11 @@ const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 await page.goto(url, { waitUntil: "networkidle" });
-await page.getByText("Smart Money", { exact: false }).first().waitFor({ timeout: 20000 });
+await page.getByText("Radar", { exact: false }).first().waitFor({ timeout: 20000 });
+const start = page.getByText(/show me the awards/i);
+if (await start.count()) { await start.click(); await page.waitForTimeout(500); }
 const text = await page.locator("body").innerText();
-const cards = (text.match(/(Traded|Awarded) \d{4}-\d{2}-\d{2}/g) || []).length;
+const cards = (text.match(/since (signed|traded) [A-Z][a-z]{2} \d{1,2}/g) || []).length;
 console.log("--- app text (first 1200 chars) ---\n" + text.slice(0, 1200));
 console.log(`--- cards rendered: ${cards}; page errors: ${errors.length}`);
 errors.forEach((e) => console.log("PAGE ERROR:", e));
