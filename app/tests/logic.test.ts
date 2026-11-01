@@ -198,4 +198,19 @@ test("welcome-back summary and status notes", () => {
   assert.equal(statusNote({ ...demo, status: { contracts: "stale" } }), "The contracts site isn't answering right now, so these are from the last good update.");
   assert.equal(statusNote({ ...demo, status: { contracts: "ok", prices: "ok" } }), null);
 });
+
+import { matchesQuery, suggestedTopics, topicsFor } from "../src/topics";
+
+test("plain-word search and topics", () => {
+  const ship = contract({ description: "Advance planning for aircraft carrier refueling at the shipyard", company: "Huntington Ingalls", ticker: "HII" } as Partial<Signal>);
+  const meds = contract({ description: "Surgical supplies and pharmaceuticals for VA hospitals", company: "Medline", ticker: "MDLN", agency: "Department of Veterans Affairs" } as Partial<Signal>);
+  assert.deepEqual(topicsFor(ship).slice(0, 2), ["ships", "aircraft"]);
+  assert.ok(topicsFor(meds).includes("medical supplies"));
+  assert.ok(matchesQuery(ship, "ships"));
+  assert.ok(matchesQuery(ship, "carrier huntington"));
+  assert.ok(matchesQuery(meds, "hospital"));
+  assert.ok(!matchesQuery(meds, "ships"));
+  assert.ok(matchesQuery(meds, "mdln"));
+  assert.deepEqual(suggestedTopics([ship, ship, meds])[0], "ships");
+});
 console.log(`\n${passed} logic tests passed`);

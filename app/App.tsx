@@ -32,6 +32,7 @@ import { Saved } from "./src/Saved";
 import { SignalCard } from "./src/SignalCard";
 import { SignalDetail } from "./src/SignalDetail";
 import { DARK, fonts, LIGHT, type, type Palette, ThemeContext, useColors } from "./src/theme";
+import { suggestedTopics } from "./src/topics";
 import { Tour } from "./src/Tour";
 import { TrackRecord } from "./src/TrackRecord";
 import { You } from "./src/You";
@@ -118,6 +119,7 @@ function Radar({ appearance, onAppearance }: {
 
   const signals = useMemo(() => (feed ? allSignals(feed) : []), [feed]);
   const agencies = useMemo(() => topAgencies(signals), [signals]);
+  const topics = useMemo(() => suggestedTopics(signals), [signals]);
   const linkedContracts = useMemo(() => (feed ? contractsByTicker(feed) : new Map()), [feed]);
   const items = useMemo<ListItem[]>(() => {
     if (tab === "watch") return [];
@@ -220,13 +222,22 @@ function Radar({ appearance, onAppearance }: {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder={tab === "contract" ? "Search company or stock symbol" : "Search person, company or symbol"}
+            placeholder={tab === "contract" ? "Search: ships, fuel, hospital, or a company" : "Search person, company or symbol"}
             placeholderTextColor={colors.muted}
             style={styles.search}
             autoCorrect={false}
             clearButtonMode="while-editing"
             accessibilityLabel="Search"
           />
+          {tab === "contract" && !query && topics.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chips} style={{ flexGrow: 0 }}>
+              <Text style={styles.tryLabel}>Try:</Text>
+              {topics.map((t) => (
+                <Chip key={t} label={t} on={false} onPress={() => setQuery(t)} />
+              ))}
+            </ScrollView>
+          )}
           <ScrollView horizontal showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chips} style={{ flexGrow: 0 }}>
             {SORTS.map((s) => (
@@ -434,6 +445,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   chips: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 2 },
   chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, backgroundColor: colors.panel },
+  tryLabel: { ...type.small, fontFamily: fonts.semibold, color: colors.muted, alignSelf: "center" },
   chipOn: { backgroundColor: colors.text },
   chipText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.soft },
   chipTextOn: { color: colors.bg },

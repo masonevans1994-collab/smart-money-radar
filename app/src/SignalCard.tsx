@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { agencyLabel, amountLabel, isSell, keyNote, moveLabel, scoreTier, shortDate, tierLabel } from "./logic";
 import { Spark } from "./Spark";
+import { topicsFor } from "./topics";
 import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
 
@@ -72,6 +73,7 @@ function SignalCardBase({ signal, starred, isNew, onPress, linked }: {
           {context}
           {contract && signal.who !== signal.company ? `, via ${signal.who}` : ""}
         </Text>
+        {contract && topicsFor(signal).slice(0, 2).map((t) => <Text key={t} style={styles.pill}>{t}</Text>)}
         {contract && signal.is_modification && <Text style={styles.pill}>Add-on</Text>}
         {signal.score >= 45 && (
           <Text style={[styles.pill, signal.score >= 70 && styles.standout]}>{tierLabel(signal.score)}</Text>

@@ -1,4 +1,5 @@
 // Pure helpers (no React Native imports) so they're easy to test.
+import { matchesQuery } from "./topics";
 import type { Feed, Signal } from "./types";
 
 export type Tab = "contract" | "people" | "watch" | "record" | "you";
@@ -38,14 +39,12 @@ export function filterSignals(
   signals: Signal[], tab: Tab, query: string, watchlist: Set<string>,
 ): Signal[] {
   if (tab === "record" || tab === "you") return [];
-  const q = query.trim().toLowerCase();
+  const q = query.trim();
   return signals.filter((s) => {
     if (tab === "watch") { if (!watchlist.has(s.ticker)) return false; }
     else if (tab === "people") { if (s.kind === "contract") return false; }
     else if (s.kind !== tab) return false;
-    if (!q) return true;
-    const company = s.kind === "congress" ? "" : s.company;
-    return `${s.ticker} ${s.who} ${company}`.toLowerCase().includes(q);
+    return matchesQuery(s, q);
   });
 }
 
