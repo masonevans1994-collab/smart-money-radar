@@ -61,7 +61,10 @@ function SignalCardBase({ signal, starred, isNew, onPress }: {
       </View>
 
       <View style={styles.metaRow}>
-        <Text style={styles.context}>{context}</Text>
+        <Text style={styles.context} numberOfLines={1}>
+          {context}
+          {contract && signal.who !== signal.company ? `, via ${signal.who}` : ""}
+        </Text>
         {contract && signal.is_modification && <Text style={styles.pill}>Expansion</Text>}
         {isNew && <Text style={[styles.pill, styles.newPill]}>New</Text>}
       </View>
@@ -109,7 +112,7 @@ const styles = StyleSheet.create({
   ticker: { fontFamily: fonts.bold, fontSize: 13, color: colors.soft, letterSpacing: 0.3 },
   star: { color: colors.gold, fontSize: 13 },
   metaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4, flexWrap: "wrap" },
-  context: { ...type.small, color: colors.muted },
+  context: { ...type.small, color: colors.muted, flexShrink: 1 },
   pill: {
     ...type.small, fontFamily: fonts.semibold, color: colors.soft, backgroundColor: colors.raised,
     paddingHorizontal: 7, paddingVertical: 1, borderRadius: 6, overflow: "hidden",

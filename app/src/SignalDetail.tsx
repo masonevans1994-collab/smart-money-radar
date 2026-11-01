@@ -30,7 +30,9 @@ function detailRows(s: Signal): RowData[] {
   if (s.kind === "contract") {
     return [
       ["Company", `${s.company} (${s.ticker})`],
-      ["Awarding agency", s.agency], ["Branch or office", s.sub_agency],
+      ["Won by", s.who !== s.company ? s.who : null],
+      ["Awarding agency", s.agency],
+      ["Branch or office", s.sub_agency && s.sub_agency !== s.agency ? s.sub_agency : null],
       ["Award value", amountLabel(s)],
       ["Company market value", s.market_cap ? money(s.market_cap) : null],
       ["Award vs. company size", s.award_pct != null ? `${s.award_pct.toFixed(1)}%` : null],
@@ -120,6 +122,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                     <Text style={styles.tickerLine}>
                       {signal.ticker}
                       {signal.kind === "insider" && signal.role_label ? `, bought by ${signal.who}` : ""}
+                      {contract && signal.who !== signal.company ? `, won by ${signal.who}` : ""}
                     </Text>
                   </View>
                   <ScoreBadge score={signal.score} size="lg" />
