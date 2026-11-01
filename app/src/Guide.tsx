@@ -21,6 +21,9 @@ const SECTIONS: [string, string[]][] = [
   ["Congress and insiders", [
     "Members of Congress and company executives have to report when they buy or sell stock. Radar shows those trades and notes when a trade happened shortly before a related contract. That's a fact about timing only, not a claim that anyone did anything wrong.",
   ]],
+  ["Calls, streaks and milestones", [
+    "On any award you can make a call: will the stock be higher, lower or about the same in 30 days? It's a guess for learning, with no money involved. The You tab keeps score, along with your check-in streak and milestones.",
+  ]],
   ["Before you invest any money", [
     "Radar is for information only. It's not financial advice, and it never tells you what to buy.",
     "Only invest money you could afford to lose. Putting it all in one company is riskier than spreading it out.",

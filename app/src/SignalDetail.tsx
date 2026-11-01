@@ -6,6 +6,8 @@ import {
   shareText, shortDate, signalKey, sourceFor, tagFor, tickerHelp, tierLabel,
 } from "./logic";
 import { useState } from "react";
+import { CallBox } from "./CallBox";
+import { type Call, type Direction } from "./game";
 import { ChangeChip, ScoreBadge } from "./SignalCard";
 import { Spark } from "./Spark";
 import { colors, fonts, type } from "./theme";
@@ -84,10 +86,11 @@ function MiniList({ title, items, onOpen }: {
   );
 }
 
-export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClose, onLegal }: {
+export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClose, onLegal, call,
+  onCall, onOpenRecord }: {
   signal: Signal | null; all: Signal[]; starred: boolean;
   onToggleStar: (ticker: string) => void; onOpen: (s: Signal) => void; onClose: () => void;
-  onLegal: () => void;
+  onLegal: () => void; call?: Call; onCall: (s: Signal, d: Direction) => void; onOpenRecord: () => void;
 }) {
   const rel = signal ? related(all, signal) : { sameTicker: [], sameWho: [] };
   const [explain, setExplain] = useState(false);
@@ -184,6 +187,8 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                   </View>
                 )}
 
+                {contract && <CallBox signal={signal} call={call} onCall={(d) => onCall(signal, d)} />}
+
                 <Text style={styles.section}>Why it scored {signal.score}: {tierLabel(signal.score).toLowerCase()}</Text>
                 {signal.reasons.map((r) => (
                   <View key={r} style={styles.reasonRow}>
@@ -213,7 +218,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                 )}
 
                 {!!signal.url && (
-                  <Pressable style={styles.button} onPress={() => Linking.openURL(signal.url)}
+                  <Pressable style={styles.button} onPress={() => { onOpenRecord(); Linking.openURL(signal.url); }}
                     accessibilityRole="link">
                     <Text style={styles.buttonText}>Open the official record</Text>
                   </Pressable>

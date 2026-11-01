@@ -18,6 +18,10 @@ import {
   allSignals, amountLabel, biggestThisWeek, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
   type SortKey, type Tab, TABS, timeAgo, topAgencies, withDayHeaders,
 } from "./src/logic";
+import {
+  callFor, checkIn, type Direction, loadProgress, makeCall, type Progress, EMPTY, resolveCalls,
+  saveProgress,
+} from "./src/game";
 import { Guide } from "./src/Guide";
 import { Legal, SHORT_DISCLAIMER } from "./src/Legal";
 import { Onboarding } from "./src/Onboarding";
@@ -25,6 +29,7 @@ import { SignalCard } from "./src/SignalCard";
 import { SignalDetail } from "./src/SignalDetail";
 import { colors, fonts, type } from "./src/theme";
 import { TrackRecord } from "./src/TrackRecord";
+import { You } from "./src/You";
 import type { Feed, Signal } from "./src/types";
 
 const SORTS: { key: SortKey; label: string }[] = [
@@ -49,6 +54,10 @@ function Radar() {
   const [onboard, setOnboard] = useState(false);
   const [guide, setGuide] = useState(false);
   const [legal, setLegal] = useState(false);
+  const [progress, setProgressState] = useState<Progress>(EMPTY);
+  const setProgress = useCallback((fn: (p: Progress) => Progress) => {
+    setProgressState((p) => { const n = fn(p); if (n !== p) saveProgress(n); return n; });
+  }, []);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -67,17 +76,27 @@ function Radar() {
     refresh();
     loadWatchlist().then(setWatch);
     needsOnboarding().then(setOnboard);
-  }, [refresh]);
+    loadProgress().then((p) => setProgress(() => checkIn(p)));
+  }, [refresh, setProgress]);
+
+  useEffect(() => {
+    if (feed) setProgress((p) => resolveCalls(p, allSignals(feed)));
+  }, [feed, setProgress]);
 
   const toggleStar = useCallback((ticker: string) => {
     setWatch((prev) => {
       const next = new Set(prev);
       if (next.has(ticker)) next.delete(ticker);
-      else next.add(ticker);
+      else { next.add(ticker); setProgress((p) => ({ ...p, saved: p.saved + 1 })); }
       saveWatchlist(next);
       return next;
     });
-  }, []);
+  }, [setProgress]);
+
+  const openSignal = useCallback((s: Signal) => {
+    setOpen(s);
+    setProgress((p) => ({ ...p, opened: p.opened + 1 }));
+  }, [setProgress]);
 
   const signals = useMemo(() => (feed ? allSignals(feed) : []), [feed]);
   const agencies = useMemo(() => topAgencies(signals), [signals]);
@@ -108,8 +127,9 @@ function Radar() {
   const header = (
     <View>
       <View style={styles.topBar}>
-        <Text style={styles.brand}>Radar</Text>
-        <Pressable onPress={() => setGuide(true)} hitSlop={10} accessibilityRole="button">
+        <Text style={styles.brand}>Radar{progress.streak > 1 ? <Text style={styles.streak}>  {progress.streak}-day streak</Text> : null}</Text>
+        <Pressable onPress={() => { setGuide(true); setProgress((p) => ({ ...p, guideRead: true })); }}
+          hitSlop={10} accessibilityRole="button">
           <Text style={styles.help}>How it works</Text>
         </Pressable>
       </View>
@@ -133,7 +153,7 @@ function Radar() {
           <Text style={styles.heroNew}>{newCount} new since your last visit</Text>
         )}
         {tab === "contract" && biggest?.kind === "contract" && (
-          <Pressable onPress={() => setOpen(biggest)} style={styles.biggest} accessibilityRole="button"
+          <Pressable onPress={() => openSignal(biggest)} style={styles.biggest} accessibilityRole="button"
             accessibilityLabel={`Biggest award this week: ${biggest.headline}`}>
             <Text style={styles.biggestLabel}>Biggest award this week</Text>
             <Text style={styles.biggestText} numberOfLines={2}>
@@ -150,12 +170,12 @@ function Radar() {
         )}
       </View>
 
-      {tab !== "record" && (
+      {tab !== "record" && tab !== "you" && (
         <>
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder={tab === "contract" ? "Search company or stock symbol" : "Search name or stock symbol"}
+            placeholder={tab === "contract" ? "Search company or stock symbol" : "Search person, company or symbol"}
             placeholderTextColor={colors.muted}
             style={styles.search}
             autoCorrect={false}
@@ -183,13 +203,13 @@ function Radar() {
     </View>
   );
 
-  const empty = tab === "record" ? <TrackRecord record={feed.track_record} /> : (
+  const empty = tab === "record" ? <TrackRecord record={feed.track_record} />
+    : tab === "you" ? <You progress={progress} /> : (
     <Text style={styles.empty}>
       {query ? `Nothing matches "${query}".`
         : tab === "watch" ? "Nothing saved yet. Open any award or trade and tap Save to follow that stock here."
-          : tab === "insider" ? "No insider buys to show yet. They appear once SEC access is set up, usually within a day."
-            : tab === "congress" ? "No new congressional trades in the last two weeks."
-              : "No contract awards to public companies yet. Pull down to refresh."}
+          : tab === "people" ? "No reported trades by members of Congress or executives in the last two weeks."
+            : "No contract awards to public companies yet. Pull down to refresh."}
     </Text>
   );
 
@@ -208,7 +228,7 @@ function Radar() {
             <SignalCard signal={item} starred={watch.has(item.ticker)}
               isNew={!!seenBefore && !seenBefore.has(signalKey(item))}
               linked={item.kind === "contract" ? undefined : linkedContracts.get(item.ticker)}
-              onPress={() => setOpen(item)} />
+              onPress={() => openSignal(item)} />
           )}
           ListHeaderComponent={header}
           ListEmptyComponent={empty}
@@ -243,7 +263,10 @@ function Radar() {
       <SignalDetail
         signal={open}
         all={signals}
-        onOpen={setOpen}
+        onOpen={openSignal}
+        call={open ? callFor(progress, open) : undefined}
+        onCall={(s: Signal, d: Direction) => setProgress((p) => makeCall(p, s, d))}
+        onOpenRecord={() => setProgress((p) => ({ ...p, recordsOpened: p.recordsOpened + 1 }))}
         starred={!!open && watch.has(open.ticker)}
         onToggleStar={toggleStar}
         onClose={() => setOpen(null)}
@@ -291,6 +314,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 10,
   },
   brand: { fontFamily: fonts.black, fontSize: 20, color: colors.gold },
+  streak: { fontFamily: fonts.semibold, fontSize: 12, color: colors.soft },
   status: { ...type.small, color: colors.muted, paddingHorizontal: 20, marginTop: 2 },
   help: { fontFamily: fonts.semibold, fontSize: 14, color: colors.soft },
   notice: {

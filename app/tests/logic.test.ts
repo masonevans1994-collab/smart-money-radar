@@ -79,6 +79,8 @@ test("tab filters and search", () => {
   assert.equal(filterSignals(all, "watch", "", new Set()).length, 0);
   assert.ok(filterSignals(all, "contract", "demo robotics", new Set()).length >= 1);
   assert.equal(filterSignals(all, "record", "", new Set()).length, 0);
+  const people = filterSignals(all, "people", "", new Set());
+  assert.ok(people.length > 0 && people.every((s) => s.kind !== "contract"));
 });
 
 test("stable keys and amount labels", () => {
@@ -95,4 +97,41 @@ test("freshness and biggest award on a weekend", () => {
   assert.equal(biggestThisWeek(feed, now)?.ticker, "HON");
 });
 
+
+
+// ---- game ----
+import { callStats, checkIn, EMPTY, makeCall, milestones, resolveCalls } from "../src/game";
+
+test("streak counts consecutive days only", () => {
+  let p = checkIn(EMPTY, new Date("2026-11-01T09:00:00"));
+  assert.equal(p.streak, 1);
+  p = checkIn(p, new Date("2026-11-01T18:00:00"));            // same day: no change
+  assert.equal(p.streak, 1);
+  p = checkIn(p, new Date("2026-11-02T09:00:00"));
+  assert.equal(p.streak, 2);
+  p = checkIn(p, new Date("2026-11-05T09:00:00"));            // gap resets
+  assert.equal(p.streak, 1);
+  assert.equal(p.bestStreak, 2);
+});
+
+test("calls settle after 30 days against the latest price", () => {
+  const award = contract({ price_now: 100 } as Partial<Signal>);
+  let p = makeCall(EMPTY, award, "up", new Date("2026-10-01T12:00:00"));
+  assert.equal(p.calls.length, 1);
+  p = makeCall(p, award, "down", new Date("2026-10-02T12:00:00")); // one call per award
+  assert.equal(p.calls.length, 1);
+  p = resolveCalls(p, [{ ...award, price_now: 101 } as Signal], new Date("2026-10-15T12:00:00"));
+  assert.equal(p.calls[0].result, undefined);                     // too early
+  p = resolveCalls(p, [{ ...award, price_now: 108 } as Signal], new Date("2026-11-01T12:00:00"));
+  assert.equal(p.calls[0].result, "right");
+  assert.deepEqual(callStats(p), { open: 0, settled: 1, right: 1, pct: 100 });
+  assert.ok(milestones(p).find((m) => m.id === "call")?.done);
+});
+
+test("a small move counts as about the same", () => {
+  const award = contract({ price_now: 100 } as Partial<Signal>);
+  let p = makeCall(EMPTY, award, "flat", new Date("2026-10-01T12:00:00"));
+  p = resolveCalls(p, [{ ...award, price_now: 101.5 } as Signal], new Date("2026-11-01T12:00:00"));
+  assert.equal(p.calls[0].result, "right");
+});
 console.log(`\n${passed} logic tests passed`);

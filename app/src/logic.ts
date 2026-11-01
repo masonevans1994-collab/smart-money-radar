@@ -1,15 +1,15 @@
 // Pure helpers (no React Native imports) so they're easy to test.
 import type { Feed, Signal } from "./types";
 
-export type Tab = "contract" | "congress" | "insider" | "watch" | "record";
+export type Tab = "contract" | "people" | "watch" | "record" | "you";
 export type SortKey = "score" | "size" | "newest";
 
 export const TABS: { key: Tab; label: string }[] = [
   { key: "contract", label: "Contracts" },
-  { key: "congress", label: "Congress" },
-  { key: "insider", label: "Insiders" },
+  { key: "people", label: "People" },
   { key: "watch", label: "Saved" },
   { key: "record", label: "Record" },
+  { key: "you", label: "You" },
 ];
 
 export function money(v: number): string {
@@ -37,10 +37,11 @@ function size(s: Signal): number {
 export function filterSignals(
   signals: Signal[], tab: Tab, query: string, watchlist: Set<string>,
 ): Signal[] {
-  if (tab === "record") return [];
+  if (tab === "record" || tab === "you") return [];
   const q = query.trim().toLowerCase();
   return signals.filter((s) => {
     if (tab === "watch") { if (!watchlist.has(s.ticker)) return false; }
+    else if (tab === "people") { if (s.kind === "contract") return false; }
     else if (s.kind !== tab) return false;
     if (!q) return true;
     const company = s.kind === "congress" ? "" : s.company;
@@ -179,19 +180,16 @@ export function heroFor(tab: Tab, feed: Feed, watchCount: number): HeroText {
     return { figure: money(total), gold: true,
       caption: `awarded to public companies in the last 30 days` };
   }
-  if (tab === "congress") {
-    const buys = feed.congress.filter((t) => t.type === "Purchase").length;
-    return { figure: String(feed.congress.length), gold: false,
-      caption: `stock trades disclosed by members of Congress, ${buys} of them purchases` };
-  }
-  if (tab === "insider") {
-    return { figure: String(feed.insiders.length), gold: false,
-      caption: "open-market buys by company executives and directors" };
+  if (tab === "people") {
+    const n = feed.congress.length + feed.insiders.length;
+    return { figure: String(n), gold: false,
+      caption: `stock trades reported by members of Congress and company executives` };
   }
   if (tab === "watch") {
     return { figure: String(watchCount), gold: false,
       caption: watchCount === 1 ? "stock you're following" : "stocks you're following" };
   }
+  if (tab === "you") return { figure: "You", gold: false, caption: "your streak, your calls and what you've learned" };
   return { figure: "Record", gold: false, caption: "how stocks did after each kind of signal" };
 }
 

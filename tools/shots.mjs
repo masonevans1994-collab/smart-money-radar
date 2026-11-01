@@ -26,9 +26,12 @@ if (await first.count()) {
   }
   await page.getByText("Done", { exact: true }).click();
 }
-await page.getByText("Congress", { exact: true }).last().click();
+await page.getByText("People", { exact: true }).last().click();
 await page.waitForTimeout(500);
-await page.screenshot({ path: `${outDir}/5-congress.png` });
+await page.screenshot({ path: `${outDir}/5-people.png` });
+await page.getByText("You", { exact: true }).last().click();
+await page.waitForTimeout(500);
+await page.screenshot({ path: `${outDir}/6-you.png` });
 await page.getByText("Record", { exact: true }).last().click();
 await page.waitForTimeout(500);
 await page.screenshot({ path: `${outDir}/4-record.png` });
