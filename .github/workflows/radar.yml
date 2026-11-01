@@ -86,6 +86,7 @@ jobs:
           npx expo export --platform web --output-dir dist
           cp -r dist/. ../public/
           python ../tools/pwa.py ../public /${{ github.event.repository.name }}
+          cp ../tools/static/* ../public/
 
       - name: Build the redesign preview (from the 'redesign' branch, if it exists)
         run: |
