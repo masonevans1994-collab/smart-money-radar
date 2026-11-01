@@ -13,4 +13,4 @@ jobs:
       - run: pip install pdfplumber
       - env:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || format('Smart Money Radar {0}@users.noreply.github.com', github.repository_owner) }}
-        run: python tools/diagnose.py
+        run: PYTHONPATH=. python tools/diagnose.py
