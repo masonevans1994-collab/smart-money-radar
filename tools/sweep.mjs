@@ -24,7 +24,9 @@ const url = process.argv[2];
     await p.getByText(s, { exact: true }).click(); await p.waitForTimeout(120);
     if ((await cards()) < 1) findings.push(`sort ${s} emptied the list`);
   }
-  // 4 agency filter + about page
+  // 4 agency filter + about page (the row opens from the "By agency" chip)
+  const byAgency = p.getByText('By agency ▾', { exact: true });
+  if (await byAgency.count()) { await byAgency.click(); await p.waitForTimeout(80); }
   const agencyChip = p.locator('[role=button]').filter({ hasText: /^(Army|Energy|Veterans Affairs|Navy|NASA|Air Force|Treasury|Health|Agriculture)$/ }).first();
   if (await agencyChip.count()) {
     const label = (await agencyChip.innerText()).trim();
@@ -34,8 +36,10 @@ const url = process.argv[2];
     if (!(await txt()).includes('Recent contracts from')) findings.push('agency page did not open');
     await p.getByText('Done', { exact: true }).click(); await p.waitForTimeout(100);
     await p.getByText('All agencies', { exact: true }).click();
+    await p.getByText('By agency ▾', { exact: true }).click(); await p.waitForTimeout(80);
   }
   // 5 search + suggested chip + clear
+  await p.locator('input').focus(); await p.waitForTimeout(80);
   await p.getByText('Try:', { exact: true }).waitFor();
   await p.locator('input').fill('zzzz'); await p.waitForTimeout(80);
   if (!(await txt()).includes('Nothing matches "zzzz"')) findings.push('empty search message missing');

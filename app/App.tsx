@@ -71,6 +71,8 @@ function Radar({ appearance, onAppearance }: {
   const [guide, setGuide] = useState(false);
   const [legal, setLegal] = useState(false);
   const [recapHidden, setRecapHidden] = useState(false);
+  const [searchFocus, setSearchFocus] = useState(false);
+  const [showAgencies, setShowAgencies] = useState(false);
   const [glossary, setGlossary] = useState<string | null | false>(false);
   const [tour, setTour] = useState(false);
   const [agencyPage, setAgencyPage] = useState<string | null>(null);
@@ -214,7 +216,7 @@ function Radar({ appearance, onAppearance }: {
             <Text style={styles.biggestOpen}>See what it means</Text>
           </Pressable>
         )}
-        {tab === "contract" && fresh.latest && (
+        {tab === "contract" && fresh.latest && (recapHidden || !recap) && (
           <Text style={styles.heroFresh}>
             Latest award: {dayLabel(fresh.latest).replace(/^(Today|Yesterday)$/, (m) => m.toLowerCase())}.
             {fresh.note ? ` ${fresh.note}` : ""}
@@ -230,7 +232,8 @@ function Radar({ appearance, onAppearance }: {
         </Pressable>
       )}
       {tab === "contract" && recap && !recapHidden && (
-        <RecapCard recap={recap} onOpen={openSignal} onDismiss={() => setRecapHidden(true)} />
+        <RecapCard recap={recap} onOpen={openSignal} onDismiss={() => setRecapHidden(true)}
+          note={fresh.latest ? `Latest award ${dayLabel(fresh.latest).replace(/^(Today|Yesterday)$/, (m) => m.toLowerCase())}.${fresh.note ? ` ${fresh.note}` : ""}` : undefined} />
       )}
       {tab !== "record" && tab !== "you" && tab !== "watch" && (
         <>
@@ -243,8 +246,10 @@ function Radar({ appearance, onAppearance }: {
             autoCorrect={false}
             clearButtonMode="while-editing"
             accessibilityLabel="Search"
+            onFocus={() => setSearchFocus(true)}
+            onBlur={() => setSearchFocus(false)}
           />
-          {tab === "contract" && !query && topics.length > 0 && (
+          {tab === "contract" && !query && searchFocus && topics.length > 0 && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.chips} style={{ flexGrow: 0 }}>
               <Text style={styles.tryLabel}>Try:</Text>
@@ -255,11 +260,15 @@ function Radar({ appearance, onAppearance }: {
           )}
           <ScrollView horizontal showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chips} style={{ flexGrow: 0 }}>
+            {tab === "contract" && agencies.length > 1 && (
+              <Chip label={agency ? `${agency} ▾` : "By agency ▾"} on={!!agency}
+                onPress={() => { if (agency) { setAgency(null); setShowAgencies(true); } else setShowAgencies((v) => !v); }} />
+            )}
             {SORTS.map((s) => (
               <Chip key={s.key} label={s.label} on={sort === s.key} onPress={() => setSort(s.key)} />
             ))}
           </ScrollView>
-          {tab === "contract" && agencies.length > 1 && (
+          {tab === "contract" && agencies.length > 1 && (showAgencies || agency) && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.chips} style={{ flexGrow: 0 }}>
               {[null, ...agencies].map((a) => (

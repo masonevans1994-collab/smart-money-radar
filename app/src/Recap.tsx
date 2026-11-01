@@ -5,8 +5,8 @@ import { agencyLabel, amountLabel, money, moveLabel, type Recap as RecapData, re
 import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
 
-export function RecapCard({ recap, onOpen, onDismiss }: {
-  recap: RecapData; onOpen: (s: Signal) => void; onDismiss: () => void;
+export function RecapCard({ recap, onOpen, onDismiss, note }: {
+  recap: RecapData; onOpen: (s: Signal) => void; onDismiss: () => void; note?: string;
 }) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -24,7 +24,7 @@ export function RecapCard({ recap, onOpen, onDismiss }: {
           </Pressable>
         </View>
       </View>
-      <Text style={styles.period}>{recap.periodLabel}</Text>
+      <Text style={styles.period}>{recap.periodLabel}{note ? ` · ${note}` : ""}</Text>
       <Text style={styles.line} maxFontSizeMultiplier={1.6}>
         The government signed <Text style={styles.strong}>{recap.count}</Text> contract{recap.count === 1 ? "" : "s"} worth{" "}
         <Text style={[styles.strong, { color: colors.gold }]}>{money(recap.total)}</Text> with{" "}
