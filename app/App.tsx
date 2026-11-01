@@ -1,6 +1,5 @@
 import {
-  PublicSans_400Regular, PublicSans_500Medium, PublicSans_600SemiBold, PublicSans_700Bold,
-  PublicSans_900Black, useFonts,
+  PublicSans_400Regular, PublicSans_600SemiBold, PublicSans_800ExtraBold, useFonts,
 } from "@expo-google-fonts/public-sans";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -405,10 +404,7 @@ function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () 
 }
 
 export default function App() {
-  const [loaded] = useFonts({
-    PublicSans_400Regular, PublicSans_500Medium, PublicSans_600SemiBold, PublicSans_700Bold,
-    PublicSans_900Black,
-  });
+  const [loaded] = useFonts({ PublicSans_400Regular, PublicSans_600SemiBold, PublicSans_800ExtraBold });
   const system = useColorScheme();
   const [appearance, setAppearance] = useState<Appearance>("system");
   useEffect(() => { loadAppearance().then(setAppearance); }, []);

@@ -25,12 +25,14 @@ export const useColors = (): Palette => useContext(ThemeContext);
 export const colors = DARK;
 
 // Public Sans: the typeface the U.S. government built for its own sites.
+// Three weights only: fonts are the biggest download, so medium and bold
+// map onto their nearest loaded neighbours.
 export const fonts = {
   regular: "PublicSans_400Regular",
-  medium: "PublicSans_500Medium",
+  medium: "PublicSans_400Regular",
   semibold: "PublicSans_600SemiBold",
-  bold: "PublicSans_700Bold",
-  black: "PublicSans_900Black",
+  bold: "PublicSans_600SemiBold",
+  black: "PublicSans_800ExtraBold",
 };
 
 // Type scale (px): 12 / 14 / 16 / 20 / 28 / 40
