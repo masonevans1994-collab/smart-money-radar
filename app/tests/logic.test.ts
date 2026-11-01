@@ -136,7 +136,7 @@ test("a small move counts as about the same", () => {
 });
 
 
-import { agencyLabel, weeklyRecap } from "../src/logic";
+import { agencyLabel, peersFor, weeklyRecap } from "../src/logic";
 import { agencyDescription } from "../src/agencies";
 
 test("weekly recap and agency descriptions", () => {
@@ -157,7 +157,7 @@ test("weekly recap and agency descriptions", () => {
 });
 
 
-import { catchUp, lastTimeDetail, lastTimeHeadline, lastTimeLines, recordSentence, shareText, statusNote, whyLine } from "../src/logic";
+import { catchUp, compareRows, lastTimeDetail, lastTimeHeadline, lastTimeLines, recordSentence, shareText, statusNote, whyLine } from "../src/logic";
 
 test("what-happened-last-time sentences use real past moves", () => {
   const s = contract({ history: { n: 25, verdict: "v", windows: {},
@@ -233,5 +233,18 @@ test("record sentences", () => {
     "After 11 of these, the stock did better than the market by 6.7 points on average. It beat the market 73% of the time.");
   assert.equal(recordSentence({ id: "x", label: "L", n: 40, avg_vs_spy: 0.2, beat_spy_pct: 50 }),
     "After 40 of these, the stock moved about like the market. It beat the market 50% of the time.");
+});
+
+test("compare peers and rows", () => {
+  const a = contract({ ticker: "A", company: "Alpha", value: 5e8, sub_agency: "Department of the Navy", award_pct: 0.2, change_pct: 1.2, sector_pct: 0.5 } as Partial<Signal>);
+  const b = contract({ ticker: "B", company: "Beta", value: 1e8, sub_agency: "Department of the Navy", award_pct: 4, change_pct: -3 } as Partial<Signal>);
+  const c = contract({ ticker: "C", company: "Gamma", value: 9e8, sub_agency: "Department of Energy" } as Partial<Signal>);
+  const b2 = contract({ ticker: "B", company: "Beta", value: 2e7, sub_agency: "Department of the Navy" } as Partial<Signal>);
+  assert.deepEqual(peersFor([a, b, c, b2], a).map((p) => p.ticker), ["B"]);
+  const rows = compareRows([a, b]);
+  assert.deepEqual(rows[0], { label: "Deal", values: ["$500M", "$100M"] });
+  assert.deepEqual(rows[1].values, ["0.20%", "4.0%"]);
+  assert.deepEqual(rows[3].values, ["up 1.2%", "down 3.0%"]);
+  assert.deepEqual(rows[4].values, ["up 0.5%", "–"]);
 });
 console.log(`\n${passed} logic tests passed`);

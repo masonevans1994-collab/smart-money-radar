@@ -3,7 +3,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
   agencyLabel, amountLabel, isSell, KEEP_IN_MIND, money, plainSummary, related, SCORE_GUIDE,
-  lastTimeDetail, lastTimeHeadline, lastTimeLines, sectorLine, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel,
+  lastTimeDetail, lastTimeHeadline, lastTimeLines, peersFor, sectorLine, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel,
 } from "./logic";
 import { useState, useMemo } from "react";
 import { agencyDescription } from "./agencies";
@@ -92,11 +92,12 @@ function MiniList({ title, items, onOpen }: {
 }
 
 export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClose, onLegal, call,
-  onCall, onOpenRecord, onExplain, onAgency, onCompany }: {
+  onCall, onOpenRecord, onExplain, onAgency, onCompany, onCompare }: {
   signal: Signal | null; all: Signal[]; starred: boolean;
   onToggleStar: (ticker: string) => void; onOpen: (s: Signal) => void; onClose: () => void;
   onLegal: () => void; call?: Call; onCall: (s: Signal, d: Direction) => void; onOpenRecord: () => void;
   onExplain: (term: string) => void; onAgency: (label: string) => void; onCompany: (s: Signal) => void;
+  onCompare: (items: Signal[]) => void;
 }) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -230,6 +231,19 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                   </View>
                 )}
 
+                {contract && peersFor(all, signal).length > 0 && (
+                  <Pressable style={styles.compare} onPress={() => onCompare([signal, ...peersFor(all, signal)])}
+                    accessibilityRole="button">
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.compareTitle}>Compare with other {agencyLabel(signal)} winners</Text>
+                      <Text style={styles.compareSub} numberOfLines={2}>
+                        {peersFor(all, signal).map((p) => p.ticker).join(", ")} also won from {agencyLabel(signal)} this month
+                      </Text>
+                    </View>
+                    <Text style={styles.compareChev}>›</Text>
+                  </Pressable>
+                )}
+
                 {contract && <CallBox signal={signal} call={call} onCall={(d) => onCall(signal, d)} />}
 
                 <Text style={styles.section}>Why it scored {signal.score}: {tierLabel(signal.score).toLowerCase()}</Text>
@@ -315,6 +329,11 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   companyLink: { color: colors.gold },
   tickerLine: { ...type.body, color: colors.soft, marginTop: 2 },
   plain: { marginTop: 18, gap: 8 },
+  compare: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.panel,
+    borderRadius: 16, padding: 16, marginTop: 20 },
+  compareTitle: { ...type.bodyStrong, fontSize: 15, color: colors.text },
+  compareSub: { ...type.small, color: colors.muted, marginTop: 2 },
+  compareChev: { color: colors.gold, fontSize: 24 },
   lastTime: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, marginTop: 20, gap: 8,
     borderLeftWidth: 3, borderLeftColor: colors.gold },
   lastTimeHead: { ...type.title, fontSize: 19, lineHeight: 26, color: colors.text },

@@ -18,6 +18,17 @@ if (await first.count()) {
   await first.click();
   await page.waitForTimeout(800);
   await page.screenshot({ path: `${outDir}/3-detail.png` });
+  const cmp = page.getByText(/Compare with other/);
+  if (await cmp.count()) {
+    await cmp.click();
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: `${outDir}/3c-compare.png` });
+    console.log("compare: " + (await page.locator("body").innerText()).replace(/\n+/g, " | ").slice(0, 600));
+    await page.getByText("‹ Back", { exact: true }).click();
+    await page.waitForTimeout(300);
+    await first.click();
+    await page.waitForTimeout(500);
+  }
   const why = page.getByText("Score?", { exact: true });
   if (await why.count()) {
     await why.click();

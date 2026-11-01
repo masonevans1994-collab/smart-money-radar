@@ -24,6 +24,7 @@ import {
 } from "./src/game";
 import { AgencyPage } from "./src/AgencyPage";
 import { CompanyPage, type CompanyView } from "./src/CompanyPage";
+import { Compare } from "./src/Compare";
 import { Glossary } from "./src/Glossary";
 import { Guide } from "./src/Guide";
 import { Legal, SHORT_DISCLAIMER } from "./src/Legal";
@@ -75,6 +76,7 @@ function Radar({ appearance, onAppearance }: {
   const [tour, setTour] = useState(false);
   const [agencyPage, setAgencyPage] = useState<string | null>(null);
   const [company, setCompany] = useState<CompanyView | null>(null);
+  const [compare, setCompare] = useState<Signal[] | null>(null);
   const [progress, setProgressState] = useState<Progress>(EMPTY);
   const setProgress = useCallback((fn: (p: Progress) => Progress) => {
     setProgressState((p) => { const n = fn(p); if (n !== p) saveProgress(n); return n; });
@@ -363,7 +365,9 @@ function Radar({ appearance, onAppearance }: {
           const name = anchor.kind === "congress" ? anchor.ticker : anchor.company;
           setOpen(null); setCompany({ ticker: s.ticker, name, anchor, items });
         }}
+        onCompare={(items: Signal[]) => { setOpen(null); setCompare(items); }}
       />
+      <Compare items={compare} onOpen={(s) => { setCompare(null); openSignal(s); }} onClose={() => setCompare(null)} />
       {company && (
         <CompanyPage view={company} saved={watch.has(company.ticker)} onToggleSave={toggleStar}
           onOpen={(s) => { setCompany(null); openSignal(s); }} onClose={() => setCompany(null)} />

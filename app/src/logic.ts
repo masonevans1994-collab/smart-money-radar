@@ -607,3 +607,35 @@ export function recordSentence(g: TrackGroup): string {
     : vs < -0.5 ? `did worse than the market by ${Math.abs(vs).toFixed(1)} points on average` : "moved about like the market";
   return `After ${g.n} of these, the stock ${dir}. It beat the market ${g.beat_spy_pct ?? 0}% of the time.`;
 }
+
+/** Other recent winners from the same agency, biggest first (for comparison). */
+export function peersFor(all: Signal[], s: Signal, max = 4): Signal[] {
+  if (s.kind !== "contract") return [];
+  const label = agencyLabel(s);
+  const seen = new Set([s.ticker]);
+  return all.filter((x) => x.kind === "contract" && x !== s && agencyLabel(x) === label)
+    .sort((a, b) => (b.kind === "contract" ? b.value : 0) - (a.kind === "contract" ? a.value : 0))
+    .filter((x) => { if (seen.has(x.ticker)) return false; seen.add(x.ticker); return true; })
+    .slice(0, max);
+}
+
+export interface CompareRow { label: string; values: string[] }
+
+/** Rows for a side-by-side table: the item first, then its peers. */
+export function compareRows(items: Signal[]): CompareRow[] {
+  const cs = items.filter((x): x is Extract<Signal, { kind: "contract" }> => x.kind === "contract");
+  const pattern = (c: Extract<Signal, { kind: "contract" }>) => {
+    const w = c.history?.windows["30"];
+    if (!w || w.n < 5) return "not enough history";
+    return `${w.beat_pct}% beat market (${w.n} deals)`;
+  };
+  return [
+    { label: "Deal", values: cs.map((c) => money(c.value)) },
+    { label: "Share of company", values: cs.map((c) => c.award_pct != null ? `${c.award_pct.toFixed(c.award_pct < 1 ? 2 : 1)}%` : "–") },
+    { label: "Signed", values: cs.map((c) => shortDate(c.trade_date)) },
+    { label: "Stock since", values: cs.map((c) => moveLabel(c)?.replace("Stock ", "") ?? "–") },
+    { label: "Group since", values: cs.map((c) => c.sector_pct != null ? `${c.sector_pct > 0 ? "up " : c.sector_pct < 0 ? "down " : ""}${Math.abs(c.sector_pct).toFixed(1)}%` : "–") },
+    { label: "After past deals", values: cs.map(pattern) },
+    { label: "Score", values: cs.map((c) => `${c.score}, ${tierLabel(c.score).toLowerCase()}`) },
+  ];
+}
