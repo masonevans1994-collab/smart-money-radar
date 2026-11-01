@@ -75,6 +75,14 @@ jobs:
           npx expo export --platform web --output-dir dist
           cp -r dist/. ../public/
 
+      - name: Check the app renders on a phone-size screen
+        run: |
+          mkdir -p /tmp/site && cp -r public /tmp/site/smart-money-radar
+          (cd /tmp/site && python -m http.server 8080 >/dev/null 2>&1 &)
+          cd tools && npm init -y >/dev/null && npm install --no-audit --no-fund playwright@1
+          npx playwright install --with-deps chromium >/dev/null
+          node smoke.mjs http://localhost:8080/smart-money-radar/
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: public
