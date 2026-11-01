@@ -92,7 +92,7 @@ def nice_case(name: str) -> str:
     for i, w in enumerate(name.split()):
         core = re.sub(r"[^A-Za-z0-9&]", "", w)
         if core.upper() in KEEP_UPPER or (core.isupper() and len(core) <= 3 and core.isalpha()
-                                          and core.upper() not in {"INC", "CO", "THE", "AND", "FOR"}):
+                                          and core.upper() not in {"INC", "CO", "THE", "AND", "FOR", "OF", "DE"}):
             words.append(w.upper())
         elif i and core.lower() in SMALL:
             words.append(w.lower())
