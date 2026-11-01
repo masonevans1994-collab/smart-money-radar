@@ -88,11 +88,16 @@ def contract_awards():
         c["spark_mark"] = 8
     for c, (lab, pct) in zip(out, [("defense and aerospace stocks", 2.1), ("defense and aerospace stocks", 1.4), ("energy stocks", -0.6)]):
         c["sector"], c["sector_pct"] = lab, pct
-    out[0]["history"] = {"n": 11, "verdict": "After its last 11 big awards, this stock beat the market over the next month 73% of the time, by +4.4% on average. On the day itself it moved +0.6% on average.",
+    out[0]["history"] = {"awards": [{"date": _d(140), "value": 410e6, "agency": "Department of Defense", "d30": 9.8, "d30_vs_spy": 7.1, "description": "Radiation-hardened processors (demo)"},
+                                    {"date": _d(300), "value": 120e6, "agency": "NASA", "d30": -2.1, "d30_vs_spy": -3.0, "description": "Flight computers (demo)"},
+                                    {"date": _d(520), "value": 95e6, "agency": "Department of Defense", "d30": 4.4, "d30_vs_spy": 2.2, "description": "Sensor packages (demo)"}],
+                         "n": 11, "verdict": "After its last 11 big awards, this stock beat the market over the next month 73% of the time, by +4.4% on average. On the day itself it moved +0.6% on average.",
                          "windows": {"1": {"n": 11, "avg_vs_spy": 0.6, "median_vs_spy": 0.3, "beat_pct": 64, "avg_raw": 0.7},
                                      "30": {"n": 11, "avg_vs_spy": 4.4, "median_vs_spy": 3.1, "beat_pct": 73, "avg_raw": 6.0}},
                          "closest": {"date": _d(140), "value": 410e6, "agency": "Department of Defense", "d1": 1.2, "d30": 9.8, "d30_vs_spy": 7.1}}
-    out[1]["history"] = {"n": 25, "verdict": "After its last 25 big awards, this stock usually trailed the market over the next month (36% of the time it beat it; -1.4% on average). On the day itself it moved -0.4% on average.",
+    out[1]["history"] = {"awards": [{"date": _d(71), "value": 1.1e9, "agency": "Department of Defense", "d30": -4.1, "d30_vs_spy": -9.2, "description": "Autonomous vehicles, lot 2 (demo)"},
+                                    {"date": _d(200), "value": 300e6, "agency": "Army", "d30": 1.0, "d30_vs_spy": 0.4, "description": "Spare parts (demo)"}],
+                         "n": 25, "verdict": "After its last 25 big awards, this stock usually trailed the market over the next month (36% of the time it beat it; -1.4% on average). On the day itself it moved -0.4% on average.",
                          "windows": {"1": {"n": 25, "avg_vs_spy": -0.2, "median_vs_spy": 0.05, "beat_pct": 64, "avg_raw": -0.4},
                                      "30": {"n": 25, "avg_vs_spy": -1.4, "median_vs_spy": -1.1, "beat_pct": 36, "avg_raw": 1.8}},
                          "closest": {"date": _d(71), "value": 1.1e9, "agency": "Department of Defense", "d1": -0.8, "d30": -4.1, "d30_vs_spy": -9.2}}

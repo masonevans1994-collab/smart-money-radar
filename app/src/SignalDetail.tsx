@@ -92,11 +92,11 @@ function MiniList({ title, items, onOpen }: {
 }
 
 export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClose, onLegal, call,
-  onCall, onOpenRecord, onExplain, onAgency }: {
+  onCall, onOpenRecord, onExplain, onAgency, onCompany }: {
   signal: Signal | null; all: Signal[]; starred: boolean;
   onToggleStar: (ticker: string) => void; onOpen: (s: Signal) => void; onClose: () => void;
   onLegal: () => void; call?: Call; onCall: (s: Signal, d: Direction) => void; onOpenRecord: () => void;
-  onExplain: (term: string) => void; onAgency: (label: string) => void;
+  onExplain: (term: string) => void; onAgency: (label: string) => void; onCompany: (s: Signal) => void;
 }) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -143,16 +143,18 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                   {amountLabel(signal)}
                 </Text>
                 <View style={styles.who}>
-                  <View style={{ flex: 1 }}>
+                  <Pressable style={{ flex: 1 }} onPress={() => onCompany(signal)} accessibilityRole="button"
+                    accessibilityLabel={`More about ${signal.kind === "congress" ? signal.ticker : signal.company}`}>
                     <Text style={styles.company}>
                       {signal.kind === "congress" ? signal.who : signal.company}
+                      {signal.kind !== "congress" ? <Text style={styles.companyLink}> ›</Text> : null}
                     </Text>
                     <Text style={styles.tickerLine}>
                       {signal.ticker}
                       {signal.kind === "insider" && signal.role_label ? `, bought by ${signal.who}` : ""}
                       {contract && signal.who !== signal.company ? `, won by ${signal.who}` : ""}
                     </Text>
-                  </View>
+                  </Pressable>
                   <Pressable onPress={() => setExplain((v) => !v)} accessibilityRole="button"
                     accessibilityHint="Explains what the score means">
                     <ScoreBadge score={signal.score} size="lg" />
@@ -310,6 +312,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   heroAmount: { ...type.hero, marginTop: 2, fontVariant: ["tabular-nums"] },
   who: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 10 },
   company: { ...type.title, color: colors.text },
+  companyLink: { color: colors.gold },
   tickerLine: { ...type.body, color: colors.soft, marginTop: 2 },
   plain: { marginTop: 18, gap: 8 },
   lastTime: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, marginTop: 20, gap: 8,

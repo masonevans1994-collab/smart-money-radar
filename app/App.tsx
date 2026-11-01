@@ -23,6 +23,7 @@ import {
   saveProgress,
 } from "./src/game";
 import { AgencyPage } from "./src/AgencyPage";
+import { CompanyPage, type CompanyView } from "./src/CompanyPage";
 import { Glossary } from "./src/Glossary";
 import { Guide } from "./src/Guide";
 import { Legal, SHORT_DISCLAIMER } from "./src/Legal";
@@ -73,6 +74,7 @@ function Radar({ appearance, onAppearance }: {
   const [glossary, setGlossary] = useState<string | null | false>(false);
   const [tour, setTour] = useState(false);
   const [agencyPage, setAgencyPage] = useState<string | null>(null);
+  const [company, setCompany] = useState<CompanyView | null>(null);
   const [progress, setProgressState] = useState<Progress>(EMPTY);
   const setProgress = useCallback((fn: (p: Progress) => Progress) => {
     setProgressState((p) => { const n = fn(p); if (n !== p) saveProgress(n); return n; });
@@ -355,7 +357,17 @@ function Radar({ appearance, onAppearance }: {
         onLegal={() => { setOpen(null); setLegal(true); }}
         onExplain={(term: string) => setGlossary(term)}
         onAgency={(label: string) => { setOpen(null); setAgencyPage(label); }}
+        onCompany={(s: Signal) => {
+          const items = signals.filter((x) => x.ticker === s.ticker);
+          const anchor = items.find((x) => x.kind === "contract" && x.history) ?? items.find((x) => x.kind === "contract") ?? s;
+          const name = anchor.kind === "congress" ? anchor.ticker : anchor.company;
+          setOpen(null); setCompany({ ticker: s.ticker, name, anchor, items });
+        }}
       />
+      {company && (
+        <CompanyPage view={company} saved={watch.has(company.ticker)} onToggleSave={toggleStar}
+          onOpen={(s) => { setCompany(null); openSignal(s); }} onClose={() => setCompany(null)} />
+      )}
       <AgencyPage summary={agencyPage ? agencySummary(signals, agencyPage) : null}
         onOpen={(s) => { setAgencyPage(null); openSignal(s); }} onClose={() => setAgencyPage(null)} />
       <Onboarding visible={onboard && !legal} onDone={() => { setOnboard(false); finishOnboarding(); }}

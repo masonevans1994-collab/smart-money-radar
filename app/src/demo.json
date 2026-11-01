@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-01T21:47:30+00:00",
+  "generated": "2026-11-01T22:03:44+00:00",
   "demo": true,
   "contracts": [
     {
@@ -55,6 +55,32 @@
       "sector": "defense and aerospace stocks",
       "sector_pct": 2.1,
       "history": {
+        "awards": [
+          {
+            "date": "2026-06-14",
+            "value": 410000000.0,
+            "agency": "Department of Defense",
+            "d30": 9.8,
+            "d30_vs_spy": 7.1,
+            "description": "Radiation-hardened processors (demo)"
+          },
+          {
+            "date": "2026-01-05",
+            "value": 120000000.0,
+            "agency": "NASA",
+            "d30": -2.1,
+            "d30_vs_spy": -3.0,
+            "description": "Flight computers (demo)"
+          },
+          {
+            "date": "2025-05-30",
+            "value": 95000000.0,
+            "agency": "Department of Defense",
+            "d30": 4.4,
+            "d30_vs_spy": 2.2,
+            "description": "Sensor packages (demo)"
+          }
+        ],
         "n": 11,
         "verdict": "After its last 11 big awards, this stock beat the market over the next month 73% of the time, by +4.4% on average. On the day itself it moved +0.6% on average.",
         "windows": {
@@ -146,6 +172,24 @@
       "sector": "defense and aerospace stocks",
       "sector_pct": 1.4,
       "history": {
+        "awards": [
+          {
+            "date": "2026-08-22",
+            "value": 1100000000.0,
+            "agency": "Department of Defense",
+            "d30": -4.1,
+            "d30_vs_spy": -9.2,
+            "description": "Autonomous vehicles, lot 2 (demo)"
+          },
+          {
+            "date": "2026-04-15",
+            "value": 300000000.0,
+            "agency": "Army",
+            "d30": 1.0,
+            "d30_vs_spy": 0.4,
+            "description": "Spare parts (demo)"
+          }
+        ],
         "n": 25,
         "verdict": "After its last 25 big awards, this stock usually trailed the market over the next month (36% of the time it beat it; -1.4% on average). On the day itself it moved -0.4% on average.",
         "windows": {

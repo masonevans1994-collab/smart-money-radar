@@ -186,9 +186,13 @@ def company_history(contracts: list[dict], user_agent: str, book, min_amount: fl
         if not summ:
             continue
         match = closest_match(rows, c["value"], c.get("award_id"))
+        recent = sorted(rows, key=lambda r: r["date"], reverse=True)[:12]
         c["history"] = {
             "n": summ["n"], "verdict": summ["verdict"],
             "windows": summ["windows"],
+            "awards": [{"date": r["date"], "value": r["value"], "agency": r["agency"],
+                        "d30": r.get("d30"), "d30_vs_spy": r.get("d30_vs_spy"),
+                        "description": (r.get("description") or "")[:90]} for r in recent],
             "closest": ({"date": match["date"], "value": match["value"], "agency": match["agency"],
                          "d1": match.get("d1"), "d30": match.get("d30"), "d30_vs_spy": match["d30_vs_spy"]}
                         if match else None),
