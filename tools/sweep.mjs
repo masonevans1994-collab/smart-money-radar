@@ -63,12 +63,7 @@ const url = process.argv[2];
   await p.getByText('☆ Save', { exact: true }).click(); await p.waitForTimeout(80);
   if (!(await txt()).includes('★ Saved')) findings.push('save did not toggle');
   // Share opens the phone's own sheet in the real app; only checked in the local preview harness.
-  // related list navigation
-  const more = p.locator('text=/More on QRTZ/');
-  if (await more.count()) {
-    await p.locator('[data-modal] [role=button]').filter({ hasText: /bought|won/ }).nth(1).click().catch(() => {});
-  }
-  await p.locator('[data-modal]').last().getByText('Done', { exact: true }).click(); await p.waitForTimeout(100);
+  await p.getByText('Done', { exact: true }).last().click(); await p.waitForTimeout(100);
   // 7 tabs
   for (const t of ['People', 'Saved', 'Record', 'You']) {
     await p.getByText(t, { exact: true }).last().click(); await p.waitForTimeout(120);
