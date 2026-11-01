@@ -22,7 +22,11 @@ tags = (f'<link rel="apple-touch-icon" href="{base}/apple-touch-icon.png">'
         '<meta name="apple-mobile-web-app-capable" content="yes">'
         '<meta name="mobile-web-app-capable" content="yes">'
         '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">'
-        '<meta name="apple-mobile-web-app-title" content="Radar">')
+        '<meta name="apple-mobile-web-app-title" content="Radar">'
+        # Keep the site out of search engines until the app is reviewed for a public launch.
+        '<meta name="robots" content="noindex, nofollow">')
 if "apple-touch-icon" not in html:
     index.write_text(html.replace("</head>", tags + "</head>", 1))
+root = site if base.count("/") <= 1 else site.parent
+(root / "robots.txt").write_text("User-agent: *\nDisallow: /\n")
 print("installable web app ready")
