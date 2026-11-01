@@ -10,6 +10,17 @@ const WATCH_KEY = "watchlist:v1";
 
 export type FeedSource = "live" | "cached" | "demo";
 
+/** The last saved copy, for an instant first paint. */
+export async function loadCachedFeed(): Promise<Feed | null> {
+  try {
+    const raw = await AsyncStorage.getItem(FEED_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : null;
+    return isFeed(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Load the latest feed: network first, then last saved copy, then demo. */
 export async function loadFeed(): Promise<{ feed: Feed; source: FeedSource; error?: string }> {
   if (FEED_URL) {

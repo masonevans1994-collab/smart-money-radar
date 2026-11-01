@@ -92,6 +92,7 @@ jobs:
           npx tsc --noEmit
           npm run test:logic
           npx expo export --platform web --output-dir dist
+          echo "web bundle: $(du -sh dist | cut -f1) total; js: $(find dist -name '*.js' -exec du -ch {} + | tail -1 | cut -f1); fonts: $(find dist -name '*.ttf' -o -name '*.woff*' | xargs du -ch 2>/dev/null | tail -1 | cut -f1)"
           cp -r dist/. ../public/
           python ../tools/pwa.py ../public /${{ github.event.repository.name }}
           cp ../tools/static/* ../public/

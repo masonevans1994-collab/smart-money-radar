@@ -142,7 +142,7 @@ def main(argv=None) -> int:
         "contracts": con_all, "insiders": ins, "congress": con, "review": review,
         "track_record": track,
         "status": status,
-    }, indent=2, default=str))
+    }, separators=(",", ":"), default=str))
     if hist_entries:
         Path(args.history).parent.mkdir(parents=True, exist_ok=True)
         Path(args.history).write_text(json.dumps({"entries": hist_entries}, default=str))

@@ -11,7 +11,7 @@ import {
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
-  type Appearance, finishOnboarding, finishTour, type FeedSource, loadAppearance, loadFeed, loadSeen,
+  type Appearance, finishOnboarding, finishTour, type FeedSource, loadAppearance, loadCachedFeed, loadFeed, loadSeen,
   loadWatchlist, needsOnboarding, needsTour, saveAppearance, saveSeen, saveWatchlist,
 } from "./src/data";
 import {
@@ -85,6 +85,10 @@ function Radar({ appearance, onAppearance }: {
   const refresh = useCallback(async () => {
     setRefreshing(true);
     const r = await loadFeed();
+    if (r.source === "demo" && r.error) {
+      // Network failed and there's no saved copy: keep whatever is showing.
+      setSource("cached"); setError(r.error); setRefreshing(false); return;
+    }
     const prev = await loadSeen();
     const keys = allSignals(r.feed).map(signalKey);
     setSeenBefore((cur) => cur ?? prev ?? new Set(keys));
@@ -98,6 +102,10 @@ function Radar({ appearance, onAppearance }: {
   }, []);
 
   useEffect(() => {
+    // Paint the saved copy immediately, then refresh in the background.
+    loadCachedFeed().then((cached) => {
+      if (cached) setFeed((cur) => cur ?? cached);
+    });
     refresh();
     loadWatchlist().then(setWatch);
     needsOnboarding().then(setOnboard);
@@ -150,7 +158,8 @@ function Radar({ appearance, onAppearance }: {
   const settled = progress.unseenSettled ?? 0;
   const newCount = seenBefore
     ? signals.filter((s) => s.kind === "contract" && !seenBefore.has(signalKey(s))).length : 0;
-  const status = source === "live" ? (justRefreshed ? "Updated just now" : `Updated ${timeAgo(feed.generated)}`)
+  const status = refreshing && !justRefreshed ? "Checking for updates…"
+    : source === "live" ? (justRefreshed ? "Updated just now" : `Updated ${timeAgo(feed.generated)}`)
     : source === "cached" ? `Offline, showing data from ${timeAgo(feed.generated)}`
       : "Sample data";
 
