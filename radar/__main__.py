@@ -145,7 +145,19 @@ def main(argv=None) -> int:
 
 
 def load_contracts(fetcher, ua, args) -> list[dict]:
-    raw = contracts.fetch_usaspending(ua, args.contract_days, args.min_contract)
+    # Transactions carry the exact signing date for both new awards and
+    # expansions; the award search fills in descriptions/IDs for new awards.
+    txns = contract_news.fetch_modifications(ua, args.contract_days, min_amount=50e6, pages=5,
+                                             min_new=args.min_contract)
+    searched = contracts.fetch_usaspending(ua, args.contract_days, args.min_contract)
+    by_id = {a["award_id"]: a for a in searched if a.get("award_id")}
+    raw = []
+    for t in txns:
+        base = by_id.pop(t["award_id"], None) if not t["is_modification"] else None
+        if base:  # prefer the signing date; keep the search's richer fields
+            t = {**base, "award_date": t["award_date"], "value": max(t["value"], base["value"])}
+        raw.append(t)
+    raw += by_id.values()  # anything the transaction search missed
 
     def get_text(url):
         body = fetcher.get(url, cache="/Article/" in url)
@@ -163,7 +175,6 @@ def load_contracts(fetcher, ua, args) -> list[dict]:
     except Exception as e:  # noqa: BLE001 - aliases alone still match the big names
         print(f"  symbol list unavailable ({e}); using built-in contractor list only")
         book = contracts.SymbolBook()
-    raw += contract_news.fetch_modifications(ua, min(args.contract_days, 21))
     matched, private = contracts.match_awards(raw, book)
     print(f"  {len(matched)} awards to public companies ({private} to private companies skipped)")
     matched += contract_news.fetch_8k_awards(fetcher, days=min(args.contract_days, 14),

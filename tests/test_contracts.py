@@ -186,3 +186,14 @@ def test_names_and_descriptions():
                                     "award_date": "2026-10-01", "description": "SPARE PARTS"}], b)
     assert m[0]["company"] == "Lockheed Martin Corporation" and m[0]["who"] == "Lockheed Martin Corp"
     assert m[0]["description"] == "Spare parts"
+
+
+def test_transactions_include_new_awards_with_signing_date():
+    from radar import contract_news
+    rows = [{"Award ID": "N1", "Recipient Name": "ROCKET LAB USA INC", "Action Date": "2026-10-30",
+             "Transaction Amount": 30e6, "Mod": "0", "Awarding Agency": "NASA"},
+            {"Award ID": "N2", "Recipient Name": "X", "Action Date": "2026-10-30",
+             "Transaction Amount": 5e6, "Mod": "0"}]
+    got = contract_news.parse_modifications(rows, 50e6, min_new=10e6)
+    assert [(g["award_id"], g["is_modification"], g["award_date"]) for g in got] == [("N1", False, "2026-10-30")]
+    assert contract_news.parse_modifications(rows, 50e6) == []
