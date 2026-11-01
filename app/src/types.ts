@@ -31,7 +31,13 @@ export interface ContractSignal extends BaseSignal {
   market_cap?: number;
   is_modification?: boolean;
   committee_flag?: string;
-  history_note?: string; // "Sen. X · Armed Services" when a buyer oversees the agency
+  history_note?: string;
+  history?: {
+    n: number;
+    verdict: string;
+    windows: Record<string, { n: number; avg_vs_spy: number; median_vs_spy: number; beat_pct: number; avg_raw: number }>;
+    closest: { date: string; value: number; agency: string; d1?: number | null; d30?: number | null; d30_vs_spy: number } | null;
+  }; // "Sen. X · Armed Services" when a buyer oversees the agency
   award_pct?: number; // award as % of company market value
 }
 

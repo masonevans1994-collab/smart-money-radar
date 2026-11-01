@@ -155,4 +155,18 @@ test("weekly recap and agency descriptions", () => {
   assert.equal(moved[0].ticker, "B");
   assert.equal(agencyDescription("Something Obscure"), null);
 });
+
+
+import { lastTimeLines } from "../src/logic";
+
+test("what-happened-last-time sentences use real past moves", () => {
+  const s = contract({ history: { n: 25, verdict: "v", windows: {},
+    closest: { date: "2025-08-22", value: 168e6, agency: "Department of Defense", d1: -0.8, d30: -4.1, d30_vs_spy: -9.15 } } } as Partial<Signal>);
+  const lines = lastTimeLines(s)!;
+  assert.equal(lines[0], "Closest match: $168M from Defense on Aug 22, 2025.");
+  assert.equal(lines[1], "Over the next 30 days the stock fell 4.1%, 9.2 points worse than the market.");
+  assert.equal(lines[2], "On the day itself it moved -0.8%.");
+  assert.match(keyNote(s), /Last similar award \(\$168M, Aug 22, 2025\): stock fell 4.1% in 30 days/);
+  assert.equal(lastTimeLines(contract()), null);
+});
 console.log(`\n${passed} logic tests passed`);

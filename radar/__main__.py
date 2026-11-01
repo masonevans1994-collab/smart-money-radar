@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import (alerts, committees, congress, contract_context, contract_news, contracts,
-               dashboard, demo,
+               dashboard, demo, reaction,
                edgar, history, marketcap, prices, scoring, senate)
 from .http import Fetcher
 
@@ -99,7 +99,7 @@ def main(argv=None) -> int:
             everything, dt.date.today())
         dates = [x["trade_date"] for x in everything if x.get("trade_date")] + \
             [e["date"] for e in hist_entries]
-        floor = dt.date.today() - dt.timedelta(days=history.KEEP_DAYS)
+        floor = dt.date.today() - dt.timedelta(days=365 * 3 + 60)  # 3y for past-award reactions
         start = max(floor, dt.date.fromisoformat(min(dates)) - dt.timedelta(days=7)) \
             if dates else dt.date.today() - dt.timedelta(days=120)
         book = prices.PriceBook(fetcher, start)
@@ -107,6 +107,9 @@ def main(argv=None) -> int:
         n = marketcap.add_market_caps(con_all, fetcher)
         print(f"  company sizes found for {n} of {len(con_all)} contract winners")
         scoring.size_adjust(con_all)
+        if con_all:
+            print("Looking up how each company's stock reacted to its past awards...")
+            reaction.company_history(con_all, ua, book)
         history.reprice(hist_entries, book)
         track = history.summarize(hist_entries)
         print(f"  price sources: {book.source_ok}; history: {len(hist_entries)} signals tracked")

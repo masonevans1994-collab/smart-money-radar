@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-01T18:54:03+00:00",
+  "generated": "2026-11-01T19:43:19+00:00",
   "demo": true,
   "contracts": [
     {
@@ -52,6 +52,34 @@
         41.69
       ],
       "spark_mark": 8,
+      "history": {
+        "n": 11,
+        "verdict": "After its last 11 big awards, this stock beat the market over the next month 73% of the time, by +4.4% on average. On the day itself it moved +0.6% on average.",
+        "windows": {
+          "1": {
+            "n": 11,
+            "avg_vs_spy": 0.6,
+            "median_vs_spy": 0.3,
+            "beat_pct": 64,
+            "avg_raw": 0.7
+          },
+          "30": {
+            "n": 11,
+            "avg_vs_spy": 4.4,
+            "median_vs_spy": 3.1,
+            "beat_pct": 73,
+            "avg_raw": 6.0
+          }
+        },
+        "closest": {
+          "date": "2026-06-14",
+          "value": 410000000.0,
+          "agency": "Department of Defense",
+          "d1": 1.2,
+          "d30": 9.8,
+          "d30_vs_spy": 7.1
+        }
+      },
       "congress_before": 2,
       "score": 100,
       "reasons": [
@@ -113,6 +141,34 @@
         19.89
       ],
       "spark_mark": 8,
+      "history": {
+        "n": 25,
+        "verdict": "After its last 25 big awards, this stock usually trailed the market over the next month (36% of the time it beat it; -1.4% on average). On the day itself it moved -0.4% on average.",
+        "windows": {
+          "1": {
+            "n": 25,
+            "avg_vs_spy": -0.2,
+            "median_vs_spy": 0.05,
+            "beat_pct": 64,
+            "avg_raw": -0.4
+          },
+          "30": {
+            "n": 25,
+            "avg_vs_spy": -1.4,
+            "median_vs_spy": -1.1,
+            "beat_pct": 36,
+            "avg_raw": 1.8
+          }
+        },
+        "closest": {
+          "date": "2026-08-22",
+          "value": 1100000000.0,
+          "agency": "Department of Defense",
+          "d1": -0.8,
+          "d30": -4.1,
+          "d30_vs_spy": -9.2
+        }
+      },
       "score": 85,
       "reasons": [
         "Won a $1.2B contract from Army",

@@ -121,3 +121,58 @@ def verdict(summary: dict) -> str:
                 f"month ({beat}% of the time it beat it; {avg:+.1f}% on average).{day1}")
     return (f"After its last {n} big awards, this stock moved about like the market over the next "
             f"month ({beat}% beat it; {avg:+.1f}% on average). Contracts alone haven't moved it much.{day1}")
+
+
+# ---------- per-company history for the feed ----------
+
+def closest_match(rows: list[dict], value: float, exclude_id: str | None = None) -> dict | None:
+    """The past award nearest in size that has a 30-day result."""
+    pool = [r for r in rows if r.get("d30_vs_spy") is not None and r.get("id") != exclude_id]
+    if not pool:
+        return None
+    return min(pool, key=lambda r: abs(r["value"] - value) / max(value, 1))
+
+
+def company_history(contracts: list[dict], user_agent: str, book, min_amount: float = 25e6,
+                    years: int = 3, max_companies: int = 25, cache=None, log=print) -> int:
+    """Attach `history` (pattern + closest match) to each contract signal."""
+    from .contract_context import ContextCache
+
+    cache = cache or ContextCache()
+    bench = book.history("SPY")
+    today = dt.date.today()
+    done, seen = 0, {}
+    for c in sorted(contracts, key=lambda x: x["score"], reverse=True):
+        t = c["ticker"]
+        if t in seen:
+            summ, rows = seen[t]
+        else:
+            if len(seen) >= max_companies:
+                continue
+            name = (c.get("company") or "").split(" (")[0]
+            key = f"reaction|{name}|{min_amount}"
+            awards = cache.get(key)
+            if awards is None:
+                try:
+                    awards = fetch_awards(name, user_agent, years, min_amount, today)
+                    cache.put(key, awards)
+                except Exception as e:  # noqa: BLE001
+                    log(f"  history lookup failed for {name}: {type(e).__name__}")
+                    seen[t] = (None, [])
+                    continue
+            rows = reactions(awards, book.history(t), bench)
+            summ = summarize(rows) if rows else None
+            seen[t] = (summ, rows)
+        if not summ:
+            continue
+        match = closest_match(rows, c["value"], c.get("award_id"))
+        c["history"] = {
+            "n": summ["n"], "verdict": summ["verdict"],
+            "windows": summ["windows"],
+            "closest": ({"date": match["date"], "value": match["value"], "agency": match["agency"],
+                         "d1": match.get("d1"), "d30": match.get("d30"), "d30_vs_spy": match["d30_vs_spy"]}
+                        if match else None),
+        }
+        done += 1
+    log(f"  company history: {done} contracts got past-award context ({len(seen)} companies)")
+    return done

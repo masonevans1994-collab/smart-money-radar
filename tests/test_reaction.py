@@ -22,3 +22,29 @@ def test_reactions_and_summary():
     assert "Not enough" in s["verdict"]
     many = reaction.summarize(rows * 3)
     assert "beat the market" in many["verdict"]
+
+
+def test_closest_match_and_company_history():
+    rows = [{"id": "A", "value": 1e8, "d30_vs_spy": 2.0, "date": "2026-01-10", "agency": "Navy"},
+            {"id": "B", "value": 3e8, "d30_vs_spy": -1.0, "date": "2026-02-10", "agency": "Army"},
+            {"id": "C", "value": 2.9e8, "d30_vs_spy": None, "date": "2026-03-10", "agency": "Army"}]
+    assert reaction.closest_match(rows, 2.8e8)["id"] == "B"
+    assert reaction.closest_match(rows, 2.8e8, exclude_id="B")["id"] == "A"
+
+    days = [f"2026-{m:02d}-{d:02d}" for m in (1, 2) for d in range(1, 29)]
+    series = [(d, 100 + i) for i, d in enumerate(days)]
+
+    class Book:
+        def history(self, t): return series
+
+    class Cache:
+        store = {}
+        def get(self, k): return self.store.get(k)
+        def put(self, k, v): self.store[k] = v
+    cache = Cache()
+    cache.put("reaction|Fluor Corporation|25000000.0",
+              [{"date": "2026-01-10", "value": 5e7, "agency": "Navy", "id": "X"},
+               {"date": "2026-01-12", "value": 6e7, "agency": "Navy", "id": "Y"}])
+    cs = [{"ticker": "FLR", "company": "Fluor Corporation", "value": 5.5e7, "score": 40, "award_id": "Z"}]
+    assert reaction.company_history(cs, "ua", Book(), cache=cache, log=lambda *_: None) == 1
+    assert cs[0]["history"]["closest"]["value"] in (5e7, 6e7) and cs[0]["history"]["n"] == 2

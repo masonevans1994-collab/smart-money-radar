@@ -3,7 +3,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
   agencyLabel, amountLabel, isSell, KEEP_IN_MIND, money, plainSummary, related, SCORE_GUIDE,
-  shareText, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel,
+  lastTimeLines, shareText, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel,
 } from "./logic";
 import { useState, useMemo } from "react";
 import { agencyDescription } from "./agencies";
@@ -61,6 +61,17 @@ function detailRows(s: Signal): RowData[] {
     ["Traded", shortDate(s.trade_date)], ["Disclosed", shortDate(s.disclosed)],
     ["Days to disclose", s.lag_days],
   ];
+}
+
+function Mini({ n, label }: { n: string; label: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  return (
+    <View style={styles.mini2}>
+      <Text style={styles.mini2N}>{n}</Text>
+      <Text style={styles.mini2L}>{label}</Text>
+    </View>
+  );
 }
 
 function MiniList({ title, items, onOpen }: {
@@ -198,6 +209,26 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                   </View>
                 )}
 
+                {contract && signal.history && (
+                  <View style={styles.lastTime}>
+                    <Text style={styles.lastTimeTitle}>What happened last time</Text>
+                    {lastTimeLines(signal)?.map((l) => <Text key={l} style={styles.lastTimeLine}>{l}</Text>)}
+                    <Text style={styles.lastTimePattern}>{signal.history.verdict}</Text>
+                    {signal.history.windows["30"] && (
+                      <View style={styles.lastTimeStats}>
+                        <Mini n={`${signal.history.windows["30"].beat_pct}%`} label="beat the market after 30 days" />
+                        <Mini n={`${signal.history.windows["30"].avg_vs_spy > 0 ? "+" : ""}${signal.history.windows["30"].avg_vs_spy.toFixed(1)}%`}
+                          label="average vs. market, 30 days" />
+                        <Mini n={String(signal.history.n)} label="past awards measured" />
+                      </View>
+                    )}
+                    <Text style={styles.lastTimeFoot}>
+                      Measured from real closing prices after this company's past awards of $25M or more.
+                      Past moves don't predict future ones.
+                    </Text>
+                  </View>
+                )}
+
                 {contract && <CallBox signal={signal} call={call} onCall={(d) => onCall(signal, d)} />}
 
                 <Text style={styles.section}>Why it scored {signal.score}: {tierLabel(signal.score).toLowerCase()}</Text>
@@ -281,6 +312,16 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   company: { ...type.title, color: colors.text },
   tickerLine: { ...type.body, color: colors.soft, marginTop: 2 },
   plain: { marginTop: 18, gap: 8 },
+  lastTime: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, marginTop: 20, gap: 8,
+    borderLeftWidth: 3, borderLeftColor: colors.gold },
+  lastTimeTitle: { ...type.bodyStrong, fontSize: 16, color: colors.text },
+  lastTimeLine: { ...type.body, fontSize: 15, lineHeight: 22, color: colors.text },
+  lastTimePattern: { ...type.body, color: colors.soft, marginTop: 4 },
+  lastTimeStats: { flexDirection: "row", gap: 8, marginTop: 6 },
+  mini2: { flex: 1, backgroundColor: colors.raised, borderRadius: 10, padding: 8 },
+  mini2N: { fontFamily: fonts.bold, fontSize: 16, color: colors.text, fontVariant: ["tabular-nums"] },
+  mini2L: { ...type.small, fontSize: 11, color: colors.muted, marginTop: 2 },
+  lastTimeFoot: { ...type.small, color: colors.muted, marginTop: 4 },
   plainText: { ...type.lead, fontFamily: fonts.regular, fontSize: 17, lineHeight: 25, color: colors.text },
   plainHelp: { ...type.small, color: colors.muted },
   terms: { flexDirection: "row", flexWrap: "wrap", gap: 8 },

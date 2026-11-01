@@ -129,6 +129,11 @@ export function amountLabel(s: Signal): string {
 
 /** The one line that says why this row matters. */
 export function keyNote(s: Signal): string {
+  if (s.kind === "contract" && s.history?.closest?.d30 != null) {
+    const c = s.history.closest;
+    const dir = c.d30! > 0 ? "rose" : c.d30! < 0 ? "fell" : "was flat";
+    return `Last similar award (${money(c.value)}, ${shortDate(c.date, true)}): stock ${dir} ${Math.abs(c.d30!).toFixed(1)}% in 30 days`;
+  }
   if (s.kind === "contract") {
     return s.history_note ?? s.reasons.find((r) => !r.startsWith("Won a"))
       ?? (s.is_modification ? "More money on a contract the company already had" : s.reasons[0] ?? "");
@@ -152,11 +157,12 @@ export function changeLabel(s: Signal): string | null {
   return pct(s.change_pct);
 }
 
-export function shortDate(iso: string | null | undefined): string {
+export function shortDate(iso: string | null | undefined, withYear = false): string {
   if (!iso) return "";
   const d = new Date(`${iso}T12:00:00`);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return d.toLocaleDateString("en-US", withYear ? { month: "short", day: "numeric", year: "numeric" }
+    : { month: "short", day: "numeric" });
 }
 
 export function timeAgo(iso: string, now = Date.now()): string {
@@ -448,4 +454,20 @@ export function weeklyRecap(feed: Feed, now = new Date()): Recap | null {
     topAgency,
     periodLabel: `${shortDate(cutoff)} to ${shortDate(isoDay(now))}`,
   };
+}
+
+/** Plain sentences about the closest past award of similar size, from real prices. */
+export function lastTimeLines(s: Signal): string[] | null {
+  if (s.kind !== "contract" || !s.history?.closest) return null;
+  const c = s.history.closest;
+  const agency = c.agency.replace(/^Department of (the )?/i, "");
+  const out = [`Closest match: ${money(c.value)} from ${agency} on ${shortDate(c.date, true)}.`];
+  if (c.d30 != null) {
+    const dir = c.d30 > 0 ? "rose" : c.d30 < 0 ? "fell" : "was flat";
+    const vs = c.d30_vs_spy > 0 ? `${c.d30_vs_spy.toFixed(1)} points better than the market`
+      : c.d30_vs_spy < 0 ? `${Math.abs(c.d30_vs_spy).toFixed(1)} points worse than the market` : "about the same as the market";
+    out.push(`Over the next 30 days the stock ${dir}${c.d30 !== 0 ? ` ${Math.abs(c.d30).toFixed(1)}%` : ""}, ${vs}.`);
+  }
+  if (c.d1 != null) out.push(`On the day itself it moved ${c.d1 > 0 ? "+" : ""}${c.d1.toFixed(1)}%.`);
+  return out;
 }
