@@ -5,8 +5,8 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { GLOSSARY } from "./glossaryTerms";
 import { fonts, type, type Palette, useColors } from "./theme";
 
-export function Glossary({ visible, onClose, focus }: {
-  visible: boolean; onClose: () => void; focus?: string;
+export function Glossary({ visible, onClose, stacked, focus }: {
+  visible: boolean; onClose: () => void; stacked?: boolean; focus?: string;
 }) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -19,7 +19,7 @@ export function Glossary({ visible, onClose, focus }: {
           <View style={styles.bar}>
             <Text style={styles.barTitle}>Plain-English glossary</Text>
             <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button">
-              <Text style={styles.done}>Done</Text>
+              <Text style={styles.done}>{stacked ? "‹ Back" : "Done"}</Text>
             </Pressable>
           </View>
           <ScrollView contentContainerStyle={styles.content}>

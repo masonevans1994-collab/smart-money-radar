@@ -65,6 +65,7 @@ function Radar({ appearance, onAppearance }: {
   const [seenBefore, setSeenBefore] = useState<Set<string> | null>(null);
   const [lastOpen, setLastOpen] = useState<string | null>(null);
   const [catchUpHidden, setCatchUpHidden] = useState(false);
+  const [justRefreshed, setJustRefreshed] = useState(false);
   const [onboard, setOnboard] = useState(false);
   const [guide, setGuide] = useState(false);
   const [legal, setLegal] = useState(false);
@@ -88,6 +89,8 @@ function Radar({ appearance, onAppearance }: {
     setSource(r.source);
     setError(r.error);
     setRefreshing(false);
+    setJustRefreshed(true);
+    setTimeout(() => setJustRefreshed(false), 4000);
   }, []);
 
   useEffect(() => {
@@ -143,7 +146,7 @@ function Radar({ appearance, onAppearance }: {
   const settled = progress.unseenSettled ?? 0;
   const newCount = seenBefore
     ? signals.filter((s) => s.kind === "contract" && !seenBefore.has(signalKey(s))).length : 0;
-  const status = source === "live" ? `Updated ${timeAgo(feed.generated)}`
+  const status = source === "live" ? (justRefreshed ? "Updated just now" : `Updated ${timeAgo(feed.generated)}`)
     : source === "cached" ? `Offline, showing data from ${timeAgo(feed.generated)}`
       : "Sample data";
 
@@ -201,7 +204,7 @@ function Radar({ appearance, onAppearance }: {
         )}
         {tab === "contract" && fresh.latest && (
           <Text style={styles.heroFresh}>
-            Most recent award signed {dayLabel(fresh.latest).replace(/^(Today|Yesterday)$/, (m) => m.toLowerCase())}.
+            Latest award: {dayLabel(fresh.latest).replace(/^(Today|Yesterday)$/, (m) => m.toLowerCase())}.
             {fresh.note ? ` ${fresh.note}` : ""}
           </Text>
         )}
@@ -317,6 +320,7 @@ function Radar({ appearance, onAppearance }: {
             <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.gold} />
           }
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           contentContainerStyle={{ paddingBottom: 90 + insets.bottom }}
         />
       </SafeAreaView>
@@ -327,7 +331,7 @@ function Radar({ appearance, onAppearance }: {
           const on = tab === t.key;
           return (
             <Pressable key={t.key} onPress={() => {
-              setTab(t.key); setQuery("");
+              setTab(t.key); setQuery(""); setSort("newest"); setAgency(null);
               if (t.key === "you" && settled) setProgress((p) => ({ ...p, unseenSettled: 0 }));
             }}
               style={styles.tabItem} accessibilityRole="tab" accessibilityState={{ selected: on }}>
@@ -357,8 +361,9 @@ function Radar({ appearance, onAppearance }: {
       <Onboarding visible={onboard && !legal} onDone={() => { setOnboard(false); finishOnboarding(); }}
         onLegal={() => setLegal(true)} />
       <Guide visible={guide && !legal} onClose={() => setGuide(false)} onLegal={() => setLegal(true)} />
-      <Legal visible={legal} onClose={() => setLegal(false)} />
-      <Glossary visible={glossary !== false} focus={glossary || undefined} onClose={() => setGlossary(false)} />
+      <Legal visible={legal} stacked={onboard || guide} onClose={() => setLegal(false)} />
+      <Glossary visible={glossary !== false} focus={glossary || undefined} stacked={!!open || guide}
+        onClose={() => setGlossary(false)} />
     </View>
   );
 }

@@ -19,6 +19,17 @@ export function You({ progress }: { progress: Progress }) {
         <Stat n={`${done}/${ms.length}`} label="milestones" />
       </View>
 
+      {(() => {
+        const next = ms.find((m) => !m.done);
+        return next ? (
+          <View style={styles.next}>
+            <Text style={styles.nextLabel}>Next up</Text>
+            <Text style={styles.nextText}>{next.detail}</Text>
+            <Text style={styles.nextSub}>Earns "{next.title}"</Text>
+          </View>
+        ) : null;
+      })()}
+
       <Text style={styles.section}>Your calls</Text>
       {progress.calls.length === 0 ? (
         <Text style={styles.muted}>
@@ -79,6 +90,11 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   statN: { ...type.amount, color: colors.gold, fontVariant: ["tabular-nums"] },
   statL: { ...type.small, color: colors.muted, marginTop: 2 },
   section: { ...type.title, fontSize: 17, color: colors.text, marginTop: 24, marginBottom: 10 },
+  next: { marginTop: 14, backgroundColor: colors.panel, borderRadius: 14, padding: 14, gap: 2,
+    borderLeftWidth: 3, borderLeftColor: colors.gold },
+  nextLabel: { ...type.small, color: colors.muted },
+  nextText: { ...type.lead, fontFamily: fonts.bold, color: colors.text },
+  nextSub: { ...type.small, color: colors.muted },
   list: { backgroundColor: colors.panel, borderRadius: 16, paddingHorizontal: 16 },
   item: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12,
     borderBottomColor: colors.line, borderBottomWidth: StyleSheet.hairlineWidth },

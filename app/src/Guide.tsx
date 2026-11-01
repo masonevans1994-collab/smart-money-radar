@@ -32,8 +32,8 @@ const SECTIONS: [string, string[]][] = [
   ]],
 ];
 
-export function Guide({ visible, onClose, onLegal }: {
-  visible: boolean; onClose: () => void; onLegal: () => void;
+export function Guide({ visible, onClose, stacked, onLegal }: {
+  visible: boolean; onClose: () => void; stacked?: boolean; onLegal: () => void;
 }) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -44,7 +44,7 @@ export function Guide({ visible, onClose, onLegal }: {
           <View style={styles.bar}>
             <Text style={styles.barTitle}>How Radar works</Text>
             <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button">
-              <Text style={styles.done}>Done</Text>
+              <Text style={styles.done}>{stacked ? "‹ Back" : "Done"}</Text>
             </Pressable>
           </View>
           <ScrollView contentContainerStyle={styles.content}>

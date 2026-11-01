@@ -104,6 +104,7 @@ jobs:
           npx playwright install --with-deps chromium >/dev/null
           python ../tools/show_history.py ../public/signals.json
           node smoke.mjs http://localhost:8080/smart-money-radar/
+          node sweep.mjs http://localhost:8080/smart-money-radar/ || echo "::warning::interaction sweep found issues (not blocking)"
           mkdir -p /tmp/shots
           node shots.mjs http://localhost:8080/smart-money-radar/ /tmp/shots || echo "screenshots failed (not blocking)"
 

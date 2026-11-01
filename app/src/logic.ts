@@ -275,8 +275,8 @@ export function freshness(feed: Feed, now = new Date()): { week: number; weekCou
   let note: string | null = null;
   if (latest && latest < today) {
     note = weekend
-      ? "Agencies don't post awards on weekends. These are the most recent ones."
-      : "No awards posted yet today. Agencies usually report within a few business days.";
+      ? "Nothing new on weekends; agencies post on business days."
+      : "Nothing posted yet today. Agencies usually report within a few business days.";
   }
   return { week: recent.reduce((s, c) => s + c.value, 0), weekCount: recent.length, latest, note };
 }

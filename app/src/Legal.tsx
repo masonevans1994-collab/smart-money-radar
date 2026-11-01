@@ -37,7 +37,7 @@ const SECTIONS: [string, string[]][] = [
   ]],
 ];
 
-export function Legal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+export function Legal({ visible, onClose, stacked }: { visible: boolean; onClose: () => void; stacked?: boolean }) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
@@ -47,7 +47,7 @@ export function Legal({ visible, onClose }: { visible: boolean; onClose: () => v
           <View style={styles.bar}>
             <Text style={styles.barTitle}>Disclaimers</Text>
             <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button">
-              <Text style={styles.done}>Done</Text>
+              <Text style={styles.done}>{stacked ? "‹ Back" : "Done"}</Text>
             </Pressable>
           </View>
           <ScrollView contentContainerStyle={styles.content}>
