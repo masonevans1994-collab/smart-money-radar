@@ -1,8 +1,9 @@
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { type Call, type Direction } from "./game";
 import { shortDate } from "./logic";
-import { colors, fonts, type } from "./theme";
+import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
 
 const OPTIONS: [Direction, string][] = [["up", "Higher"], ["flat", "Same"], ["down", "Lower"]];
@@ -10,6 +11,8 @@ const OPTIONS: [Direction, string][] = [["up", "Higher"], ["flat", "Same"], ["do
 export function CallBox({ signal, call, onCall }: {
   signal: Signal; call?: Call; onCall: (d: Direction) => void;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   if (signal.price_now === undefined) return null;
   return (
     <View style={styles.box}>
@@ -46,7 +49,7 @@ function label(d: Direction): string {
   return d === "up" ? "higher" : d === "down" ? "lower" : "about the same";
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   box: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, marginTop: 20, gap: 10 },
   title: { ...type.bodyStrong, color: colors.text },
   body: { ...type.body, color: colors.soft },

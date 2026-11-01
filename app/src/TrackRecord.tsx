@@ -1,10 +1,13 @@
+import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { pct } from "./logic";
-import { colors, fonts, type } from "./theme";
+import { fonts, type, type Palette, useColors } from "./theme";
 import type { TrackRecord as TR } from "./types";
 
 export function TrackRecord({ record }: { record?: TR | null }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   if (!record || !record.groups.length) {
     return (
       <Text style={styles.empty}>
@@ -29,7 +32,7 @@ export function TrackRecord({ record }: { record?: TR | null }) {
             ) : (
               <>
                 <View style={styles.row}>
-                  <Text style={[styles.big, { color: up ? colors.accent : colors.sell }]}>{pct(g.avg_vs_spy)}</Text>
+                  <Text style={[styles.big, { color: up ? colors.up : colors.down }]}>{pct(g.avg_vs_spy)}</Text>
                   <Text style={styles.bigLabel}>average vs. S&P 500</Text>
                 </View>
                 <View style={styles.stats}>
@@ -56,6 +59,8 @@ export function TrackRecord({ record }: { record?: TR | null }) {
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.stat}>
       <Text style={styles.statV}>{value}</Text>
@@ -64,7 +69,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   wrap: { paddingHorizontal: 16, gap: 10, marginTop: 4 },
   intro: { ...type.body, color: colors.soft, marginBottom: 4 },
   card: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, gap: 10 },

@@ -1,12 +1,15 @@
+import { useMemo } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { GLOSSARY } from "./glossaryTerms";
-import { colors, fonts, type } from "./theme";
+import { fonts, type, type Palette, useColors } from "./theme";
 
 export function Glossary({ visible, onClose, focus }: {
   visible: boolean; onClose: () => void; focus?: string;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const ordered = focus
     ? [...GLOSSARY].sort((a, b) => Number(b[0] === focus) - Number(a[0] === focus)) : GLOSSARY;
   return (
@@ -33,7 +36,7 @@ export function Glossary({ visible, onClose, focus }: {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg },
   bar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     paddingHorizontal: 20, paddingVertical: 14 },

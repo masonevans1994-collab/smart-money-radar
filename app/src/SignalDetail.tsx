@@ -5,18 +5,20 @@ import {
   agencyLabel, amountLabel, isSell, KEEP_IN_MIND, money, plainSummary, related, SCORE_GUIDE,
   shareText, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel,
 } from "./logic";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { agencyDescription } from "./agencies";
 import { CallBox } from "./CallBox";
 import { type Call, type Direction } from "./game";
 import { ChangeChip, ScoreBadge } from "./SignalCard";
 import { Spark } from "./Spark";
-import { colors, fonts, type } from "./theme";
+import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
 
 type RowData = [label: string, value: string | number | null | undefined];
 
 function Rows({ rows }: { rows: RowData[] }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const shown = rows.filter(([, v]) => v !== undefined && v !== null && v !== "");
   return (
     <View style={styles.table}>
@@ -64,6 +66,8 @@ function detailRows(s: Signal): RowData[] {
 function MiniList({ title, items, onOpen }: {
   title: string; items: Signal[]; onOpen: (s: Signal) => void;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   if (!items.length) return null;
   const shown = items.slice(0, 8);
   return (
@@ -94,6 +98,8 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
   onLegal: () => void; call?: Call; onCall: (s: Signal, d: Direction) => void; onOpenRecord: () => void;
   onExplain: (term: string) => void;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const rel = signal ? related(all, signal) : { sameTicker: [], sameWho: [] };
   const [explain, setExplain] = useState(false);
   const contract = signal?.kind === "contract";
@@ -254,7 +260,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg },
   bar: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
   barLink: { fontFamily: fonts.semibold, fontSize: 16, color: colors.text },
@@ -307,7 +313,7 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 15, alignItems: "center", marginTop: 28,
   },
-  buttonText: { fontFamily: fonts.bold, fontSize: 16, color: colors.bg },
+  buttonText: { fontFamily: fonts.bold, fontSize: 16, color: colors.onGold },
   disclaimer: { ...type.small, color: colors.muted, textAlign: "center", marginTop: 16 },
   disclaimerLink: { ...type.small, fontFamily: fonts.semibold, color: colors.soft, textAlign: "center",
     marginTop: 6, textDecorationLine: "underline" },

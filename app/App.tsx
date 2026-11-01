@@ -6,13 +6,13 @@ import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput,
-  View,
+  useColorScheme, View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
-  finishOnboarding, type FeedSource, loadFeed, loadSeen, loadWatchlist, needsOnboarding, saveSeen,
-  saveWatchlist,
+  type Appearance, finishOnboarding, finishTour, type FeedSource, loadAppearance, loadFeed, loadSeen,
+  loadWatchlist, needsOnboarding, needsTour, saveAppearance, saveSeen, saveWatchlist,
 } from "./src/data";
 import {
   allSignals, amountLabel, biggestThisWeek, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
@@ -30,7 +30,8 @@ import { RecapCard } from "./src/Recap";
 import { Saved } from "./src/Saved";
 import { SignalCard } from "./src/SignalCard";
 import { SignalDetail } from "./src/SignalDetail";
-import { colors, fonts, type } from "./src/theme";
+import { DARK, fonts, LIGHT, type, type Palette, ThemeContext, useColors } from "./src/theme";
+import { Tour } from "./src/Tour";
 import { TrackRecord } from "./src/TrackRecord";
 import { You } from "./src/You";
 import type { Feed, Signal } from "./src/types";
@@ -42,7 +43,12 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "move", label: "Biggest stock move" },
 ];
 
-function Radar() {
+function Radar({ appearance, onAppearance }: {
+  appearance: Appearance; onAppearance: (a: Appearance) => void;
+}) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const insets = useSafeAreaInsets();
   const [feed, setFeed] = useState<Feed | null>(null);
   const [source, setSource] = useState<FeedSource>("demo");
@@ -60,6 +66,7 @@ function Radar() {
   const [legal, setLegal] = useState(false);
   const [recapHidden, setRecapHidden] = useState(false);
   const [glossary, setGlossary] = useState<string | null | false>(false);
+  const [tour, setTour] = useState(false);
   const [progress, setProgressState] = useState<Progress>(EMPTY);
   const setProgress = useCallback((fn: (p: Progress) => Progress) => {
     setProgressState((p) => { const n = fn(p); if (n !== p) saveProgress(n); return n; });
@@ -82,6 +89,7 @@ function Radar() {
     refresh();
     loadWatchlist().then(setWatch);
     needsOnboarding().then(setOnboard);
+    needsTour().then(setTour);
     loadProgress().then((p) => setProgress(() => checkIn(p)));
   }, [refresh, setProgress]);
 
@@ -224,11 +232,27 @@ function Radar() {
           <View style={{ height: 14 }} />
         </>
       )}
+      {tab === "contract" && tour && !onboard && items.some((x) => !isHeader(x)) && (
+        <Tour onDone={() => { setTour(false); finishTour(); }} />
+      )}
     </View>
   );
 
   const empty = tab === "record" ? <TrackRecord record={feed.track_record} />
-    : tab === "you" ? <You progress={progress} />
+    : tab === "you" ? (
+      <View>
+        <You progress={progress} />
+        <View style={styles.appearance}>
+          <Text style={styles.appearanceLabel}>Appearance</Text>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {(["system", "light", "dark"] as Appearance[]).map((a) => (
+              <Chip key={a} label={a === "system" ? "Match phone" : a === "light" ? "Light" : "Dark"}
+                on={appearance === a} onPress={() => onAppearance(a)} />
+            ))}
+          </View>
+        </View>
+      </View>
+    )
       : tab === "watch" ? <Saved stocks={savedStocks(signals, watch)} onOpen={openSignal} onRemove={toggleStar} /> : (
     <Text style={styles.empty}>
       {query ? `Nothing matches "${query}".`
@@ -310,6 +334,8 @@ function Radar() {
 }
 
 function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () => void }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Pressable onPress={onPress} style={[styles.chip, on && styles.chipOn]}
       accessibilityRole="button" accessibilityState={{ selected: on }}>
@@ -323,19 +349,30 @@ export default function App() {
     PublicSans_400Regular, PublicSans_500Medium, PublicSans_600SemiBold, PublicSans_700Bold,
     PublicSans_900Black,
   });
+  const system = useColorScheme();
+  const [appearance, setAppearance] = useState<Appearance>("system");
+  useEffect(() => { loadAppearance().then(setAppearance); }, []);
+  const scheme = appearance === "system" ? (system === "light" ? "light" : "dark") : appearance;
+  const palette = scheme === "light" ? LIGHT : DARK;
   return (
-    <SafeAreaProvider>
-      <StatusBar style="light" />
-      <View style={styles.fill}>
-        {loaded ? <Radar /> : <View style={[styles.fill, styles.center]}>
-          <ActivityIndicator color={colors.gold} />
-        </View>}
-      </View>
-    </SafeAreaProvider>
+    <ThemeContext.Provider value={palette}>
+      <SafeAreaProvider>
+        <StatusBar style={scheme === "light" ? "dark" : "light"} />
+        <View style={{ flex: 1, backgroundColor: palette.bg }}>
+          {loaded ? (
+            <Radar appearance={appearance} onAppearance={(a) => { setAppearance(a); saveAppearance(a); }} />
+          ) : (
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+              <ActivityIndicator color={palette.gold} />
+            </View>
+          )}
+        </View>
+      </SafeAreaProvider>
+    </ThemeContext.Provider>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   fill: { flex: 1, backgroundColor: colors.bg },
   center: { alignItems: "center", justifyContent: "center" },
   topBar: {
@@ -354,7 +391,7 @@ const styles = StyleSheet.create({
   heroFigure: { ...type.hero, fontSize: 48, lineHeight: 52, fontVariant: ["tabular-nums"] },
   heroCaption: { ...type.lead, color: colors.soft, marginTop: 4, maxWidth: 320 },
   heroNew: { ...type.bodyStrong, color: colors.gold, marginTop: 8 },
-  nudge: { marginHorizontal: 16, marginTop: 14, backgroundColor: "#3a2f10", borderRadius: 12, padding: 12 },
+  nudge: { marginHorizontal: 16, marginTop: 14, backgroundColor: colors.flagBg, borderRadius: 12, padding: 12 },
   nudgeText: { ...type.bodyStrong, color: colors.gold },
   biggest: { marginTop: 16, backgroundColor: colors.panel, borderRadius: 14, padding: 14, gap: 2,
     borderLeftWidth: 3, borderLeftColor: colors.gold },
@@ -377,6 +414,8 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: colors.text },
   chipText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.soft },
   chipTextOn: { color: colors.bg },
+  appearance: { marginHorizontal: 16, marginTop: 8, gap: 8 },
+  appearanceLabel: { ...type.bodyStrong, color: colors.text },
   footer: { marginHorizontal: 24, marginTop: 18, alignItems: "center", gap: 4 },
   footerText: { ...type.small, color: colors.muted, textAlign: "center" },
   footerLink: { ...type.small, fontFamily: fonts.semibold, color: colors.soft, textDecorationLine: "underline" },

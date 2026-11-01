@@ -1,6 +1,6 @@
 import { View } from "react-native";
 
-import { colors } from "./theme";
+import { useColors } from "./theme";
 
 /**
  * Tiny price chart drawn with plain Views (no chart library): one thin
@@ -9,6 +9,7 @@ import { colors } from "./theme";
 export function Spark({ data, mark, width = 96, height = 28, up }: {
   data?: number[]; mark?: number; width?: number; height?: number; up?: boolean;
 }) {
+  const colors = useColors();
   if (!data || data.length < 3) return null;
   const min = Math.min(...data);
   const max = Math.max(...data);

@@ -1,8 +1,9 @@
+import { useMemo } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { SCORE_GUIDE } from "./logic";
-import { colors, fonts, type } from "./theme";
+import { fonts, type, type Palette, useColors } from "./theme";
 
 const SECTIONS: [string, string[]][] = [
   ["What Radar shows", [
@@ -34,6 +35,8 @@ const SECTIONS: [string, string[]][] = [
 export function Guide({ visible, onClose, onLegal }: {
   visible: boolean; onClose: () => void; onLegal: () => void;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <SafeAreaProvider>
@@ -61,7 +64,7 @@ export function Guide({ visible, onClose, onLegal }: {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg },
   bar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     paddingHorizontal: 20, paddingVertical: 14 },

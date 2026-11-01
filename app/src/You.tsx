@@ -1,10 +1,13 @@
+import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { callStats, milestones, type Progress } from "./game";
 import { shortDate } from "./logic";
-import { colors, fonts, type } from "./theme";
+import { fonts, type, type Palette, useColors } from "./theme";
 
 export function You({ progress }: { progress: Progress }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const st = callStats(progress);
   const ms = milestones(progress);
   const done = ms.filter((m) => m.done).length;
@@ -59,6 +62,8 @@ export function You({ progress }: { progress: Progress }) {
 }
 
 function Stat({ n, label }: { n: string; label: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.stat}>
       <Text style={styles.statN}>{n}</Text>
@@ -67,7 +72,7 @@ function Stat({ n, label }: { n: string; label: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   wrap: { paddingHorizontal: 16, marginTop: 4 },
   row: { flexDirection: "row", gap: 8 },
   stat: { flex: 1, backgroundColor: colors.panel, borderRadius: 14, padding: 14 },

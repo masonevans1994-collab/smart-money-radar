@@ -79,3 +79,27 @@ export async function needsOnboarding(): Promise<boolean> {
 export async function finishOnboarding(): Promise<void> {
   await AsyncStorage.setItem(ONBOARD_KEY, "1").catch(() => {});
 }
+
+const APPEARANCE_KEY = "appearance:v1";
+export type Appearance = "system" | "dark" | "light";
+
+export async function loadAppearance(): Promise<Appearance> {
+  try {
+    const v = await AsyncStorage.getItem(APPEARANCE_KEY);
+    return v === "dark" || v === "light" ? v : "system";
+  } catch {
+    return "system";
+  }
+}
+
+export async function saveAppearance(a: Appearance): Promise<void> {
+  await AsyncStorage.setItem(APPEARANCE_KEY, a).catch(() => {});
+}
+
+const TOUR_KEY = "tour:v1";
+export async function needsTour(): Promise<boolean> {
+  try { return (await AsyncStorage.getItem(TOUR_KEY)) !== "1"; } catch { return false; }
+}
+export async function finishTour(): Promise<void> {
+  await AsyncStorage.setItem(TOUR_KEY, "1").catch(() => {});
+}

@@ -1,15 +1,17 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { agencyLabel, amountLabel, isSell, keyNote, moveLabel, scoreTier, shortDate, tierLabel } from "./logic";
 import { Spark } from "./Spark";
-import { colors, fonts, type } from "./theme";
+import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
 
-const TIER = { high: colors.up, mid: colors.gold, low: colors.muted };
+const tierColor = (c: Palette, score: number) => ({ high: c.up, mid: c.gold, low: c.muted })[scoreTier(score)];
 
 export function ScoreBadge({ score, size = "sm" }: { score: number; size?: "sm" | "lg" }) {
-  const c = TIER[scoreTier(score)];
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const c = tierColor(colors, score);
   const lg = size === "lg";
   return (
     <View style={[styles.score, { borderColor: c }, lg && styles.scoreLg]}
@@ -20,6 +22,8 @@ export function ScoreBadge({ score, size = "sm" }: { score: number; size?: "sm" 
 }
 
 export function ChangeChip({ signal, big }: { signal: Signal; big?: boolean }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const label = moveLabel(signal);
   if (!label) return null;
   const v = signal.change_pct ?? 0;
@@ -34,6 +38,8 @@ export function ChangeChip({ signal, big }: { signal: Signal; big?: boolean }) {
 function SignalCardBase({ signal, starred, isNew, onPress, linked }: {
   signal: Signal; starred: boolean; isNew: boolean; onPress: () => void; linked?: Signal;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const contract = signal.kind === "contract";
   const name = signal.kind === "congress" ? signal.who : signal.company;
   const context = contract ? `${agencyLabel(signal)} contract` : signal.kind === "congress"
@@ -107,7 +113,7 @@ function linkedLine(s: Signal, c: Signal): string {
 
 export const SignalCard = memo(SignalCardBase);
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   row: {
     marginHorizontal: 16, marginBottom: 10, padding: 16, borderRadius: 16,
     backgroundColor: colors.panel,
@@ -132,10 +138,10 @@ const styles = StyleSheet.create({
     ...type.small, fontFamily: fonts.semibold, color: colors.soft, backgroundColor: colors.raised,
     paddingHorizontal: 7, paddingVertical: 1, borderRadius: 6, overflow: "hidden",
   },
-  newPill: { color: colors.bg, backgroundColor: colors.gold },
-  standout: { color: colors.up, backgroundColor: "#173a33" },
+  newPill: { color: colors.onGold, backgroundColor: colors.gold },
+  standout: { color: colors.up, backgroundColor: colors.standoutBg },
   flag: {
-    ...type.small, fontFamily: fonts.semibold, color: "#F3B4A8", marginTop: 10,
+    ...type.small, fontFamily: fonts.semibold, color: colors.flagText, marginTop: 10,
     borderLeftWidth: 3, borderLeftColor: colors.seal, paddingLeft: 8,
   },
   note: { ...type.body, color: colors.soft, marginTop: 10 },

@@ -1,7 +1,8 @@
+import { useMemo } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { colors, fonts, type } from "./theme";
+import { fonts, type, type Palette, useColors } from "./theme";
 
 export const SHORT_DISCLAIMER =
   "For information only. Not investment advice. Radar doesn't recommend buying or selling anything.";
@@ -37,6 +38,8 @@ const SECTIONS: [string, string[]][] = [
 ];
 
 export function Legal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <SafeAreaProvider>
@@ -61,7 +64,7 @@ export function Legal({ visible, onClose }: { visible: boolean; onClose: () => v
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg },
   bar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     paddingHorizontal: 20, paddingVertical: 14 },

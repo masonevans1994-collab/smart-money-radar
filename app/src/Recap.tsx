@@ -1,12 +1,15 @@
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { agencyLabel, amountLabel, money, moveLabel, type Recap as RecapData } from "./logic";
-import { colors, fonts, type } from "./theme";
+import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
 
 export function RecapCard({ recap, onOpen, onDismiss }: {
   recap: RecapData; onOpen: (s: Signal) => void; onDismiss: () => void;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.card}>
       <View style={styles.head}>
@@ -42,7 +45,7 @@ export function RecapCard({ recap, onOpen, onDismiss }: {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   card: { marginHorizontal: 16, marginTop: 16, backgroundColor: colors.panel, borderRadius: 16, padding: 16, gap: 6 },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   title: { ...type.lead, fontFamily: fonts.bold, color: colors.text },

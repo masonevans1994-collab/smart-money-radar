@@ -1,7 +1,8 @@
+import { useMemo } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { colors, fonts, type } from "./theme";
+import { fonts, type, type Palette, useColors } from "./theme";
 
 const POINTS: [string, string][] = [
   ["See where the money goes", "When the government hires a company you can invest in, Radar shows how much, for what, and what the company's stock has done since."],
@@ -12,6 +13,8 @@ const POINTS: [string, string][] = [
 export function Onboarding({ visible, onDone, onLegal }: {
   visible: boolean; onDone: () => void; onLegal: () => void;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Modal visible={visible} animationType="fade" onRequestClose={onDone}>
       <SafeAreaProvider>
@@ -47,7 +50,7 @@ export function Onboarding({ visible, onDone, onLegal }: {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg, justifyContent: "space-between" },
   body: { paddingHorizontal: 24, paddingTop: 40 },
   brand: { fontFamily: fonts.black, fontSize: 18, color: colors.gold },
@@ -60,5 +63,5 @@ const styles = StyleSheet.create({
   legal: { ...type.body, color: colors.soft },
   link: { fontFamily: fonts.semibold, fontSize: 14, color: colors.gold },
   button: { backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 16, alignItems: "center" },
-  buttonText: { fontFamily: fonts.bold, fontSize: 16, color: colors.bg },
+  buttonText: { fontFamily: fonts.bold, fontSize: 16, color: colors.onGold },
 });

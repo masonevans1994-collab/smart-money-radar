@@ -1,13 +1,16 @@
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { amountLabel, moveLabel, money, type SavedStock, shortDate } from "./logic";
 import { Spark } from "./Spark";
-import { colors, fonts, type } from "./theme";
+import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
 
 export function Saved({ stocks, onOpen, onRemove }: {
   stocks: SavedStock[]; onOpen: (s: Signal) => void; onRemove: (ticker: string) => void;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   if (!stocks.length) {
     return (
       <Text style={styles.empty}>
@@ -59,7 +62,7 @@ export function Saved({ stocks, onOpen, onRemove }: {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   wrap: { paddingHorizontal: 16, gap: 10, marginTop: 4 },
   card: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, gap: 10 },
   head: { flexDirection: "row", alignItems: "center", gap: 12 },
