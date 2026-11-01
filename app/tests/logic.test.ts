@@ -51,7 +51,7 @@ test("newest-first grouping adds one heading per day", () => {
 
 test("plain-English summary for a contract add-on", () => {
   const lines = plainSummary(contract({ change_pct: 1 } as Partial<Signal>));
-  assert.equal(lines[0], "The Department of Energy agreed to pay Fluor Corporation $373M more on a contract the company already had.");
+  assert.equal(lines[0], "The Department of Energy agreed to pay Fluor $373M more on a contract the company already had.");
   assert.match(lines[lines.length - 1], /The stock is up 1.0% since Oct 30/);
 });
 

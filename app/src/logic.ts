@@ -349,8 +349,8 @@ export function plainSummary(s: Signal): string[] {
   const out: string[] = [];
   if (s.kind === "contract") {
     out.push(s.is_modification
-      ? `${agencyFull(s)} agreed to pay ${s.company} ${money(s.value)} more on a contract the company already had.`
-      : `${agencyFull(s)} hired ${s.company} for a new contract worth ${money(s.value)}.`);
+      ? `${agencyFull(s)} agreed to pay ${shortName(s)} ${money(s.value)} more on a contract the company already had.`
+      : `${agencyFull(s)} hired ${shortName(s)} for a new contract worth ${money(s.value)}.`);
     if (s.award_pct != null && s.market_cap) {
       const p = s.award_pct;
       out.push(p >= 3
