@@ -20,7 +20,7 @@ function Radar() {
   const [source, setSource] = useState<FeedSource>("demo");
   const [error, setError] = useState<string>();
   const [refreshing, setRefreshing] = useState(false);
-  const [tab, setTab] = useState<Tab>("top");
+  const [tab, setTab] = useState<Tab>("contract");
   const [query, setQuery] = useState("");
   const [watch, setWatch] = useState<Set<string>>(new Set());
   const [open, setOpen] = useState<Signal | null>(null);
@@ -108,7 +108,7 @@ function Radar() {
           </Pressable>
         ))}
       </ScrollView>
-      {hot > 0 && tab === "top" && !query && (
+      {hot > 0 && (tab === "top" || tab === "contract") && !query && (
         <Text style={styles.hint}>{hot} signals scored 70 or higher</Text>
       )}
       <TextInput

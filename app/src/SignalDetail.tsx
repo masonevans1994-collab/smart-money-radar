@@ -1,7 +1,7 @@
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { amountLabel, changeLabel, isSell, related, signalKey, sourceFor, tagFor } from "./logic";
+import { amountLabel, changeLabel, isSell, money, related, signalKey, sourceFor, tagFor } from "./logic";
 import { ChangeChip, ScoreBadge } from "./SignalCard";
 import { colors } from "./theme";
 import type { Signal } from "./types";
@@ -26,6 +26,8 @@ function detailRows(s: Signal): RowData[] {
   if (s.kind === "contract") {
     return [
       ["Company", s.company], ["Ticker", s.ticker], ["Award value", amountLabel(s)],
+      ["Company market value", s.market_cap ? money(s.market_cap) : null],
+      ["Award vs. company size", s.award_pct != null ? `${s.award_pct}%` : null],
       ["Agency", s.agency], ["Branch / office", s.sub_agency], ["Awarded", s.trade_date],
       ["Source", s.source], ["Award ID", s.award_id],
     ];

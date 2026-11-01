@@ -26,6 +26,8 @@ export interface ContractSignal extends BaseSignal {
   source: string; // "DoD announcement" | "USAspending"
   award_id?: string | null;
   congress_before?: number;
+  market_cap?: number;
+  award_pct?: number; // award as % of company market value
 }
 
 export interface InsiderSignal extends BaseSignal {

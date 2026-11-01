@@ -68,7 +68,7 @@ def contract_awards():
                 "agency": "Department of Defense", "sub_agency": agency,
                 "award_date": _d(days_ago), "trade_date": _d(days_ago), "disclosed": _d(days_ago),
                 "award_id": "DEMO-0001", "description": desc, "url": ""}
-    return [
+    out = [
         a("QRTZ", "Quartzline Semiconductors", 480e6, "Air Force", 2,
           "Radiation-hardened processors for satellite programs (demo)."),
         a("DMRB", "Demo Robotics Inc", 1.2e9, "Army", 1,
@@ -76,3 +76,9 @@ def contract_awards():
         a("SNDL", "Sandlot Energy Co", 65e6, "Defense Logistics Agency", 5,
           "Fuel supply for domestic bases (demo).", source="USAspending"),
     ]
+    sizes = {"QRTZ": (2.1e9, 41.80, 38.20), "DMRB": (3.4e9, 19.95, 18.40), "SNDL": (6.2e9, 6.05, 6.20)}
+    for c in out:
+        cap, now, then = sizes[c["ticker"]]
+        c.update(market_cap=cap, award_pct=round(c["value"] / cap * 100, 2), price_now=now,
+                 price_then=then, price_date=_d(0), change_pct=round((now - then) / then * 100, 1))
+    return out

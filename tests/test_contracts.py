@@ -106,3 +106,29 @@ def test_contract_scoring_flags_congress_buys():
     hii = next(c for c in ranked if c["ticker"] == "HII")
     assert not any("before this award" in r for r in hii["reasons"])
     assert hii["score"] >= 40  # $1.2B award
+
+
+def test_market_cap_and_size_adjust():
+    from radar import marketcap
+    tick = '{"0":{"cik_str":1234,"ticker":"QRTZ","title":"Quartzline"},"1":{"cik_str":936468,"ticker":"LMT","title":"Lockheed"}}'
+    shares = {"1234": '{"units":{"shares":[{"end":"2026-06-30","val":40000000,"accn":"a1"},'
+                      '{"end":"2026-07-25","val":50000000,"accn":"a2"}]}}',
+              "936468": '{"units":{"shares":[{"end":"2026-07-20","val":230000000,"accn":"b1"}]}}'}
+
+    class F:
+        def get(self, url, cache=True):
+            if url == marketcap.TICKERS:
+                return tick.encode()
+            for cik, body in shares.items():
+                if f"CIK{int(cik):010d}" in url:
+                    return body.encode()
+    cs = [{"ticker": "QRTZ", "value": 480e6, "price_now": 40.0, "score": 40, "reasons": ["Won"]},
+          {"ticker": "LMT", "value": 480e6, "price_now": 500.0, "score": 40, "reasons": ["Won"]},
+          {"ticker": "NOPE", "value": 1e7, "price_now": 5.0, "score": 10, "reasons": ["Won"]}]
+    assert marketcap.add_market_caps(cs, F(), log=lambda *_: None) == 2
+    assert cs[0]["market_cap"] == 2_000_000_000 and cs[0]["award_pct"] == 24.0
+    scoring.size_adjust(cs)
+    assert cs[0]["ticker"] == "QRTZ" and cs[0]["score"] == 70
+    assert "Huge for this company" in cs[0]["reasons"][1]
+    lmt = next(c for c in cs if c["ticker"] == "LMT")
+    assert lmt["score"] == 40 and "0.42%" in lmt["reasons"][1]

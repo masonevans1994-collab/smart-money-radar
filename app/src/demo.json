@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-01T16:10:36+00:00",
+  "generated": "2026-11-01T16:29:31+00:00",
   "demo": true,
   "contracts": [
     {
@@ -19,10 +19,17 @@
       "award_id": "DEMO-0001",
       "description": "Radiation-hardened processors for satellite programs (demo).",
       "url": "",
+      "market_cap": 2100000000.0,
+      "award_pct": 22.86,
+      "price_now": 41.8,
+      "price_then": 38.2,
+      "price_date": "2026-11-01",
+      "change_pct": 9.4,
       "congress_before": 2,
-      "score": 70,
+      "score": 100,
       "reasons": [
         "Won a $480.0M contract from Air Force",
+        "Huge for this company: 23% of its whole market value",
         "Announced by the Pentagon (same-day news)",
         "Hon. Lee Sample bought QRTZ 16 days before this award (+1 more)",
         "Company insiders have been buying too"
@@ -46,9 +53,16 @@
       "award_id": "DEMO-0001",
       "description": "Autonomous ground vehicles, five-year contract (demo).",
       "url": "",
-      "score": 55,
+      "market_cap": 3400000000.0,
+      "award_pct": 35.29,
+      "price_now": 19.95,
+      "price_then": 18.4,
+      "price_date": "2026-11-01",
+      "change_pct": 8.4,
+      "score": 85,
       "reasons": [
         "Won a $1.2B contract from Army",
+        "Huge for this company: 35% of its whole market value",
         "Announced by the Pentagon (same-day news)",
         "Company insiders have been buying too"
       ],
@@ -71,10 +85,17 @@
       "award_id": "DEMO-0001",
       "description": "Fuel supply for domestic bases (demo).",
       "url": "",
+      "market_cap": 6200000000.0,
+      "award_pct": 1.05,
+      "price_now": 6.05,
+      "price_then": 6.2,
+      "price_date": "2026-11-01",
+      "change_pct": -2.4,
       "congress_before": 1,
-      "score": 50,
+      "score": 60,
       "reasons": [
         "Won a $65.0M contract from Defense Logistics Agency",
+        "Meaningful: 1.1% of its $6.2B market value",
         "Hon. Pat Placeholder bought SNDL 65 days before this award",
         "Company insiders have been buying too"
       ],

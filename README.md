@@ -13,10 +13,18 @@
 - **Backend:** `.github/workflows/radar.yml` runs the Python code below on a
   schedule and publishes `signals.json` for the app.
 
-Ranks the most notable **corporate insider buys** (SEC Form 4) and **U.S. House
-stock trades** (STOCK Act periodic transaction reports) from free public
-filings, scores each 0–100, explains *why* in plain English, and writes a
-mobile-friendly dashboard.
+Ranks the most notable **federal contract wins by public companies**,
+**Congress stock trades** (House and Senate) and **corporate insider buys**
+from free public data, scores each 0–100, explains *why* in plain English,
+shows how the stock has moved since, and publishes it all to a phone app.
+
+| Feed | Source | Notes |
+|---|---|---|
+| Contract wins | USAspending.gov (new awards), war.gov daily announcements | Public-domain data. war.gov currently refuses automated readers, so DoD awards arrive via USAspending (which lags ~90 days for DoD) |
+| Congress trades | House Clerk PTR PDFs, Senate eFD | Senate site intermittently refuses cloud servers; retried every run |
+| Insider buys | SEC EDGAR Form 4 | Needs the `SEC_USER_AGENT` repo secret (your name + email) |
+| Price moves | Yahoo daily closes (Stooq fallback) | % change since each trade or award |
+| Company size | SEC XBRL shares outstanding × price | Ranks an award against the winner's market value; needs `SEC_USER_AGENT` |
 
 ## Quick start
 

@@ -4,11 +4,11 @@ import type { Feed, Signal } from "./types";
 export type Tab = "top" | "latest" | "contract" | "insider" | "congress" | "watch";
 
 export const TABS: { key: Tab; label: string }[] = [
+  { key: "contract", label: "Contracts" },
   { key: "top", label: "Top" },
   { key: "latest", label: "Latest" },
-  { key: "contract", label: "Contracts" },
-  { key: "insider", label: "Insiders" },
   { key: "congress", label: "Congress" },
+  { key: "insider", label: "Insiders" },
   { key: "watch", label: "★ Watchlist" },
 ];
 

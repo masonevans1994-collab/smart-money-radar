@@ -14,7 +14,7 @@ import datetime as dt
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import congress, contracts, dashboard, demo, edgar, prices, scoring, senate
+from . import congress, contracts, dashboard, demo, edgar, marketcap, prices, scoring, senate
 from .http import Fetcher
 
 
@@ -74,6 +74,8 @@ def main(argv=None) -> int:
     ins, con = scoring.score_insider(ins_raw), scoring.score_congress(con_raw)
     scoring.cross_signal(ins, con)
     con_all = scoring.score_contracts(awards, con, ins)
+    if args.demo:
+        scoring.size_adjust(con_all)
 
     if not args.demo and not args.no_prices and (ins or con or con_all):
         print("Looking up price moves since each trade or award...")
@@ -85,6 +87,9 @@ def main(argv=None) -> int:
         book = prices.PriceBook(fetcher, start)
         prices.add_performance(everything, book)
         print(f"  price sources: {book.source_ok}")
+        n = marketcap.add_market_caps(con_all, fetcher)
+        print(f"  company sizes found for {n} of {len(con_all)} contract winners")
+        scoring.size_adjust(con_all)
     ins = [x for x in ins if x["score"] >= args.min_score]
     con = [x for x in con if x["score"] >= args.min_score]
     con_all = [x for x in con_all if x["score"] >= args.min_score]

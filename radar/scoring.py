@@ -201,3 +201,24 @@ def score_contracts(contracts: list[dict], congress: list[dict],
         c["headline"] = f"{c['company']} ({c['ticker']}) won {_money(v)} from {agency}"
         out.append(c)
     return sorted(out, key=lambda x: x["score"], reverse=True)
+
+
+def size_adjust(contracts: list[dict]) -> None:
+    """Re-score contracts by award size relative to company market value."""
+    for c in contracts:
+        pct, cap = c.get("award_pct"), c.get("market_cap")
+        if pct is None or not cap:
+            continue
+        if pct >= 10:
+            pts, why = 30, f"Huge for this company: {pct:.0f}% of its whole market value"
+        elif pct >= 3:
+            pts, why = 20, f"Big for this company: {pct:.1f}% of its {_money(cap)} market value"
+        elif pct >= 1:
+            pts, why = 10, f"Meaningful: {pct:.1f}% of its {_money(cap)} market value"
+        elif pct < 0.1:
+            pts, why = -10, f"Small next to a {_money(cap)} company ({pct:.2f}%)"
+        else:
+            pts, why = 0, f"{pct:.2f}% of its {_money(cap)} market value"
+        c["score"] = max(0, min(100, c["score"] + pts))
+        c["reasons"].insert(1, why)
+    contracts.sort(key=lambda x: x["score"], reverse=True)
