@@ -493,3 +493,31 @@ export function lastTimeLines(s: Signal): string[] | null {
   if (c.d1 != null) out.push(`On the day itself it moved ${c.d1 > 0 ? "+" : ""}${c.d1.toFixed(1)}%.`);
   return out;
 }
+
+/** The most likely reason the stock did (or didn't) react, from measurable facts. */
+export function whyLine(s: Signal): string | null {
+  if (s.kind !== "contract") return null;
+  const short = s.company.split(/ (Inc|Corp|plc|Co|Company|Corporation|Holdings|Technologies|International)\b/i)[0].replace(/,$/, "");
+  const pct = s.award_pct;
+  const w30 = s.history?.windows["30"];
+  const reacts = w30 ? w30.beat_pct >= 60 && w30.avg_vs_spy >= 1 : null;
+  if (pct != null && pct < 0.5) {
+    const times = Math.round(100 / pct);
+    return `Why? ${money(s.value)} is only ${pct.toFixed(pct < 0.1 ? 2 : 1)}% of what ${short} is worth. `
+      + `It would take about ${times} deals this size to change the company. One barely registers.`;
+  }
+  if (s.is_modification && (reacts === false || reacts === null)) {
+    return `Why? This adds money to a contract ${short} already had. Investors usually count on that money in advance, so it's rarely a surprise.`;
+  }
+  if (pct != null && pct >= 3) {
+    return `Why? ${money(s.value)} is about ${pct.toFixed(pct >= 10 ? 0 : 1)}% of what ${short} is worth. `
+      + `When one deal is that big for a company, its stock tends to react.`;
+  }
+  if (reacts === false) {
+    return `Why? ${short}'s stock moves with the economy, its other businesses and the overall market far more than with any one government contract.`;
+  }
+  if (reacts === true) {
+    return `Why? Government work is a big part of what ${short} does, so each award changes what investors expect it to earn.`;
+  }
+  return null;
+}

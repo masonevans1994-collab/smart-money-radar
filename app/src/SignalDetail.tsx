@@ -3,7 +3,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
   agencyLabel, amountLabel, isSell, KEEP_IN_MIND, money, plainSummary, related, SCORE_GUIDE,
-  lastTimeDetail, lastTimeHeadline, lastTimeLines, shareText, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel,
+  lastTimeDetail, lastTimeHeadline, lastTimeLines, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel,
 } from "./logic";
 import { useState, useMemo } from "react";
 import { agencyDescription } from "./agencies";
@@ -203,6 +203,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                   <View style={styles.lastTime}>
                     <Text style={styles.lastTimeHead}>{lastTimeHeadline(signal)}</Text>
                     <Text style={styles.lastTimeSmall}>{lastTimeDetail(signal)}</Text>
+                    {whyLine(signal) && <Text style={styles.why}>{whyLine(signal)}</Text>}
                     <Pressable onPress={() => setNumbers((v) => !v)} hitSlop={8} accessibilityRole="button">
                       <Text style={styles.lastTimeMore}>{numbers ? "Hide the numbers" : "Show the numbers"}</Text>
                     </Pressable>
@@ -306,6 +307,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderLeftWidth: 3, borderLeftColor: colors.gold },
   lastTimeHead: { ...type.title, fontSize: 19, lineHeight: 26, color: colors.text },
   lastTimeSmall: { ...type.body, color: colors.soft },
+  why: { ...type.body, fontSize: 15, lineHeight: 22, color: colors.text, marginTop: 6 },
   lastTimeMore: { ...type.small, fontFamily: fonts.semibold, color: colors.gold, marginTop: 2 },
   lastTimeLine: { ...type.body, color: colors.soft },
   lastTimeFoot: { ...type.small, color: colors.muted },

@@ -157,7 +157,7 @@ test("weekly recap and agency descriptions", () => {
 });
 
 
-import { lastTimeDetail, lastTimeHeadline, lastTimeLines } from "../src/logic";
+import { lastTimeDetail, lastTimeHeadline, lastTimeLines, whyLine } from "../src/logic";
 
 test("what-happened-last-time sentences use real past moves", () => {
   const s = contract({ history: { n: 25, verdict: "v", windows: {},
@@ -173,5 +173,17 @@ test("what-happened-last-time sentences use real past moves", () => {
   const d = lastTimeDetail({ ...s, history: { ...hist, windows: { "30": { n: 25, beat_pct: 36, avg_vs_spy: -1.4, median_vs_spy: -1, avg_raw: 1.8 } } } } as Signal)!;
   assert.equal(d, "That was $168M in Aug 2025, measured over the next 30 days. Out of its last 25 deals, the stock beat the market afterward 9 times.");
   assert.equal(lastTimeLines(contract()), null);
+});
+
+test("why lines come from measurable facts", () => {
+  const hist = { n: 25, verdict: "v", windows: { "30": { n: 25, beat_pct: 36, avg_vs_spy: -1.4, median_vs_spy: -1, avg_raw: 1.8 } }, closest: null };
+  const hon = contract({ company: "Honeywell International Inc.", value: 323e6, award_pct: 0.23, history: hist } as Partial<Signal>);
+  assert.equal(whyLine(hon), "Why? $323M is only 0.2% of what Honeywell is worth. It would take about 435 deals this size to change the company. One barely registers.");
+  const small = contract({ company: "Kratos Defense", value: 75e6, award_pct: 1.5, is_modification: false,
+    history: { ...hist, windows: { "30": { n: 10, beat_pct: 70, avg_vs_spy: 8, median_vs_spy: 5, avg_raw: 9 } } } } as Partial<Signal>);
+  assert.match(whyLine(small)!, /Government work is a big part of what Kratos Defense does/);
+  const addon = contract({ company: "Fluor Corporation", is_modification: true, history: hist } as Partial<Signal>);
+  assert.match(whyLine(addon)!, /adds money to a contract Fluor already had/);
+  assert.equal(whyLine(contract({ history: undefined, is_modification: false } as Partial<Signal>)), null);
 });
 console.log(`\n${passed} logic tests passed`);
