@@ -19,7 +19,7 @@ export function You({ progress }: { progress: Progress }) {
       <Text style={styles.section}>Your calls</Text>
       {progress.calls.length === 0 ? (
         <Text style={styles.muted}>
-          Open any award and tap Up, Down or About the same. In 30 days you'll see if you were right.
+          Open any award and tap Higher, Same or Lower. In 30 days you&apos;ll see if you were right.
         </Text>
       ) : (
         <View style={styles.list}>
