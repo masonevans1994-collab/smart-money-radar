@@ -97,6 +97,7 @@ jobs:
             npm install --no-audit --no-fund
             npx expo install react-dom react-native-web @expo/metro-runtime expo-font
             npx tsc --noEmit
+            if grep -q '"test:logic"' package.json; then npm run test:logic; fi
             npx expo export --platform web --output-dir dist
             mkdir -p "$GITHUB_WORKSPACE/public/preview"
             cp -r dist/. "$GITHUB_WORKSPACE/public/preview/"
