@@ -21,7 +21,7 @@ def test_add_context_uses_cache(tmp_path):
     cache = cc.ContextCache(tmp_path, dt.date(2026, 11, 1))
     cs = [{"recipient": "ROCKET LAB USA INC", "value": 3e8, "score": 30, "reasons": ["won"], "source": "USAspending"}]
     cc.add_context(cs, "ua", cache, post=post, log=lambda *_: None)
-    assert cs[0]["score"] == 45 and "Largest federal contract" in cs[0]["reasons"][1]
+    assert cs[0]["score"] == 45 and "Biggest government contract" in cs[0]["reasons"][1]
     cs2 = [{"recipient": "ROCKET LAB USA INC", "value": 1e6, "score": 30, "reasons": ["won"], "source": "USAspending"}]
     cc.add_context(cs2, "ua", cache, post=post, log=lambda *_: None)
     assert calls == ["ROCKET LAB USA INC"]                               # second call served from cache

@@ -105,7 +105,7 @@ def test_contract_scoring_flags_congress_buys():
                 {"ticker": "HII", "trade_date": "2026-10-01", "type": "Sale", "who": "Seller"}]
     ranked = scoring.score_contracts(matched, congress, [])
     lmt = next(c for c in ranked if c["ticker"] == "LMT")
-    assert any("Sen. Jane Example bought LMT 29 days before" in r for r in lmt["reasons"])
+    assert any("Sen. Jane Example bought LMT stock 29 days before" in r for r in lmt["reasons"])
     hii = next(c for c in ranked if c["ticker"] == "HII")
     assert not any("before this award" in r for r in hii["reasons"])
     assert hii["score"] >= 40  # $1.2B award
@@ -170,7 +170,7 @@ def test_modifications():
     assert [m["award_id"] for m in mods] == ["A1"] and mods[0]["is_modification"]
     matched, _ = contracts.match_awards(mods, book())
     ranked = scoring.score_contracts(matched, [], [])
-    assert ranked[0]["ticker"] == "HII" and "expansion" in ranked[0]["headline"]
+    assert ranked[0]["ticker"] == "HII" and " more from " in ranked[0]["headline"]
 
 
 def test_names_and_descriptions():

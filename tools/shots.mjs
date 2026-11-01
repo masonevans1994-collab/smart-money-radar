@@ -18,8 +18,17 @@ if (await first.count()) {
   await first.click();
   await page.waitForTimeout(800);
   await page.screenshot({ path: `${outDir}/3-detail.png` });
+  const why = page.getByText("Score?", { exact: true });
+  if (await why.count()) {
+    await why.click();
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: `${outDir}/3b-score-explained.png` });
+  }
   await page.getByText("Done", { exact: true }).click();
 }
+await page.getByText("Congress", { exact: true }).last().click();
+await page.waitForTimeout(500);
+await page.screenshot({ path: `${outDir}/5-congress.png` });
 await page.getByText("Record", { exact: true }).last().click();
 await page.waitForTimeout(500);
 await page.screenshot({ path: `${outDir}/4-record.png` });
