@@ -37,7 +37,7 @@ export function TrackRecord({ record }: { record?: TR | null }) {
                 </View>
                 <View style={styles.stats}>
                   <Stat label="Avg. return" value={pct(g.avg_return)} />
-                  <Stat label="Beat the market" value={`${g.beat_spy_pct ?? 0}%`} />
+                  <Stat label="Did better than the market" value={`${g.beat_spy_pct ?? 0}%`} />
                   <Stat label="vs. the market after 30 days" value={pct(g.avg_vs_spy_30d)} />
                 </View>
                 <Text style={styles.muted}>
