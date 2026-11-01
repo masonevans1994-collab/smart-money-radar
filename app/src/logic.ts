@@ -114,3 +114,43 @@ export function pct(v: number | null | undefined, digits = 1): string {
   if (v === null || v === undefined) return "–";
   return `${v > 0 ? "+" : ""}${v.toFixed(digits)}%`;
 }
+
+export type SortKey = "score" | "size" | "newest";
+
+/** Short, recognizable agency name for chips: "Department of the Navy" -> "Navy". */
+export function agencyLabel(s: Signal): string {
+  if (s.kind !== "contract") return "";
+  const raw = (s.sub_agency || s.agency || "Other").trim();
+  const map: [RegExp, string][] = [
+    [/navy|marine corps/i, "Navy"], [/army/i, "Army"], [/air force|space force/i, "Air Force"],
+    [/defense logistics/i, "DLA"], [/missile defense/i, "Missile Defense"],
+    [/defense|war\b/i, "Defense"], [/veterans/i, "VA"], [/aeronautics|nasa/i, "NASA"],
+    [/homeland|customs|immigration|fema|coast guard/i, "Homeland"], [/energy/i, "Energy"],
+    [/health|hhs|food and drug|disease|medicare|nih/i, "Health"], [/treasury|internal revenue/i, "Treasury"],
+    [/general services/i, "GSA"], [/transportation|aviation/i, "Transportation"],
+    [/agriculture/i, "Agriculture"], [/justice|investigation/i, "Justice"], [/state\b/i, "State"],
+  ];
+  for (const [re, label] of map) if (re.test(raw)) return label;
+  return raw.replace(/^Department of (the )?/i, "");
+}
+
+export function topAgencies(signals: Signal[], max = 7): string[] {
+  const counts = new Map<string, number>();
+  for (const s of signals) {
+    if (s.kind !== "contract") continue;
+    const a = agencyLabel(s);
+    counts.set(a, (counts.get(a) ?? 0) + 1);
+  }
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, max).map(([a]) => a);
+}
+
+export function refine(rows: Signal[], agency: string | null, sort: SortKey): Signal[] {
+  let out = agency ? rows.filter((s) => agencyLabel(s) === agency) : rows;
+  if (sort === "size") {
+    out = [...out].sort((a, b) =>
+      (b.kind === "congress" ? b.amount_low : b.value) - (a.kind === "congress" ? a.amount_low : a.value));
+  } else if (sort === "newest") {
+    out = [...out].sort((a, b) => (b.trade_date ?? "").localeCompare(a.trade_date ?? ""));
+  }
+  return out;
+}

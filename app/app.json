@@ -11,7 +11,11 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.smartmoneyradar.app"
+      "package": "com.smartmoneyradar.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0d1117"
+      }
     },
     "web": {
       "output": "single",
@@ -19,10 +23,12 @@
       "name": "Smart Money Radar",
       "shortName": "Radar",
       "themeColor": "#0d1117",
-      "backgroundColor": "#0d1117"
+      "backgroundColor": "#0d1117",
+      "favicon": "./assets/favicon.png"
     },
     "experiments": {
       "baseUrl": "/smart-money-radar"
-    }
+    },
+    "icon": "./assets/icon.png"
   }
 }

@@ -9,7 +9,9 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import {
   type FeedSource, loadFeed, loadSeen, loadWatchlist, saveSeen, saveWatchlist,
 } from "./src/data";
-import { allSignals, filterSignals, signalKey, type Tab, TABS, timeAgo } from "./src/logic";
+import {
+  allSignals, filterSignals, refine, signalKey, type SortKey, type Tab, TABS, timeAgo, topAgencies,
+} from "./src/logic";
 import { SignalCard } from "./src/SignalCard";
 import { SignalDetail } from "./src/SignalDetail";
 import { TrackRecord } from "./src/TrackRecord";
@@ -25,6 +27,8 @@ function Radar() {
   const [query, setQuery] = useState("");
   const [watch, setWatch] = useState<Set<string>>(new Set());
   const [open, setOpen] = useState<Signal | null>(null);
+  const [agency, setAgency] = useState<string | null>(null);
+  const [sort, setSort] = useState<SortKey>("score");
   // Keys seen before this launch; anything else gets a NEW badge.
   const [seenBefore, setSeenBefore] = useState<Set<string> | null>(null);
 
@@ -58,8 +62,11 @@ function Radar() {
   }, []);
 
   const signals = useMemo(() => (feed ? allSignals(feed) : []), [feed]);
-  const rows = useMemo(
-    () => filterSignals(signals, tab, query, watch), [signals, tab, query, watch]);
+  const agencies = useMemo(() => topAgencies(signals), [signals]);
+  const rows = useMemo(() => {
+    const base = filterSignals(signals, tab, query, watch);
+    return tab === "contract" ? refine(base, agency, sort) : base;
+  }, [signals, tab, query, watch, agency, sort]);
   const hot = signals.filter((s) => s.score >= 70).length;
   const newCount = seenBefore ? signals.filter((s) => !seenBefore.has(signalKey(s))).length : 0;
 
@@ -109,6 +116,25 @@ function Radar() {
           </Pressable>
         ))}
       </ScrollView>
+      {tab === "contract" && agencies.length > 1 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chips} style={{ flexGrow: 0 }}>
+          {[null, ...agencies].map((a) => (
+            <Pressable key={a ?? "all"} onPress={() => setAgency(a)}
+              style={[styles.chip, agency === a && styles.chipOn]}>
+              <Text style={[styles.chipText, agency === a && styles.chipTextOn]}>{a ?? "All agencies"}</Text>
+            </Pressable>
+          ))}
+          <View style={styles.divider} />
+          {(["score", "size", "newest"] as SortKey[]).map((k) => (
+            <Pressable key={k} onPress={() => setSort(k)} style={[styles.chip, sort === k && styles.chipOn]}>
+              <Text style={[styles.chipText, sort === k && styles.chipTextOn]}>
+                {k === "score" ? "Best" : k === "size" ? "Biggest" : "Newest"}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      )}
       {hot > 0 && (tab === "top" || tab === "contract") && !query && (
         <Text style={styles.hint}>{hot} signals scored 70 or higher</Text>
       )}
@@ -200,6 +226,12 @@ const styles = StyleSheet.create({
   statN: { color: colors.text, fontSize: 20, fontWeight: "700", fontVariant: ["tabular-nums"] },
   statL: { color: colors.muted, fontSize: 12 },
   tabs: { flexDirection: "row", gap: 6, paddingHorizontal: 16, marginTop: 14 },
+  chips: { flexDirection: "row", gap: 6, paddingHorizontal: 16, marginTop: 8, alignItems: "center" },
+  chip: { borderColor: colors.line, borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
+  chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+  chipText: { color: colors.muted, fontSize: 12, fontWeight: "600" },
+  chipTextOn: { color: colors.bg },
+  divider: { width: 1, height: 18, backgroundColor: colors.line, marginHorizontal: 4 },
   hint: { color: colors.muted, fontSize: 12, marginHorizontal: 16, marginTop: 8 },
   tab: {
     backgroundColor: colors.chip, borderColor: colors.line, borderWidth: 1,

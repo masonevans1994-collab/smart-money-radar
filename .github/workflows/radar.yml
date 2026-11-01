@@ -83,6 +83,7 @@ jobs:
           npx tsc --noEmit
           npx expo export --platform web --output-dir dist
           cp -r dist/. ../public/
+          python ../tools/pwa.py ../public /${{ github.event.repository.name }}
 
       - name: Check the app renders on a phone-size screen
         run: |

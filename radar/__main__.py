@@ -14,7 +14,8 @@ import datetime as dt
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import (alerts, committees, congress, contract_news, contracts, dashboard, demo,
+from . import (alerts, committees, congress, contract_context, contract_news, contracts,
+               dashboard, demo,
                edgar, history, marketcap, prices, scoring, senate)
 from .http import Fetcher
 
@@ -80,6 +81,9 @@ def main(argv=None) -> int:
     scoring.cross_signal(ins, con)
     con_all = scoring.score_contracts(awards, con, ins)
     scoring.committee_flags(con_all, roster)
+    if not args.demo and con_all:
+        print("Comparing each award with the company's contract history...")
+        contract_context.add_context(con_all, os.environ.get("SEC_USER_AGENT", ""))
     if args.demo:
         scoring.size_adjust(con_all)
 
