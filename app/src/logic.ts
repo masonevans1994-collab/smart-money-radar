@@ -646,13 +646,17 @@ export function compareRows(items: Signal[]): CompareRow[] {
     if (!w || w.n < 5) return "not enough history";
     return `${w.beat_pct}% beat market (${w.n} deals)`;
   };
-  return [
+  const rows: CompareRow[] = [
     { label: "Deal", values: cs.map((c) => money(c.value)) },
-    { label: "Share of company", values: cs.map((c) => c.award_pct != null ? `${c.award_pct.toFixed(c.award_pct < 1 ? 2 : 1)}%` : "–") },
     { label: "Signed", values: cs.map((c) => shortDate(c.trade_date)) },
     { label: "Stock since", values: cs.map((c) => moveLabel(c)?.replace("Stock ", "") ?? "–") },
-    { label: "Group since", values: cs.map((c) => c.sector_pct != null ? `${c.sector_pct > 0 ? "up " : c.sector_pct < 0 ? "down " : ""}${Math.abs(c.sector_pct).toFixed(1)}%` : "–") },
+    { label: "Group since", values: cs.map((c) => c.sector_pct != null && !tooSoon(c) ? `${c.sector_pct > 0 ? "up " : c.sector_pct < 0 ? "down " : ""}${Math.abs(c.sector_pct).toFixed(1)}%` : "–") },
     { label: "After past deals", values: cs.map(pattern) },
     { label: "Score", values: cs.map((c) => `${c.score}, ${tierLabel(c.score).toLowerCase()}`) },
   ];
+  // Only worth a row when we actually know a company's size.
+  if (cs.some((c) => c.award_pct != null)) {
+    rows.splice(1, 0, { label: "Share of company", values: cs.map((c) => c.award_pct != null ? `${c.award_pct.toFixed(c.award_pct < 1 ? 2 : 1)}%` : "–") });
+  }
+  return rows;
 }

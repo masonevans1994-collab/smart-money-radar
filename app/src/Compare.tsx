@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { agencyLabel, compareRows } from "./logic";
+import { agencyLabel, compareRows, shortName } from "./logic";
 import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
 
@@ -27,8 +27,9 @@ export function Compare({ items, onOpen, onClose }: {
             <Text style={styles.kicker}>Recent winners from {agencyLabel(first)}</Text>
             <Text style={styles.title}>Side by side</Text>
             <Text style={styles.intro}>
-              Same agency, different companies. The useful line is "Share of company": the same
-              dollars matter far more to a small company than a giant one.
+              {rows.some((r) => r.label === "Share of company")
+                ? "Same agency, different companies. The useful line is \"Share of company\": the same dollars matter far more to a small company than a giant one."
+                : "Same agency, different companies. Remember the same dollars matter far more to a small company than a giant one."}
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tableWrap}>
               <View>
@@ -39,7 +40,7 @@ export function Compare({ items, onOpen, onClose }: {
                       accessibilityRole="button">
                       <Text style={styles.headTicker}>{it.ticker}</Text>
                       <Text style={styles.headName} numberOfLines={2}>
-                        {it.kind === "contract" ? it.company : it.ticker}
+                        {shortName(it)}
                       </Text>
                     </Pressable>
                   ))}
