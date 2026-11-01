@@ -170,17 +170,17 @@ def score_contracts(contracts: list[dict], congress: list[dict],
         score += 40 if v >= 1e9 else 30 if v >= 250e6 else 22 if v >= 100e6 \
             else 15 if v >= 50e6 else 8
         agency = c.get("sub_agency") or c.get("agency") or "the government"
-        what = "contract expansion" if c.get("is_modification") else "contract"
+        what = "add-on to an existing contract" if c.get("is_modification") else "contract"
         why.append(f"Won a {_money(v)} {what} from {agency}")
         if c.get("source") == "DoD announcement":
             score += 5
-            why.append("Announced by the Pentagon (same-day news)")
+            why.append("Announced by the Pentagon the same day it was signed")
         elif c.get("source") == "Company 8-K":
             score += 5
-            why.append("Announced by the company in an SEC filing (fresh news)")
+            why.append("The company announced it in an official SEC filing")
         if wins[c["ticker"]] >= 2:
             score += 10
-            why.append(f"{wins[c['ticker']]} awards to {c['ticker']} in this period")
+            why.append(f"{c['ticker']} won {wins[c['ticker']]} government contracts this month")
 
         award_day = c.get("award_date")
         buyers = []
@@ -194,17 +194,17 @@ def score_contracts(contracts: list[dict], congress: list[dict],
             gap, who, _ = min(buyers)
             score += 25
             more = f" (+{len(buyers) - 1} more)" if len(buyers) > 1 else ""
-            why.append(f"{who} bought {c['ticker']} {gap} days before this award{more}")
+            why.append(f"{who} bought {c['ticker']} stock {gap} days before this award{more}")
             c["congress_before"] = len(buyers)
             c["_buyers"] = sorted(buyers)
         if any(e["ticker"] == c["ticker"] for e in insiders):
             score += 10
-            why.append("Company insiders have been buying too")
+            why.append("The company's own executives have been buying its stock")
 
         c["score"] = max(0, min(100, score))
         c["reasons"] = why
         c["headline"] = (f"{c['company']} ({c['ticker']}) won {_money(v)} "
-                         f"{'expansion ' if c.get('is_modification') else ''}from {agency}")
+                         f"{'more ' if c.get('is_modification') else ''}from {agency}")
         out.append(c)
     return sorted(out, key=lambda x: x["score"], reverse=True)
 
@@ -216,15 +216,15 @@ def size_adjust(contracts: list[dict]) -> None:
         if pct is None or not cap:
             continue
         if pct >= 10:
-            pts, why = 30, f"Huge for this company: {pct:.0f}% of its whole market value"
+            pts, why = 30, f"Huge for this company: the award equals {pct:.0f}% of what the whole company is worth"
         elif pct >= 3:
-            pts, why = 20, f"Big for this company: {pct:.1f}% of its {_money(cap)} market value"
+            pts, why = 20, f"Big for this company: equal to {pct:.1f}% of its total value ({_money(cap)})"
         elif pct >= 1:
-            pts, why = 10, f"Meaningful: {pct:.1f}% of its {_money(cap)} market value"
+            pts, why = 10, f"Noticeable: {pct:.1f}% of the company's {_money(cap)} total value"
         elif pct < 0.1:
-            pts, why = -10, f"Small next to a {_money(cap)} company ({pct:.2f}%)"
+            pts, why = -10, f"Small for a company worth {_money(cap)}"
         else:
-            pts, why = 0, f"{pct:.2f}% of its {_money(cap)} market value"
+            pts, why = 0, f"{pct:.2f}% of the company's {_money(cap)} total value"
         c["score"] = max(0, min(100, c["score"] + pts))
         c["reasons"].insert(1, why)
     contracts.sort(key=lambda x: x["score"], reverse=True)

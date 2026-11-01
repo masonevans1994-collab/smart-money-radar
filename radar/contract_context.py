@@ -36,15 +36,15 @@ def describe(value: float, history: list[float]) -> tuple[int, str] | None:
     past = sorted(history, reverse=True)
     n = len(past)
     if n <= 2:
-        return 10, f"Rare win: only {n} other federal contract{'s' if n != 1 else ''} of $1M+ in {YEARS} years"
+        return 10, f"Rare win: only {n} other government contract{'s' if n != 1 else ''} over $1M in {YEARS} years"
     bigger = sum(v > value * 1.0001 for v in past)
     if bigger == 0:
-        return 15, f"Largest federal contract this company has won in {YEARS} years"
+        return 15, f"Biggest government contract this company has won in {YEARS} years"
     if bigger / n <= 0.05:
-        return 10, f"In the top 5% of this company's {n}+ contracts over {YEARS} years"
+        return 10, f"Bigger than 95% of this company's {n}+ government contracts in {YEARS} years"
     median = past[n // 2]
     if value < median:
-        return -5, f"Routine size for this company (it has won {n}+ contracts over {YEARS} years)"
+        return -5, f"Normal size for this company (it has won {n}+ government contracts in {YEARS} years)"
     return None
 
 
