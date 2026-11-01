@@ -163,30 +163,37 @@ def txn_body(since: dt.date, until: dt.date, fields: list[str], page: int) -> di
     }
 
 
-def parse_modifications(results: list[dict], min_amount: float) -> list[dict]:
+def parse_modifications(results: list[dict], min_amount: float,
+                        min_new: float | None = None) -> list[dict]:
+    """Big transactions. Modifications always; original awards (mod 0) too
+    when min_new is given, which gives new awards their exact signing date."""
     out = []
     for r in results:
         amt = r.get("Transaction Amount") or 0
         mod = str(r.get("Mod") or "0").strip()
-        if amt < min_amount or mod in ("0", "", "None", "00"):
-            continue  # new awards are covered elsewhere; skip de-obligations
+        is_new = mod in ("0", "", "None", "00")
+        if is_new and (min_new is None or amt < min_new):
+            continue
+        if not is_new and amt < min_amount:
+            continue
         gid = r.get("generated_internal_id") or ""
         out.append({
-            "source": "USAspending (modification)", "award_id": r.get("Award ID"),
+            "source": "USAspending" if is_new else "USAspending (modification)",
+            "award_id": r.get("Award ID"),
             "recipient": r.get("Recipient Name") or "", "parent": "",
             "value": float(amt), "agency": r.get("Awarding Agency") or "",
             "sub_agency": r.get("Awarding Sub Agency") or "",
             "award_date": r.get("Action Date"),
             "description": (r.get("Transaction Description") or "").strip(),
             "url": USASPENDING_AWARD.format(id=gid) if gid else "",
-            "is_modification": True,
+            "is_modification": not is_new,
         })
     return out
 
 
 def fetch_modifications(user_agent: str, days: int = 14, min_amount: float = 50e6,
                         pages: int = 2, today: dt.date | None = None, post=_post_json,
-                        log=print) -> list[dict]:
+                        log=print, min_new: float | None = None) -> list[dict]:
     today = today or dt.date.today()
     since = today - dt.timedelta(days=days)
     fields, out = TXN_FIELDS, []
@@ -208,9 +215,12 @@ def fetch_modifications(user_agent: str, days: int = 14, min_amount: float = 50e
             log(f"  USAspending modifications failed: {e}")
             break
         rows = data.get("results", [])
-        out += parse_modifications(rows, min_amount)
+        out += parse_modifications(rows, min_amount, min_new)
+        floor = min(min_amount, min_new or min_amount)
         if not data.get("page_metadata", {}).get("hasNext") or \
-                (rows and (rows[-1].get("Transaction Amount") or 0) < min_amount):
+                (rows and (rows[-1].get("Transaction Amount") or 0) < floor):
             break
-    log(f"  USAspending: {len(out)} contract expansions of ${min_amount / 1e6:.0f}M+ since {since}")
+    n_new = sum(not a["is_modification"] for a in out)
+    log(f"  USAspending transactions since {since}: {n_new} new awards, "
+        f"{len(out) - n_new} expansions of ${min_amount / 1e6:.0f}M+")
     return out

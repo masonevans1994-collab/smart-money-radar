@@ -21,6 +21,8 @@ on:
   schedule:
     # Every 30 minutes, 8am-7pm Eastern, Monday-Friday (UTC times).
     - cron: "*/30 12-23 * * 1-5"
+    # Weekends: agencies rarely post, so a light check every 3 hours.
+    - cron: "15 */3 * * 0,6"
   workflow_dispatch:
 
 permissions:
