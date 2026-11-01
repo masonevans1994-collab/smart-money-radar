@@ -1,17 +1,17 @@
-"""Temporary diagnostics: Senate eFD step by step."""
-import os, re, urllib.error, datetime as dt
-from radar import senate
-
-s = senate.SenateSession(os.environ["SEC_USER_AGENT"])
-page = s._req(senate.HOME)
-print("cookies after GET:", [(c.name, c.domain) for c in s.jar])
-m = re.search(r'csrfmiddlewaretoken[^>]*', page); print("form token tag:", m.group(0)[:200] if m else None)
-print("form action:", re.findall(r'<form[^>]*>', page)[:3])
-try:
-    s.accept_terms(); print("accept OK; cookies:", [c.name for c in s.jar])
-except urllib.error.HTTPError as e:
-    print("ACCEPT FAIL", e.code, e.read()[:1500])
-try:
-    rows = s.search_ptrs(dt.date.today() - dt.timedelta(days=14)); print("search OK", len(rows), rows[:2])
-except urllib.error.HTTPError as e:
-    print("SEARCH FAIL", e.code, e.read()[:1500])
+"""Temporary diagnostics: which Senate request variant is refused."""
+import os, urllib.request, urllib.error, http.cookiejar
+ua = os.environ["SEC_USER_AGENT"]
+H = "https://efdsearch.senate.gov/search/home/"
+def tryit(label, headers, opener=None):
+    req = urllib.request.Request(H, headers=headers)
+    try:
+        with (opener.open(req, timeout=30) if opener else urllib.request.urlopen(req, timeout=30)) as r:
+            print("OK ", r.status, label)
+    except urllib.error.HTTPError as e:
+        print("FAIL", e.code, label, e.read()[:300])
+jar_opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+tryit("plain UA", {"User-Agent": ua})
+tryit("UA + identity", {"User-Agent": ua, "Accept-Encoding": "identity"})
+tryit("UA + referer", {"User-Agent": ua, "Referer": "https://efdsearch.senate.gov/search/"})
+tryit("cookie opener UA", {"User-Agent": ua}, jar_opener)
+tryit("cookie opener UA+referer+identity", {"User-Agent": ua, "Referer": "https://efdsearch.senate.gov/search/", "Accept-Encoding": "identity"}, jar_opener)
