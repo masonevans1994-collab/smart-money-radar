@@ -1,10 +1,11 @@
-import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
-  agencyLabel, amountLabel, isSell, money, related, shortDate, signalKey, sourceFor,
-  tagFor,
+  agencyLabel, amountLabel, isSell, money, related, SCORE_GUIDE, shareText, shortDate, signalKey,
+  sourceFor, tagFor,
 } from "./logic";
+import { useState } from "react";
 import { ChangeChip, ScoreBadge } from "./SignalCard";
 import { Spark } from "./Spark";
 import { colors, fonts, type } from "./theme";
@@ -88,6 +89,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
   onToggleStar: (ticker: string) => void; onOpen: (s: Signal) => void; onClose: () => void;
 }) {
   const rel = signal ? related(all, signal) : { sameTicker: [], sameWho: [] };
+  const [explain, setExplain] = useState(false);
   const contract = signal?.kind === "contract";
   return (
     <Modal visible={!!signal} animationType="slide" presentationStyle="pageSheet"
@@ -100,11 +102,17 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                 <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button">
                   <Text style={styles.barLink}>Done</Text>
                 </Pressable>
-                <Pressable onPress={() => onToggleStar(signal.ticker)} hitSlop={12} accessibilityRole="button">
-                  <Text style={[styles.barLink, { color: colors.gold }]}>
-                    {starred ? `★ Saved ${signal.ticker}` : `☆ Save ${signal.ticker}`}
-                  </Text>
-                </Pressable>
+                <View style={styles.barRight}>
+                  <Pressable onPress={() => Share.share({ message: shareText(signal) }).catch(() => {})}
+                    hitSlop={12} accessibilityRole="button">
+                    <Text style={styles.barLink}>Share</Text>
+                  </Pressable>
+                  <Pressable onPress={() => onToggleStar(signal.ticker)} hitSlop={12} accessibilityRole="button">
+                    <Text style={[styles.barLink, { color: colors.gold }]}>
+                      {starred ? "★ Saved" : "☆ Save"}
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
               <ScrollView key={signalKey(signal)} contentContainerStyle={styles.content}>
                 <Text style={styles.kicker}>
@@ -125,8 +133,26 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                       {contract && signal.who !== signal.company ? `, won by ${signal.who}` : ""}
                     </Text>
                   </View>
-                  <ScoreBadge score={signal.score} size="lg" />
+                  <Pressable onPress={() => setExplain((v) => !v)} accessibilityRole="button"
+                    accessibilityHint="Explains what the score means">
+                    <ScoreBadge score={signal.score} size="lg" />
+                    <Text style={styles.scoreHint}>{explain ? "Hide" : "Score?"}</Text>
+                  </Pressable>
                 </View>
+                {explain && (
+                  <View style={styles.guide}>
+                    <Text style={styles.guideIntro}>
+                      Radar scores each item from 0 to 100 by how unusual it is. The reasons below
+                      add up to this item's score.
+                    </Text>
+                    {SCORE_GUIDE.map(([range, text]) => (
+                      <View key={range} style={styles.guideRow}>
+                        <Text style={styles.guideRange}>{range}</Text>
+                        <Text style={styles.guideText}>{text}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
 
                 {signal.spark && (
                   <View style={styles.chartBox}>
@@ -136,12 +162,18 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                       </Text>
                       <ChangeChip signal={signal} big />
                     </View>
-                    <Spark data={signal.spark} mark={signal.spark_mark} width={300} height={72}
-                      up={(signal.change_pct ?? 0) >= 0} />
+                    <View style={styles.chartRow}>
+                      <Spark data={signal.spark} mark={signal.spark_mark} width={250} height={80}
+                        up={(signal.change_pct ?? 0) >= 0} />
+                      <View style={styles.axis}>
+                        <Text style={styles.axisText}>${Math.max(...signal.spark).toFixed(2)}</Text>
+                        <Text style={styles.axisText}>${Math.min(...signal.spark).toFixed(2)}</Text>
+                      </View>
+                    </View>
                     <Text style={styles.chartFoot}>
-                      Gold bar marks {shortDate(signal.trade_date)}.
+                      Gold bar is {shortDate(signal.trade_date)}, when it was {contract ? "signed" : "traded"}.
                       {signal.price_then != null && signal.price_now != null
-                        ? ` $${signal.price_then.toFixed(2)} then, $${signal.price_now.toFixed(2)} now.` : ""}
+                        ? ` Price then $${signal.price_then.toFixed(2)}, latest $${signal.price_now.toFixed(2)}.` : ""}
                     </Text>
                   </View>
                 )}
@@ -191,6 +223,16 @@ const styles = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg },
   bar: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
   barLink: { fontFamily: fonts.semibold, fontSize: 16, color: colors.text },
+  barRight: { flexDirection: "row", gap: 22 },
+  scoreHint: { ...type.small, color: colors.muted, textAlign: "center", marginTop: 4 },
+  guide: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, marginTop: 14, gap: 10 },
+  guideIntro: { ...type.body, color: colors.soft },
+  guideRow: { flexDirection: "row", gap: 12 },
+  guideRange: { fontFamily: fonts.bold, fontSize: 13, color: colors.text, width: 74 },
+  guideText: { ...type.small, color: colors.soft, flex: 1 },
+  chartRow: { flexDirection: "row", alignItems: "stretch", gap: 10 },
+  axis: { justifyContent: "space-between" },
+  axisText: { ...type.small, fontSize: 11, color: colors.muted, fontVariant: ["tabular-nums"] },
   content: { paddingHorizontal: 20, paddingBottom: 48 },
   kicker: { ...type.bodyStrong, color: colors.muted },
   heroAmount: { ...type.hero, marginTop: 2, fontVariant: ["tabular-nums"] },

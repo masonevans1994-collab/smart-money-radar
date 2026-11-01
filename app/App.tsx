@@ -15,7 +15,7 @@ import {
   saveWatchlist,
 } from "./src/data";
 import {
-  allSignals, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
+  allSignals, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
   type SortKey, type Tab, TABS, timeAgo, topAgencies, withDayHeaders,
 } from "./src/logic";
 import { Onboarding } from "./src/Onboarding";
@@ -77,6 +77,7 @@ function Radar() {
 
   const signals = useMemo(() => (feed ? allSignals(feed) : []), [feed]);
   const agencies = useMemo(() => topAgencies(signals), [signals]);
+  const linkedContracts = useMemo(() => (feed ? contractsByTicker(feed) : new Map()), [feed]);
   const items = useMemo<ListItem[]>(() => {
     const base = filterSignals(signals, tab, query, watch);
     const rows = refine(base, tab === "contract" ? agency : null, sort);
@@ -166,9 +167,11 @@ function Radar() {
 
   const empty = tab === "record" ? <TrackRecord record={feed.track_record} /> : (
     <Text style={styles.empty}>
-      {tab === "watch" && !query
-        ? "Nothing saved yet. Open any award or trade and tap Save to follow that stock here."
-        : query ? `Nothing matches "${query}".` : "Nothing here yet. Pull down to refresh."}
+      {query ? `Nothing matches "${query}".`
+        : tab === "watch" ? "Nothing saved yet. Open any award or trade and tap Save to follow that stock here."
+          : tab === "insider" ? "No insider buys to show yet. They appear once SEC access is set up, usually within a day."
+            : tab === "congress" ? "No new congressional trades in the last two weeks."
+              : "No contract awards to public companies yet. Pull down to refresh."}
     </Text>
   );
 
@@ -186,6 +189,7 @@ function Radar() {
           ) : (
             <SignalCard signal={item} starred={watch.has(item.ticker)}
               isNew={!!seenBefore && !seenBefore.has(signalKey(item))}
+              linked={item.kind === "contract" ? undefined : linkedContracts.get(item.ticker)}
               onPress={() => setOpen(item)} />
           )}
           ListHeaderComponent={header}

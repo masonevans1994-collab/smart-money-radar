@@ -240,7 +240,9 @@ export function withDayHeaders(rows: Signal[], now = new Date()): ListItem[] {
     const contracts = rows[i].kind === "contract";
     out.push({
       key: `h-${day}`, header: dayLabel(day, now),
-      detail: contracts ? `${n} award${n === 1 ? "" : "s"}, ${money(total)}` : `${n} item${n === 1 ? "" : "s"}`,
+      detail: contracts ? `${n} award${n === 1 ? "" : "s"}, ${money(total)}`
+        : rows[i].kind === "insider" ? `${n} buy${n === 1 ? "" : "s"}, ${money(total)}`
+          : `${n} trade${n === 1 ? "" : "s"}`,
     });
     out.push(...rows.slice(i, j));
     i = j;
@@ -265,3 +267,29 @@ export function freshness(feed: Feed, now = new Date()): { week: number; weekCou
   }
   return { week: recent.reduce((s, c) => s + c.value, 0), weekCount: recent.length, latest, note };
 }
+
+/** Most recent contract win per ticker, for linking trades to awards. */
+export function contractsByTicker(feed: Feed): Map<string, Signal> {
+  const m = new Map<string, Signal>();
+  for (const c of feed.contracts ?? []) {
+    const cur = m.get(c.ticker);
+    if (!cur || (c.trade_date ?? "") > (cur.trade_date ?? "")) m.set(c.ticker, c);
+  }
+  return m;
+}
+
+export function shareText(s: Signal): string {
+  const lines = [s.headline];
+  const note = keyNote(s);
+  if (note && !s.headline.includes(note)) lines.push(note);
+  if (s.change_pct !== undefined) lines.push(`Stock ${pct(s.change_pct)} since ${shortDate(s.trade_date)}.`);
+  if (s.url) lines.push(s.url);
+  lines.push("Via Radar. Public records, not investment advice.");
+  return lines.join("\n");
+}
+
+export const SCORE_GUIDE: [string, string][] = [
+  ["70 to 100", "Stands out. Large for the company, its biggest win in years, or traded by a member of Congress beforehand."],
+  ["45 to 69", "Worth a look. A sizable award or trade with at least one unusual detail."],
+  ["Under 45", "Routine. Real money, but ordinary for this company or this kind of filing."],
+];

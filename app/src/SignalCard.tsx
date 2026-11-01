@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { agencyLabel, amountLabel, changeLabel, isSell, keyNote, scoreTier, shortDate, tagFor } from "./logic";
+import { agencyLabel, amountLabel, changeLabel, isSell, keyNote, scoreTier, shortDate } from "./logic";
 import { Spark } from "./Spark";
 import { colors, fonts, type } from "./theme";
 import type { Signal } from "./types";
@@ -30,14 +30,14 @@ export function ChangeChip({ signal, big }: { signal: Signal; big?: boolean }) {
   );
 }
 
-function SignalCardBase({ signal, starred, isNew, onPress }: {
-  signal: Signal; starred: boolean; isNew: boolean; onPress: () => void;
+function SignalCardBase({ signal, starred, isNew, onPress, linked }: {
+  signal: Signal; starred: boolean; isNew: boolean; onPress: () => void; linked?: Signal;
 }) {
   const contract = signal.kind === "contract";
   const name = signal.kind === "congress" ? signal.who : signal.company;
   const context = contract ? agencyLabel(signal) : signal.kind === "congress"
     ? `${signal.type}${signal.owner !== "Self" ? ` by ${signal.owner.toLowerCase()}` : ""}`
-    : signal.role_label ?? "Insider";
+    : `${signal.role_label ?? "Insider"}, open-market buy`;
   const up = (signal.change_pct ?? 0) >= 0;
   return (
     <Pressable
@@ -75,6 +75,9 @@ function SignalCardBase({ signal, starred, isNew, onPress }: {
         </Text>
       )}
       <Text style={styles.note} numberOfLines={2}>{keyNote(signal)}</Text>
+      {!contract && linked?.kind === "contract" && (
+        <Text style={styles.linked} numberOfLines={2}>{linkedLine(signal, linked)}</Text>
+      )}
 
       <View style={styles.bottom}>
         <Spark data={signal.spark} mark={signal.spark_mark} up={up} />
@@ -85,9 +88,17 @@ function SignalCardBase({ signal, starred, isNew, onPress }: {
           </Text>
         </View>
       </View>
-      {!contract && <Text style={styles.kind}>{tagFor(signal)}</Text>}
     </Pressable>
   );
+}
+
+function linkedLine(s: Signal, c: Signal): string {
+  const win = `${s.ticker} won ${amountLabel(c)} from ${agencyLabel(c)}`;
+  if (s.trade_date && c.trade_date && c.trade_date > s.trade_date) {
+    const days = Math.round((Date.parse(c.trade_date) - Date.parse(s.trade_date)) / 86400000);
+    return `${days} day${days === 1 ? "" : "s"} later, ${win}`;
+  }
+  return `${win} on ${shortDate(c.trade_date)}`;
 }
 
 export const SignalCard = memo(SignalCardBase);
@@ -123,10 +134,13 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3, borderLeftColor: colors.seal, paddingLeft: 8,
   },
   note: { ...type.body, color: colors.soft, marginTop: 10 },
+  linked: {
+    ...type.small, fontFamily: fonts.semibold, color: colors.gold, marginTop: 8,
+    borderLeftWidth: 3, borderLeftColor: colors.gold, paddingLeft: 8,
+  },
   bottom: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", marginTop: 12 },
   bottomText: { alignItems: "flex-end", gap: 2 },
   change: { fontFamily: fonts.bold, fontSize: 13, fontVariant: ["tabular-nums"] },
   changeBig: { fontSize: 16 },
   date: { ...type.small, color: colors.muted },
-  kind: { ...type.small, color: colors.muted, marginTop: 8 },
 });
