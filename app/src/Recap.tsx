@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Pressable, Share, StyleSheet, Text, View } from "react-native";
 
-import { agencyLabel, amountLabel, money, moveLabel, type Recap as RecapData, recapShareText, shortName } from "./logic";
+import { agencyLabel, amountLabel, moveLabel, type Recap as RecapData, recapShareText, shortName } from "./logic";
 import { fonts, type, type Palette, useColors } from "./theme";
 import type { Signal } from "./types";
 
@@ -25,11 +25,10 @@ export function RecapCard({ recap, onOpen, onDismiss, note }: {
         </View>
       </View>
       <Text style={styles.period}>{recap.periodLabel}{note ? ` · ${note}` : ""}</Text>
+      {/* The big number above already says the total; this card adds the rest. */}
       <Text style={styles.line} maxFontSizeMultiplier={1.6}>
-        The government signed <Text style={styles.strong}>{recap.count}</Text> contract{recap.count === 1 ? "" : "s"} worth{" "}
-        <Text style={[styles.strong, { color: colors.gold }]}>{money(recap.total)}</Text> with{" "}
-        {recap.companies} public compan{recap.companies === 1 ? "y" : "ies"}
-        {recap.topAgency ? `, led by ${recap.topAgency}` : ""}.
+        <Text style={styles.strong}>{recap.count}</Text> contract{recap.count === 1 ? "" : "s"} signed
+        {recap.topAgency ? `, most of the money from ${recap.topAgency}` : ""}.
       </Text>
       {recap.biggest && (
         <Pressable onPress={() => onOpen(recap.biggest!)} style={styles.row} accessibilityRole="button">
