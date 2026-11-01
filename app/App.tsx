@@ -283,7 +283,10 @@ function Radar({ appearance, onAppearance }: {
   const empty = tab === "record" ? <TrackRecord record={feed.track_record} />
     : tab === "you" ? (
       <View>
-        <You progress={progress} />
+        <You progress={progress} onGo={(where) => {
+          if (where === "guide") { setGuide(true); setProgress((p) => ({ ...p, guideRead: true })); }
+          else { setTab(where === "record" ? "record" : "contract"); setQuery(""); setSort("newest"); setAgency(null); }
+        }} />
         <View style={styles.appearance}>
           <Text style={styles.appearanceLabel}>Appearance</Text>
           <View style={{ flexDirection: "row", gap: 8 }}>

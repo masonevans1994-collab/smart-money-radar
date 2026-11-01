@@ -1,11 +1,11 @@
 import { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { callStats, milestones, type Progress } from "./game";
 import { shortDate } from "./logic";
 import { fonts, type, type Palette, useColors } from "./theme";
 
-export function You({ progress }: { progress: Progress }) {
+export function You({ progress, onGo }: { progress: Progress; onGo?: (where: "guide" | "contracts" | "record") => void }) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const st = callStats(progress);
@@ -21,12 +21,14 @@ export function You({ progress }: { progress: Progress }) {
 
       {(() => {
         const next = ms.find((m) => !m.done);
+        const where = next?.id === "guide" ? "guide" : next?.id === "settled" ? "record" : "contracts";
         return next ? (
-          <View style={styles.next}>
+          <Pressable onPress={() => onGo?.(where)} style={({ pressed }: { pressed: boolean }) => [styles.next, pressed && { opacity: 0.7 }]}
+            accessibilityRole="button" accessibilityLabel={`Next up: ${next.detail}`}>
             <Text style={styles.nextLabel}>Next up</Text>
-            <Text style={styles.nextText}>{next.detail}</Text>
+            <Text style={styles.nextText}>{next.detail} ›</Text>
             <Text style={styles.nextSub}>Earns "{next.title}"</Text>
-          </View>
+          </Pressable>
         ) : null;
       })()}
 
