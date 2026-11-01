@@ -21,6 +21,7 @@ export interface Call {
 
 export interface Progress {
   calls: Call[];
+  unseenSettled?: number;   // calls settled since the user last looked at the You tab
   streak: number;         // consecutive days opened
   lastOpen: string;       // ISO date
   bestStreak: number;
@@ -90,6 +91,7 @@ export function resolveCalls(p: Progress, signals: Signal[], now = new Date()): 
   const latest = new Map<string, number>();
   for (const s of signals) if (s.price_now !== undefined) latest.set(s.ticker, s.price_now);
   let changed = false;
+  let settledNow = 0;
   const calls = p.calls.map((c) => {
     if (c.result || c.resolveOn > t) return c;
     const end = latest.get(c.ticker);
@@ -97,9 +99,10 @@ export function resolveCalls(p: Progress, signals: Signal[], now = new Date()): 
     const pct = ((end - c.priceThen) / c.priceThen) * 100;
     const actual: Direction = pct > FLAT_BAND ? "up" : pct < -FLAT_BAND ? "down" : "flat";
     changed = true;
+    settledNow++;
     return { ...c, priceEnd: end, result: actual === c.direction ? "right" : "wrong" } as Call;
   });
-  return changed ? { ...p, calls } : p;
+  return changed ? { ...p, calls, unseenSettled: (p.unseenSettled ?? 0) + settledNow } : p;
 }
 
 export function callStats(p: Progress) {

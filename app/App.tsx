@@ -16,7 +16,7 @@ import {
 } from "./src/data";
 import {
   allSignals, amountLabel, biggestThisWeek, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
-  savedStocks, type SortKey, type Tab, TABS, timeAgo, topAgencies, withDayHeaders,
+  savedStocks, type SortKey, type Tab, TABS, timeAgo, topAgencies, weeklyRecap, withDayHeaders,
 } from "./src/logic";
 import {
   callFor, checkIn, type Direction, loadProgress, makeCall, type Progress, EMPTY, resolveCalls,
@@ -25,6 +25,7 @@ import {
 import { Guide } from "./src/Guide";
 import { Legal, SHORT_DISCLAIMER } from "./src/Legal";
 import { Onboarding } from "./src/Onboarding";
+import { RecapCard } from "./src/Recap";
 import { Saved } from "./src/Saved";
 import { SignalCard } from "./src/SignalCard";
 import { SignalDetail } from "./src/SignalDetail";
@@ -55,6 +56,7 @@ function Radar() {
   const [onboard, setOnboard] = useState(false);
   const [guide, setGuide] = useState(false);
   const [legal, setLegal] = useState(false);
+  const [recapHidden, setRecapHidden] = useState(false);
   const [progress, setProgressState] = useState<Progress>(EMPTY);
   const setProgress = useCallback((fn: (p: Progress) => Progress) => {
     setProgressState((p) => { const n = fn(p); if (n !== p) saveProgress(n); return n; });
@@ -120,6 +122,8 @@ function Radar() {
   const hero = heroFor(tab, feed, watch.size);
   const fresh = freshness(feed);
   const biggest = biggestThisWeek(feed);
+  const recap = weeklyRecap(feed);
+  const settled = progress.unseenSettled ?? 0;
   const newCount = seenBefore
     ? signals.filter((s) => s.kind === "contract" && !seenBefore.has(signalKey(s))).length : 0;
   const status = source === "live" ? `Updated ${timeAgo(feed.generated)}`
@@ -154,7 +158,7 @@ function Radar() {
         {tab === "contract" && newCount > 0 && (
           <Text style={styles.heroNew}>{newCount} new since your last visit</Text>
         )}
-        {tab === "contract" && biggest?.kind === "contract" && (
+        {tab === "contract" && recapHidden && biggest?.kind === "contract" && (
           <Pressable onPress={() => openSignal(biggest)} style={styles.biggest} accessibilityRole="button"
             accessibilityLabel={`Biggest award this week: ${biggest.headline}`}>
             <Text style={styles.biggestLabel}>Biggest award this week</Text>
@@ -172,6 +176,16 @@ function Radar() {
         )}
       </View>
 
+      {settled > 0 && tab !== "you" && (
+        <Pressable onPress={() => setTab("you")} style={styles.nudge} accessibilityRole="button">
+          <Text style={styles.nudgeText}>
+            {settled} of your calls {settled === 1 ? "has" : "have"} settled. See how you did.
+          </Text>
+        </Pressable>
+      )}
+      {tab === "contract" && recap && !recapHidden && (
+        <RecapCard recap={recap} onOpen={openSignal} onDismiss={() => setRecapHidden(true)} />
+      )}
       {tab !== "record" && tab !== "you" && tab !== "watch" && (
         <>
           <TextInput
@@ -253,7 +267,10 @@ function Radar() {
         {TABS.map((t) => {
           const on = tab === t.key;
           return (
-            <Pressable key={t.key} onPress={() => { setTab(t.key); setQuery(""); }}
+            <Pressable key={t.key} onPress={() => {
+              setTab(t.key); setQuery("");
+              if (t.key === "you" && settled) setProgress((p) => ({ ...p, unseenSettled: 0 }));
+            }}
               style={styles.tabItem} accessibilityRole="tab" accessibilityState={{ selected: on }}>
               <View style={[styles.tabMark, on && styles.tabMarkOn]} />
               <Text style={[styles.tabText, on && styles.tabTextOn]}>{t.label}</Text>
@@ -327,6 +344,8 @@ const styles = StyleSheet.create({
   heroFigure: { ...type.hero, fontSize: 48, lineHeight: 52, fontVariant: ["tabular-nums"] },
   heroCaption: { ...type.lead, color: colors.soft, marginTop: 4, maxWidth: 320 },
   heroNew: { ...type.bodyStrong, color: colors.gold, marginTop: 8 },
+  nudge: { marginHorizontal: 16, marginTop: 14, backgroundColor: "#3a2f10", borderRadius: 12, padding: 12 },
+  nudgeText: { ...type.bodyStrong, color: colors.gold },
   biggest: { marginTop: 16, backgroundColor: colors.panel, borderRadius: 14, padding: 14, gap: 2,
     borderLeftWidth: 3, borderLeftColor: colors.gold },
   biggestLabel: { ...type.small, color: colors.muted },

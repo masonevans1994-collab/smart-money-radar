@@ -6,6 +6,7 @@ import {
   shareText, shortDate, signalKey, sourceFor, tagFor, tickerHelp, tierLabel,
 } from "./logic";
 import { useState } from "react";
+import { agencyDescription } from "./agencies";
 import { CallBox } from "./CallBox";
 import { type Call, type Direction } from "./game";
 import { ChangeChip, ScoreBadge } from "./SignalCard";
@@ -160,6 +161,9 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
 
                 <View style={styles.plain}>
                   {plainSummary(signal).map((p) => <Text key={p} style={styles.plainText}>{p}</Text>)}
+                  {contract && agencyDescription(signal.agency, signal.sub_agency) && (
+                    <Text style={styles.plainHelp}>{agencyDescription(signal.agency, signal.sub_agency)}</Text>
+                  )}
                   <Text style={styles.plainHelp}>{tickerHelp(signal)}</Text>
                 </View>
 

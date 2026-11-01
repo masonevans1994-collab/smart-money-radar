@@ -397,3 +397,33 @@ export function savedStocks(all: Signal[], watchlist: Set<string>): SavedStock[]
   }
   return out.sort((a, b) => (b.latest?.trade_date ?? "").localeCompare(a.latest?.trade_date ?? ""));
 }
+
+/** The past week's contract story, for a recap card. */
+export interface Recap {
+  total: number;
+  count: number;
+  companies: number;
+  biggest?: Signal;
+  bestMover?: Signal;
+  topAgency?: string;
+  periodLabel: string;
+}
+
+export function weeklyRecap(feed: Feed, now = new Date()): Recap | null {
+  const cutoff = weekStart(now);
+  const recent = (feed.contracts ?? []).filter((c) => (c.trade_date ?? "") >= cutoff);
+  if (!recent.length) return null;
+  const withMove = recent.filter((c) => c.change_pct !== undefined);
+  const byAgency = new Map<string, number>();
+  for (const c of recent) byAgency.set(agencyLabel(c), (byAgency.get(agencyLabel(c)) ?? 0) + c.value);
+  const topAgency = [...byAgency.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  return {
+    total: recent.reduce((s, c) => s + c.value, 0),
+    count: recent.length,
+    companies: new Set(recent.map((c) => c.ticker)).size,
+    biggest: recent.reduce((a, b) => (b.value > a.value ? b : a)),
+    bestMover: withMove.length ? withMove.reduce((a, b) => ((b.change_pct ?? 0) > (a.change_pct ?? 0) ? b : a)) : undefined,
+    topAgency,
+    periodLabel: `${shortDate(cutoff)} to ${shortDate(isoDay(now))}`,
+  };
+}

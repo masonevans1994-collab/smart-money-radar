@@ -134,4 +134,22 @@ test("a small move counts as about the same", () => {
   p = resolveCalls(p, [{ ...award, price_now: 101.5 } as Signal], new Date("2026-11-01T12:00:00"));
   assert.equal(p.calls[0].result, "right");
 });
+
+
+import { weeklyRecap } from "../src/logic";
+import { agencyDescription } from "../src/agencies";
+
+test("weekly recap and agency descriptions", () => {
+  const feed: Feed = { ...demo, contracts: [
+    contract({ change_pct: 1 } as Partial<Signal>) as never,
+    contract({ ticker: "HON", company: "Honeywell", value: 9e8, change_pct: 4, sub_agency: "Department of the Navy" } as Partial<Signal>) as never,
+  ] };
+  const r = weeklyRecap(feed, now)!;
+  assert.equal(r.count, 2);
+  assert.equal(r.biggest?.ticker, "HON");
+  assert.equal(r.bestMover?.ticker, "HON");
+  assert.equal(r.topAgency, "Navy");
+  assert.match(agencyDescription("Department of Defense", "Defense Logistics Agency")!, /fuel, food/);
+  assert.equal(agencyDescription("Something Obscure"), null);
+});
 console.log(`\n${passed} logic tests passed`);
