@@ -73,7 +73,9 @@ function SignalCardBase({ signal, starred, isNew, onPress, linked }: {
       <View style={styles.metaRow}>
         <Text style={styles.context} numberOfLines={1}>
           {context}
-          {contract && signal.who !== signal.company ? `, via ${signal.who}` : ""}
+          {contract && signal.who !== signal.company
+            && signal.who.split(" ")[0].toLowerCase() !== shortName(signal).split(" ")[0].toLowerCase()
+            ? `, via ${signal.who}` : ""}
         </Text>
         {contract && topicsFor(signal).slice(0, 2).map((t) => <Text key={t} style={styles.pill}>{t}</Text>)}
         {contract && signal.is_modification && <Text style={styles.pill}>Add-on</Text>}
