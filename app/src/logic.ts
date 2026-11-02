@@ -419,6 +419,9 @@ export function plainSummary(s: Signal): string[] {
     if (s.lag_days && s.lag_days > 45) {
       out.push(`They reported it ${s.lag_days} days later. The law allows 45.`);
     }
+    if (s.type.startsWith("Sale")) {
+      out.push("People sell stock for all sorts of reasons: taxes, a house, spreading money around. A sale says much less than a purchase does.");
+    }
   }
   const mv = moveLabel(s);
   if (mv && s.trade_date && tooSoon(s)) {

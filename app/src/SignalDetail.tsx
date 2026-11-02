@@ -4,7 +4,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import {
   agencyLabel, amountLabel, isSell, KEEP_IN_MIND, money, plainSummary, related, SCORE_GUIDE,
   lastTimeDetail, lastTimeHeadline, lastTimeLines, peersFor, sectorLine, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel, tooSoon, shortName, plainHeadline } from "./logic";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { agencyDescription } from "./agencies";
 import { CallBox } from "./CallBox";
 import { type Call, type Direction } from "./game";
@@ -104,6 +104,9 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
   const [explain, setExplain] = useState(false);
   const [numbers, setNumbers] = useState(false);
   const contract = signal?.kind === "contract";
+  // Each award opens fresh: no leftover "Score?" or "Show the numbers" from the last one.
+  const key = signal ? signalKey(signal) : "";
+  useEffect(() => { setExplain(false); setNumbers(false); }, [key]);
   return (
     <Modal visible={!!signal} animationType="slide" presentationStyle="pageSheet"
       onRequestClose={onClose}>
