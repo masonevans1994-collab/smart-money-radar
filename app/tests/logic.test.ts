@@ -297,5 +297,10 @@ test("people summary counts buys and finds stocks several people bought", () => 
   assert.match(heroFor("people", feed, 0).figure, /^3 buys$/);
 });
 
+test("'Big for the company' puts the largest share of company value first", () => {
+  const a = contract({ ticker: "A", award_pct: 0.2 }), b = contract({ ticker: "B", award_pct: 12 }), c = contract({ ticker: "C" });
+  assert.deepEqual(refine([a, c, b], null, "share").map((x) => x.ticker), ["B", "A", "C"]);
+});
+
 console.log(`\n${passed} logic tests passed`);
 

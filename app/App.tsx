@@ -42,6 +42,7 @@ import type { Feed, Signal } from "./src/types";
 const SORTS: { key: SortKey; label: string }[] = [
   { key: "newest", label: "Newest" },
   { key: "score", label: "Most notable" },
+  { key: "share", label: "Big for the company" },
   { key: "size", label: "Largest" },
   { key: "move", label: "Biggest stock move" },
 ];
@@ -306,7 +307,7 @@ function Radar({ appearance, onAppearance }: {
               <Chip label={agency ? `${agency} ▾` : "By agency ▾"} on={!!agency}
                 onPress={() => { if (agency) { setAgency(null); setShowAgencies(true); } else setShowAgencies((v) => !v); }} />
             )}
-            {SORTS.map((s) => (
+            {SORTS.filter((s) => s.key !== "share" || tab === "contract").map((s) => (
               <Chip key={s.key} label={s.label} on={sort === s.key} onPress={() => setSort(s.key)} />
             ))}
           </ScrollView>

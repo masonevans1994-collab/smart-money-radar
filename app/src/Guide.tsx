@@ -10,9 +10,11 @@ const SECTIONS: [string, string[]][] = [
     "Every day the U.S. government signs contracts with companies, from fighter jets to hospital supplies. Some of those companies are public, which means anyone can buy a piece of them as stock.",
     "Radar finds the contracts that went to public companies and shows how their stock has moved since.",
   ]],
-  ["Why a contract can matter", [
-    "A big contract means more money coming into the company. When that's large compared with the company's size, investors sometimes value the company higher.",
-    "But it isn't automatic. The news is public, big investors react fast, and a contract can be paid out over years or changed later.",
+  ["Do contracts move stocks?", [
+    "Mostly, no. We looked at 1,817 government awards of $25M or more to 49 public companies over three years. A month later the stock had beaten the market 51% of the time: a coin flip.",
+    "For giant companies (worth over $50B) a new contract is routine and the stock barely notices. The dollar amount doesn't matter much either: $25M awards and $500M awards behaved about the same.",
+    "What seems to matter is size compared with the company. In the rare cases where one award was worth more than 10% of the whole company, the stock beat the market 5 times out of 6. That's too few cases to rely on, and the next group down (3% to 10%) did worse than the market. Use \"Big for the company\" to see these first.",
+    "And by the time an award shows up in public records, often days after signing, professional traders have usually already reacted to the company's own announcement.",
   ]],
   ["How to read a card", [
     "The gold number is the contract's value. Under it is the company and its stock symbol (like FLR for Fluor). Search that symbol in any investing app to look the company up.",

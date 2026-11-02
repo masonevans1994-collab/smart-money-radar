@@ -3,7 +3,7 @@ import { matchesQuery } from "./topics";
 import type { Feed, Signal, TrackGroup } from "./types";
 
 export type Tab = "contract" | "people" | "watch" | "record" | "you";
-export type SortKey = "score" | "size" | "newest" | "move";
+export type SortKey = "score" | "size" | "newest" | "move" | "share";
 
 export const TABS: { key: Tab; label: string }[] = [
   { key: "contract", label: "Contracts" },
@@ -51,6 +51,11 @@ export function filterSignals(
 export function refine(rows: Signal[], agency: string | null, sort: SortKey): Signal[] {
   let out = agency ? rows.filter((s) => agencyLabel(s) === agency) : rows;
   if (sort === "size") out = [...out].sort((a, b) => size(b) - size(a));
+  else if (sort === "share") {
+    // Biggest relative to the company first: the one cut where the history shows any pattern.
+    const pct = (s: Signal) => (s.kind === "contract" ? s.award_pct ?? -1 : -1);
+    out = [...out].sort((a, b) => pct(b) - pct(a));
+  }
   else if (sort === "move") {
     out = [...out].sort((a, b) => Math.abs(b.change_pct ?? 0) - Math.abs(a.change_pct ?? 0));
   }
