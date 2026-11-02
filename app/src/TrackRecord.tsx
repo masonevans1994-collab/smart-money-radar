@@ -22,8 +22,6 @@ export function TrackRecord({ record }: { record?: TR | null }) {
         {record.demo ? " These are sample numbers." : ""}
       </Text>
       {record.groups.map((g) => {
-        const vs = g.avg_vs_spy ?? 0;
-        const up = vs >= 0;
         return (
           <View key={g.id} style={styles.card}>
             <Text style={styles.label}>{g.label}</Text>
@@ -31,13 +29,15 @@ export function TrackRecord({ record }: { record?: TR | null }) {
             {g.n === 0 ? null : (
               <>
                 <View style={styles.row}>
-                  <Text style={[styles.big, { color: up ? colors.up : colors.down }]}>{pct(g.avg_vs_spy)}</Text>
-                  <Text style={styles.bigLabel}>better or worse than the market, on average</Text>
+                  <Text style={[styles.big, { color: (g.beat_spy_pct ?? 0) >= 50 ? colors.up : colors.down }]}>{g.beat_spy_pct ?? 0}%</Text>
+                  <Text style={styles.bigLabel}>of the time, the stock did better than the market afterward</Text>
                 </View>
                 <View style={styles.stats}>
-                  <Stat label="Avg. return" value={pct(g.avg_return)} />
-                  <Stat label="Did better than the market" value={`${g.beat_spy_pct ?? 0}%`} />
-                  <Stat label="vs. the market after 30 days" value={pct(g.avg_vs_spy_30d)} />
+                  <Stat label="Stock, on average" value={pct(g.avg_return)} />
+                  <Stat label="The market, same days" value={pct((g.avg_return ?? 0) - (g.avg_vs_spy ?? 0))} />
+                  {g.n_30d != null && g.n_30d > 0 && g.avg_vs_spy_30d != null && (
+                    <Stat label="Gap after 30 days" value={`${g.avg_vs_spy_30d > 0 ? "+" : ""}${g.avg_vs_spy_30d.toFixed(1)} pts`} />
+                  )}
                 </View>
                 <Text style={styles.muted}>
                   {g.n} signal{g.n === 1 ? "" : "s"} since {shortDate(g.since)}
