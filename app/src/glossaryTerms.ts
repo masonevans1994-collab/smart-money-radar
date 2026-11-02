@@ -13,5 +13,9 @@ export const GLOSSARY: [string, string][] = [
   ["Committee", "A group of lawmakers who oversee one area, like Armed Services for the military. Radar notes when a member's committee oversees the agency that signed a contract."],
   ["Closing price", "What the stock last traded for when the market closed that day. The bar charts in Radar use closing prices."],
   ["S&P 500", "A basket of 500 large U.S. companies, used as a stand-in for \"the market\". The Record tab compares signals against it."],
+  ["Beat the market", "The stock went up more (or down less) than the S&P 500 over the same days. A stock can fall and still \"beat the market\" if the market fell further."],
+  ["Points", "The gap between two percentages. If a stock rose 5% and the market rose 3%, the stock did 2 points better."],
+  ["Group", "Other stocks in the same line of business, like defense or health care. If a stock and its group moved the same way, the move probably wasn't about the contract."],
+  ["Too soon to tell", "The market hasn't had a trading day since the award was signed, so there's no price move to report yet."],
   ["Score", "Radar's 0 to 100 rating of how unusual a public record is. It is not a rating of whether a stock is a good investment."],
 ];

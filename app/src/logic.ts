@@ -440,6 +440,9 @@ export function termsFor(s: Signal): string[] {
     t.unshift(s.is_modification ? "Add-on" : "Contract award");
     t.push("Agency");
     if (s.market_cap) t.push("Market value");
+    if (s.history?.closest) t.push("Beat the market", "Points");
+    if (s.sector_pct !== undefined) t.push("Group");
+    if (tooSoon(s)) t.push("Too soon to tell");
     if (s.committee_flag) t.push("Committee");
   } else if (s.kind === "insider") {
     t.unshift("Insider", "Open-market buy");
