@@ -15,7 +15,7 @@ import {
 } from "./src/data";
 import {
   agencySummary, allSignals, amountLabel, biggestThisWeek, catchUp, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
-  savedStocks, type SortKey, statusNote, type Tab, TABS, timeAgo, topAgencies, weeklyRecap, withDayHeaders,
+  peopleSummary, savedStocks, type SortKey, statusNote, type Tab, TABS, timeAgo, topAgencies, weeklyRecap, withDayHeaders,
 } from "./src/logic";
 import {
   callFor, checkIn, type Direction, loadProgress, makeCall, type Progress, EMPTY, resolveCalls,
@@ -158,6 +158,7 @@ function Radar({ appearance, onAppearance }: {
   const fresh = freshness(feed);
   const biggest = biggestThisWeek(feed);
   const recap = weeklyRecap(feed);
+  const people = tab === "people" ? peopleSummary(feed) : null;
   const settled = progress.unseenSettled ?? 0;
   const newCount = seenBefore
     ? signals.filter((s) => s.kind === "contract" && !seenBefore.has(signalKey(s))).length : 0;
@@ -222,6 +223,21 @@ function Radar({ appearance, onAppearance }: {
             </Text>
             <Text style={styles.biggestOpen}>See what it means</Text>
           </Pressable>
+        )}
+        {people && people.topBuys.length > 0 && !query && (
+          <View style={styles.biggest} accessibilityRole="summary">
+            <Text style={styles.biggestLabel}>
+              {people.topBuys[0].buyers > 1 ? "Bought by more than one person" : "What they're buying"}
+            </Text>
+            {people.topBuys.filter((b) => b.buyers > 1 || people.topBuys[0].buyers === 1).slice(0, 3).map((b) => (
+              <Pressable key={b.ticker} onPress={() => setQuery(b.ticker)} accessibilityRole="button"
+                accessibilityLabel={`Show trades in ${b.name}`} style={styles.buyRow}>
+                <Text style={styles.biggestText} numberOfLines={1}>{b.name}</Text>
+                <Text style={styles.buyMeta}>{b.buyers > 1 ? `${b.buyers} people` : `${b.latest.who.replace(/^Hon\. /, "")}, ${dayLabel(b.latest.trade_date)}`}</Text>
+              </Pressable>
+            ))}
+            <Text style={styles.biggestOpen}>Tap one to see the trades</Text>
+          </View>
         )}
         {tab === "contract" && fresh.latest && (recapHidden || !recap) && (
           <Text style={styles.heroFresh}>
@@ -479,6 +495,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   biggest: { marginTop: 16, backgroundColor: colors.panel, borderRadius: 14, padding: 14, gap: 2,
     borderLeftWidth: 3, borderLeftColor: colors.gold },
   biggestLabel: { ...type.small, color: colors.muted },
+  buyRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: 12, paddingVertical: 3 },
+  buyMeta: { ...type.small, color: colors.muted, flexShrink: 0 },
   biggestText: { ...type.lead, fontFamily: fonts.bold, color: colors.text },
   biggestOpen: { ...type.small, fontFamily: fonts.semibold, color: colors.gold, marginTop: 4 },
   heroFresh: { ...type.small, color: colors.muted, marginTop: 10, maxWidth: 340 },

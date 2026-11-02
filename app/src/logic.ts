@@ -211,9 +211,10 @@ export function heroFor(tab: Tab, feed: Feed, watchCount: number): HeroText {
       caption: `awarded to public companies in the last 30 days` };
   }
   if (tab === "people") {
-    const n = feed.congress.length + feed.insiders.length;
-    return { figure: String(n), gold: false,
-      caption: `stock trades by members of Congress and company executives` };
+    const ps = peopleSummary(feed);
+    if (ps.buys + ps.sells === 0) return { figure: "0", gold: false, caption: "trades reported by members of Congress or executives" };
+    return { figure: `${ps.buys} ${ps.buys === 1 ? "buy" : "buys"}`, gold: false,
+      caption: `and ${ps.sells} ${ps.sells === 1 ? "sale" : "sales"} reported by ${ps.members} ${ps.members === 1 ? "member" : "members"} of Congress${ps.execs ? ` and ${ps.execs} ${ps.execs === 1 ? "executive" : "executives"}` : ""}` };
   }
   if (tab === "watch") {
     return { figure: String(watchCount), gold: false,
@@ -221,6 +222,33 @@ export function heroFor(tab: Tab, feed: Feed, watchCount: number): HeroText {
   }
   if (tab === "you") return { figure: "You", gold: false, caption: "your streak, your calls and what you've learned" };
   return { figure: "Record", gold: false, caption: "how stocks did after each kind of signal" };
+}
+
+export interface PeopleSummary {
+  buys: number; sells: number; members: number; execs: number;
+  /** Stocks bought by the most people, most buyers first. */
+  topBuys: { ticker: string; name: string; buyers: number; latest: Signal }[];
+}
+
+/** What the People tab is about: who's buying what, not just how many filings. */
+export function peopleSummary(feed: Feed): PeopleSummary {
+  const con = feed.congress ?? [], ins = feed.insiders ?? [];
+  const buys = con.filter((t) => t.type === "Purchase").length + ins.length;
+  const sells = con.filter((t) => t.type.startsWith("Sale")).length;
+  const members = new Set(con.map((t) => t.who)).size;
+  const execs = new Set(ins.map((t) => t.who)).size;
+  const byTicker = new Map<string, { buyers: Set<string>; latest: Signal }>();
+  for (const t of [...con.filter((x) => x.type === "Purchase"), ...ins] as Signal[]) {
+    const cur = byTicker.get(t.ticker) ?? { buyers: new Set<string>(), latest: t };
+    cur.buyers.add(t.who);
+    if ((t.trade_date ?? "") > (cur.latest.trade_date ?? "")) cur.latest = t;
+    byTicker.set(t.ticker, cur);
+  }
+  const topBuys = [...byTicker.entries()]
+    .map(([ticker, v]) => ({ ticker, name: shortName(v.latest), buyers: v.buyers.size, latest: v.latest }))
+    .sort((a, b) => b.buyers - a.buyers || (b.latest.trade_date ?? "").localeCompare(a.latest.trade_date ?? ""))
+    .slice(0, 5);
+  return { buys, sells, members, execs, topBuys };
 }
 
 export function isFeed(x: unknown): x is Feed {

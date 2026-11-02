@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   allSignals, amountLabel, biggestThisWeek, dayLabel, filterSignals, freshness, keyNote, money,
-  moveLabel, plainSummary, refine, signalKey, tierLabel, withDayHeaders, isHeader, shortName, plainHeadline,
+  moveLabel, plainSummary, refine, signalKey, tierLabel, withDayHeaders, isHeader, shortName, plainHeadline, peopleSummary, heroFor,
 } from "../src/logic";
 import type { Feed, Signal } from "../src/types";
 
@@ -280,6 +280,21 @@ test("the freshness note fits the time of day", () => {
   assert.match(freshness(feed, new Date("2026-11-02T08:00:00")).note ?? "", /early/);
   assert.match(freshness(feed, new Date("2026-11-02T15:00:00")).note ?? "", /Nothing posted yet today/);
   assert.equal(freshness(feed, new Date("2026-10-30T15:00:00")).note, null);
+});
+
+test("people summary counts buys and finds stocks several people bought", () => {
+  const t = (who: string, ticker: string, type: string, company?: string) => ({
+    kind: "congress", who, ticker, type, owner: "Self", company, score: 10, reasons: [], headline: "", trade_date: "2026-10-20",
+    disclosed: "2026-10-25", url: "", district: "", asset_type: "ST", amount_low: 1001, amount_high: 15000,
+  } as unknown as Signal);
+  const feed = { contracts: [], insiders: [], congress: [
+    t("A", "DIS", "Purchase", "Walt Disney Company"), t("B", "DIS", "Purchase", "Walt Disney Company"),
+    t("A", "MCD", "Sale"), t("C", "NVDA", "Purchase", "NVIDIA Corporation"),
+  ], generated_at: "" } as unknown as Feed;
+  const ps = peopleSummary(feed);
+  assert.equal(ps.buys, 3); assert.equal(ps.sells, 1); assert.equal(ps.members, 3);
+  assert.equal(ps.topBuys[0].ticker, "DIS"); assert.equal(ps.topBuys[0].buyers, 2); assert.equal(ps.topBuys[0].name, "Walt Disney");
+  assert.match(heroFor("people", feed, 0).figure, /^3 buys$/);
 });
 
 console.log(`\n${passed} logic tests passed`);
