@@ -1,0 +1,708 @@
+{
+ "generated": "2026-11-02",
+ "awards": 1829,
+ "companies": {
+  "LMT": {
+   "name": "LOCKHEED MARTIN",
+   "awards": 500,
+   "with_prices": 263,
+   "market_cap": 147249285983,
+   "d30": {
+    "n": 263,
+    "avg_vs_spy": -0.28,
+    "median_vs_spy": -2.3,
+    "beat_pct": 46,
+    "up_pct": 53,
+    "avg_raw": 1.87
+   }
+  },
+  "RTX": {
+   "name": "RAYTHEON",
+   "awards": 500,
+   "with_prices": 183,
+   "market_cap": 271136346225,
+   "d30": {
+    "n": 183,
+    "avg_vs_spy": 2.86,
+    "median_vs_spy": 4.13,
+    "beat_pct": 64,
+    "up_pct": 77,
+    "avg_raw": 5.58
+   }
+  },
+  "NOC": {
+   "name": "NORTHROP GRUMMAN",
+   "awards": 500,
+   "with_prices": 144,
+   "market_cap": 78694492367,
+   "d30": {
+    "n": 144,
+    "avg_vs_spy": -0.78,
+    "median_vs_spy": -1.8,
+    "beat_pct": 42,
+    "up_pct": 51,
+    "avg_raw": 1.37
+   }
+  },
+  "GD": {
+   "name": "GENERAL DYNAMICS",
+   "awards": 500,
+   "with_prices": 179,
+   "market_cap": 100438098620,
+   "d30": {
+    "n": 176,
+    "avg_vs_spy": 1.58,
+    "median_vs_spy": 1.32,
+    "beat_pct": 59,
+    "up_pct": 78,
+    "avg_raw": 3.55
+   }
+  },
+  "BA": {
+   "name": "BOEING",
+   "awards": 500,
+   "with_prices": 210,
+   "market_cap": 139970436772,
+   "d30": {
+    "n": 210,
+    "avg_vs_spy": -0.93,
+    "median_vs_spy": -2.82,
+    "beat_pct": 40,
+    "up_pct": 44,
+    "avg_raw": 0.99
+   }
+  },
+  "LHX": {
+   "name": "L3HARRIS",
+   "awards": 359,
+   "with_prices": 134,
+   "market_cap": 51609259666,
+   "d30": {
+    "n": 134,
+    "avg_vs_spy": -1.51,
+    "median_vs_spy": -0.58,
+    "beat_pct": 47,
+    "up_pct": 62,
+    "avg_raw": 1.3
+   }
+  },
+  "HII": {
+   "name": "HUNTINGTON INGALLS",
+   "awards": 91,
+   "with_prices": 21,
+   "market_cap": 12233217363,
+   "d30": {
+    "n": 21,
+    "avg_vs_spy": 6.28,
+    "median_vs_spy": 5.91,
+    "beat_pct": 76,
+    "up_pct": 76,
+    "avg_raw": 6.01
+   }
+  },
+  "LDOS": {
+   "name": "LEIDOS",
+   "awards": 377,
+   "with_prices": 92,
+   "market_cap": 18002485072,
+   "d30": {
+    "n": 91,
+    "avg_vs_spy": 0.85,
+    "median_vs_spy": 2.49,
+    "beat_pct": 67,
+    "up_pct": 70,
+    "avg_raw": 2.92
+   }
+  },
+  "SAIC": {
+   "name": "SCIENCE APPLICATIONS INTERNATIONAL",
+   "awards": 312,
+   "with_prices": 47,
+   "market_cap": 6364460194,
+   "d30": {
+    "n": 46,
+    "avg_vs_spy": 0.35,
+    "median_vs_spy": 3.38,
+    "beat_pct": 65,
+    "up_pct": 63,
+    "avg_raw": 2.88
+   }
+  },
+  "CACI": {
+   "name": "CACI",
+   "awards": 240,
+   "with_prices": 60,
+   "market_cap": 15046518551,
+   "d30": {
+    "n": 59,
+    "avg_vs_spy": 1.48,
+    "median_vs_spy": 1.94,
+    "beat_pct": 61,
+    "up_pct": 69,
+    "avg_raw": 4.32
+   }
+  },
+  "BAH": {
+   "name": "BOOZ ALLEN",
+   "awards": 423,
+   "with_prices": 82,
+   "market_cap": 10451857474,
+   "d30": {
+    "n": 82,
+    "avg_vs_spy": -2.05,
+    "median_vs_spy": -1.41,
+    "beat_pct": 45,
+    "up_pct": 51,
+    "avg_raw": 0.03
+   }
+  },
+  "KBR": {
+   "name": "KBR",
+   "awards": 239,
+   "with_prices": 39,
+   "market_cap": 4988871699,
+   "d30": {
+    "n": 39,
+    "avg_vs_spy": -1.3,
+    "median_vs_spy": -1.33,
+    "beat_pct": 44,
+    "up_pct": 49,
+    "avg_raw": -0.71
+   }
+  },
+  "PSN": {
+   "name": "PARSONS",
+   "awards": 74,
+   "with_prices": 12,
+   "market_cap": 5595671625,
+   "d30": {
+    "n": 12,
+    "avg_vs_spy": 7.21,
+    "median_vs_spy": 8.09,
+    "beat_pct": 83,
+    "up_pct": 83,
+    "avg_raw": 9.4
+   }
+  },
+  "KTOS": {
+   "name": "KRATOS",
+   "awards": 14,
+   "with_prices": 4,
+   "market_cap": 7644012665,
+   "d30": null
+  },
+  "AVAV": {
+   "name": "AEROVIRONMENT",
+   "awards": 24,
+   "with_prices": 13,
+   "market_cap": 6454229154,
+   "d30": {
+    "n": 13,
+    "avg_vs_spy": 4.6,
+    "median_vs_spy": 2.98,
+    "beat_pct": 62,
+    "up_pct": 62,
+    "avg_raw": 6.39
+   }
+  },
+  "PLTR": {
+   "name": "PALANTIR",
+   "awards": 30,
+   "with_prices": 21,
+   "market_cap": null,
+   "d30": {
+    "n": 20,
+    "avg_vs_spy": 9.09,
+    "median_vs_spy": 7.47,
+    "beat_pct": 70,
+    "up_pct": 75,
+    "avg_raw": 10.77
+   }
+  },
+  "RKLB": {
+   "name": "ROCKET LAB",
+   "awards": 3,
+   "with_prices": 2,
+   "market_cap": 32167320908,
+   "d30": null
+  },
+  "BWXT": {
+   "name": "BWX TECHNOLOGIES",
+   "awards": 0,
+   "with_prices": 0,
+   "market_cap": 12164650676,
+   "d30": null
+  },
+  "CW": {
+   "name": "CURTISS-WRIGHT",
+   "awards": 3,
+   "with_prices": 1,
+   "market_cap": 18031303585,
+   "d30": null
+  },
+  "HWM": {
+   "name": "HOWMET",
+   "awards": 0,
+   "with_prices": 0,
+   "market_cap": 84268235892,
+   "d30": null
+  },
+  "TDG": {
+   "name": "TRANSDIGM",
+   "awards": 0,
+   "with_prices": 0,
+   "market_cap": 66784818153,
+   "d30": null
+  },
+  "TXT": {
+   "name": "TEXTRON",
+   "awards": 87,
+   "with_prices": 23,
+   "market_cap": 14856377641,
+   "d30": {
+    "n": 23,
+    "avg_vs_spy": -1.46,
+    "median_vs_spy": -2.5,
+    "beat_pct": 35,
+    "up_pct": 39,
+    "avg_raw": -0.11
+   }
+  },
+  "OSK": {
+   "name": "OSHKOSH",
+   "awards": 69,
+   "with_prices": 38,
+   "market_cap": 8883013306,
+   "d30": {
+    "n": 38,
+    "avg_vs_spy": -0.47,
+    "median_vs_spy": -1.97,
+    "beat_pct": 39,
+    "up_pct": 45,
+    "avg_raw": 1.26
+   }
+  },
+  "MRCY": {
+   "name": "MERCURY SYSTEMS",
+   "awards": 4,
+   "with_prices": 0,
+   "market_cap": 4681597862,
+   "d30": null
+  },
+  "VSEC": {
+   "name": "VSE CORPORATION",
+   "awards": 7,
+   "with_prices": 0,
+   "market_cap": 4493482684,
+   "d30": null
+  },
+  "AIR": {
+   "name": "AAR CORP",
+   "awards": 8,
+   "with_prices": 4,
+   "market_cap": 4256567006,
+   "d30": null
+  },
+  "HON": {
+   "name": "HONEYWELL",
+   "awards": 64,
+   "with_prices": 25,
+   "market_cap": 71196208766,
+   "d30": {
+    "n": 25,
+    "avg_vs_spy": -2.11,
+    "median_vs_spy": -1.16,
+    "beat_pct": 32,
+    "up_pct": 44,
+    "avg_raw": 1.1
+   }
+  },
+  "GE": {
+   "name": "GE AEROSPACE",
+   "awards": 0,
+   "with_prices": 0,
+   "market_cap": 324524378924,
+   "d30": null
+  },
+  "ACN": {
+   "name": "ACCENTURE FEDERAL",
+   "awards": 160,
+   "with_prices": 47,
+   "market_cap": 165939517060,
+   "d30": {
+    "n": 45,
+    "avg_vs_spy": -1.64,
+    "median_vs_spy": 1.05,
+    "beat_pct": 58,
+    "up_pct": 58,
+    "avg_raw": -0.61
+   }
+  },
+  "IBM": {
+   "name": "INTERNATIONAL BUSINESS MACHINES",
+   "awards": 74,
+   "with_prices": 19,
+   "market_cap": 245098165670,
+   "d30": {
+    "n": 18,
+    "avg_vs_spy": 0.13,
+    "median_vs_spy": 0.04,
+    "beat_pct": 56,
+    "up_pct": 56,
+    "avg_raw": 1.53
+   }
+  },
+  "ORCL": {
+   "name": "ORACLE",
+   "awards": 37,
+   "with_prices": 5,
+   "market_cap": 371692757028,
+   "d30": {
+    "n": 5,
+    "avg_vs_spy": 4.05,
+    "median_vs_spy": 2.17,
+    "beat_pct": 60,
+    "up_pct": 60,
+    "avg_raw": 3.82
+   }
+  },
+  "FLR": {
+   "name": "FLUOR",
+   "awards": 22,
+   "with_prices": 6,
+   "market_cap": 6414221451,
+   "d30": {
+    "n": 6,
+    "avg_vs_spy": 2.05,
+    "median_vs_spy": 5.55,
+    "beat_pct": 67,
+    "up_pct": 67,
+    "avg_raw": 4.01
+   }
+  },
+  "J": {
+   "name": "JACOBS",
+   "awards": 61,
+   "with_prices": 10,
+   "market_cap": 18483919479,
+   "d30": {
+    "n": 10,
+    "avg_vs_spy": 2.61,
+    "median_vs_spy": 1.22,
+    "beat_pct": 80,
+    "up_pct": 60,
+    "avg_raw": 4.91
+   }
+  },
+  "ACM": {
+   "name": "AECOM",
+   "awards": 33,
+   "with_prices": 9,
+   "market_cap": 8475303500,
+   "d30": {
+    "n": 9,
+    "avg_vs_spy": -4.2,
+    "median_vs_spy": -4.16,
+    "beat_pct": 33,
+    "up_pct": 33,
+    "avg_raw": -2.93
+   }
+  },
+  "TTEK": {
+   "name": "TETRA TECH",
+   "awards": 51,
+   "with_prices": 5,
+   "market_cap": 10130397442,
+   "d30": {
+    "n": 5,
+    "avg_vs_spy": 1.45,
+    "median_vs_spy": -0.28,
+    "beat_pct": 40,
+    "up_pct": 60,
+    "avg_raw": 6.41
+   }
+  },
+  "AMEN": {
+   "name": "AMENTUM",
+   "awards": 300,
+   "with_prices": 60,
+   "market_cap": null,
+   "d30": {
+    "n": 60,
+    "avg_vs_spy": -2.33,
+    "median_vs_spy": -2.75,
+    "beat_pct": 35,
+    "up_pct": 48,
+    "avg_raw": 0.39
+   }
+  },
+  "HUM": {
+   "name": "HUMANA",
+   "awards": 3,
+   "with_prices": 0,
+   "market_cap": null,
+   "d30": null
+  },
+  "CNC": {
+   "name": "CENTENE",
+   "awards": 0,
+   "with_prices": 0,
+   "market_cap": 32535869564,
+   "d30": null
+  },
+  "MOH": {
+   "name": "MOLINA",
+   "awards": 0,
+   "with_prices": 0,
+   "market_cap": 10512296713,
+   "d30": null
+  },
+  "MCK": {
+   "name": "MCKESSON",
+   "awards": 47,
+   "with_prices": 40,
+   "market_cap": 116862895820,
+   "d30": {
+    "n": 40,
+    "avg_vs_spy": 1.05,
+    "median_vs_spy": 0.28,
+    "beat_pct": 50,
+    "up_pct": 72,
+    "avg_raw": 3.42
+   }
+  },
+  "CAH": {
+   "name": "CARDINAL HEALTH",
+   "awards": 1,
+   "with_prices": 0,
+   "market_cap": 59147496834,
+   "d30": null
+  },
+  "LUNR": {
+   "name": "INTUITIVE MACHINES",
+   "awards": 9,
+   "with_prices": 4,
+   "market_cap": 890983376,
+   "d30": null
+  },
+  "RDW": {
+   "name": "REDWIRE",
+   "awards": 0,
+   "with_prices": 0,
+   "market_cap": 2078688439,
+   "d30": null
+  },
+  "BKSY": {
+   "name": "BLACKSKY",
+   "awards": 0,
+   "with_prices": 0,
+   "market_cap": 707590625,
+   "d30": null
+  },
+  "PL": {
+   "name": "PLANET LABS",
+   "awards": 0,
+   "with_prices": 0,
+   "market_cap": null,
+   "d30": null
+  },
+  "ASTS": {
+   "name": "AST SPACEMOBILE",
+   "awards": 0,
+   "with_prices": 0,
+   "market_cap": null,
+   "d30": null
+  },
+  "VVX": {
+   "name": "V2X",
+   "awards": 114,
+   "with_prices": 27,
+   "market_cap": 2589910205,
+   "d30": {
+    "n": 26,
+    "avg_vs_spy": -2.79,
+    "median_vs_spy": -3.18,
+    "beat_pct": 42,
+    "up_pct": 46,
+    "avg_raw": 0.66
+   }
+  },
+  "GEV": {
+   "name": "GE VERNOVA",
+   "awards": 0,
+   "with_prices": 0,
+   "market_cap": 235086173252,
+   "d30": null
+  },
+  "MAXR": {
+   "name": "MAXAR",
+   "awards": 2,
+   "with_prices": 0,
+   "market_cap": null,
+   "d30": null
+  }
+ },
+ "cuts": {
+  "all_d1": {
+   "n": 1829,
+   "avg_vs_spy": 0.04,
+   "median_vs_spy": -0.01,
+   "beat_pct": 50,
+   "up_pct": 53,
+   "avg_raw": 0.14
+  },
+  "all_d5": {
+   "n": 1828,
+   "avg_vs_spy": 0.18,
+   "median_vs_spy": 0.04,
+   "beat_pct": 51,
+   "up_pct": 56,
+   "avg_raw": 0.43
+  },
+  "all_d30": {
+   "n": 1817,
+   "avg_vs_spy": 0.23,
+   "median_vs_spy": 0.24,
+   "beat_pct": 51,
+   "up_pct": 60,
+   "avg_raw": 2.4
+  },
+  "size:giant (over $50B)": {
+   "n": 1243,
+   "avg_vs_spy": 0.12,
+   "median_vs_spy": -0.13,
+   "beat_pct": 50,
+   "up_pct": 60,
+   "avg_raw": 2.33
+  },
+  "size:large ($10B to $50B)": {
+   "n": 293,
+   "avg_vs_spy": 0.43,
+   "median_vs_spy": 1.88,
+   "beat_pct": 58,
+   "up_pct": 62,
+   "avg_raw": 2.48
+  },
+  "size:mid ($2B to $10B)": {
+   "n": 197,
+   "avg_vs_spy": 0.24,
+   "median_vs_spy": 1.97,
+   "beat_pct": 53,
+   "up_pct": 55,
+   "avg_raw": 2.13
+  },
+  "size:small (under $2B)": null,
+  "size:unknown size": {
+   "n": 80,
+   "avg_vs_spy": 0.53,
+   "median_vs_spy": -2.03,
+   "beat_pct": 44,
+   "up_pct": 55,
+   "avg_raw": 2.99
+  },
+  "share:under 0.5% of company": {
+   "n": 1384,
+   "avg_vs_spy": 0.14,
+   "median_vs_spy": 0.04,
+   "beat_pct": 50,
+   "up_pct": 59,
+   "avg_raw": 2.28
+  },
+  "share:0.5% to 3%": {
+   "n": 313,
+   "avg_vs_spy": 0.72,
+   "median_vs_spy": 1.98,
+   "beat_pct": 56,
+   "up_pct": 62,
+   "avg_raw": 2.79
+  },
+  "share:3% to 10%": {
+   "n": 34,
+   "avg_vs_spy": -3.24,
+   "median_vs_spy": -2.58,
+   "beat_pct": 47,
+   "up_pct": 50,
+   "avg_raw": -0.11
+  },
+  "share:over 10% of company": {
+   "n": 6,
+   "avg_vs_spy": 11.77,
+   "median_vs_spy": 10.63,
+   "beat_pct": 83,
+   "up_pct": 83,
+   "avg_raw": 13.71
+  },
+  "share:unknown share": {
+   "n": 80,
+   "avg_vs_spy": 0.53,
+   "median_vs_spy": -2.03,
+   "beat_pct": 44,
+   "up_pct": 55,
+   "avg_raw": 2.99
+  },
+  "share5:under 0.5% of company": {
+   "n": 1392,
+   "avg_vs_spy": 0.15,
+   "median_vs_spy": 0.04,
+   "beat_pct": 51,
+   "up_pct": 56,
+   "avg_raw": 0.41
+  },
+  "share5:0.5% to 3%": {
+   "n": 314,
+   "avg_vs_spy": 0.29,
+   "median_vs_spy": 0.03,
+   "beat_pct": 51,
+   "up_pct": 58,
+   "avg_raw": 0.43
+  },
+  "share5:3% to 10%": {
+   "n": 35,
+   "avg_vs_spy": 0.19,
+   "median_vs_spy": 0.54,
+   "beat_pct": 54,
+   "up_pct": 51,
+   "avg_raw": 0.89
+  },
+  "share5:over 10% of company": {
+   "n": 6,
+   "avg_vs_spy": 3.64,
+   "median_vs_spy": 2.54,
+   "beat_pct": 83,
+   "up_pct": 67,
+   "avg_raw": 3.49
+  },
+  "abs:$25M to $100M": {
+   "n": 1257,
+   "avg_vs_spy": 0.4,
+   "median_vs_spy": 0.12,
+   "beat_pct": 51,
+   "up_pct": 59,
+   "avg_raw": 2.5
+  },
+  "abs:$100M to $500M": {
+   "n": 432,
+   "avg_vs_spy": -0.47,
+   "median_vs_spy": 0.3,
+   "beat_pct": 51,
+   "up_pct": 59,
+   "avg_raw": 1.73
+  },
+  "abs:$500M to $2B": {
+   "n": 109,
+   "avg_vs_spy": 1.32,
+   "median_vs_spy": 1.9,
+   "beat_pct": 57,
+   "up_pct": 71,
+   "avg_raw": 4.0
+  },
+  "abs:over $2B": {
+   "n": 19,
+   "avg_vs_spy": -1.27,
+   "median_vs_spy": -4.13,
+   "beat_pct": 32,
+   "up_pct": 47,
+   "avg_raw": 1.08
+  }
+ }
+}
