@@ -195,6 +195,10 @@ def fetch_insider_buys(fetcher, days: int = 3, max_filings: int = 500,
         try:
             body = fetcher.get(daily_index_url(day), cache=day < dt.date.today())
         except Blocked as e:
+            if day == dt.date.today() and "access denied" in str(e).lower():
+                # EDGAR answers 403 (not 404) for an index that isn't posted yet.
+                log(f"  no EDGAR index for {day} yet; checking earlier days")
+                continue
             log(f"  SEC refused the request ({e}). The SEC requires a real contact "
                 "email: set SEC_USER_AGENT to 'Your Name you@example.com'.")
             return []
