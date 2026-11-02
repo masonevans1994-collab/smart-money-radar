@@ -52,7 +52,7 @@ def format_alert(s: dict, app_url: str = "") -> str:
     icon = {"contract": "🏛️", "congress": "🗳️", "insider": "💼"}.get(s.get("kind"), "•")
     lines = [f"{icon} {s['ticker']} · score {s['score']}", s["headline"]]
     lines += [f"• {r}" for r in s.get("reasons", [])[1:4]]
-    if s.get("change_pct") is not None:
+    if s.get("change_pct") is not None and not _too_soon(s):
         lines.append(f"Stock {s['change_pct']:+.1f}% since")
     if s.get("url"):
         lines.append(s["url"])
@@ -94,9 +94,14 @@ def send(alerts: list[dict], app_url: str = "", env=os.environ, post=_post, log=
     return sent
 
 
+def _too_soon(s: dict) -> bool:
+    """No trading day since the award yet (signed Friday, read on the weekend)."""
+    return bool(s.get("price_date")) and bool(s.get("trade_date")) and s["price_date"] <= s["trade_date"]
+
+
 def _mv(x: dict) -> str:
     v = x.get("change_pct")
-    return "" if v is None else f" (stock {v:+.1f}% since)"
+    return "" if v is None or _too_soon(x) else f" (stock {v:+.1f}% since)"
 
 
 def weekly_digest(contracts: list[dict], today, app_url: str = "") -> str | None:
@@ -109,7 +114,7 @@ def weekly_digest(contracts: list[dict], today, app_url: str = "") -> str | None
     total = sum(c["value"] for c in recent)
     companies = {c["ticker"] for c in recent}
     big = sorted(recent, key=lambda c: c["value"], reverse=True)[:3]
-    movers = sorted((c for c in recent if c.get("change_pct") is not None),
+    movers = sorted((c for c in recent if c.get("change_pct") is not None and not _too_soon(c)),
                     key=lambda c: c["change_pct"], reverse=True)
     lines = [f"📋 Your week in government contracts",
              f"{len(recent)} contract{'s' if len(recent) != 1 else ''} worth ${total / 1e6:,.0f}M went to "
