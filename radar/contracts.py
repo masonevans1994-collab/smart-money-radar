@@ -137,8 +137,12 @@ def sentence_case(text: str) -> str:
     # Keep codes like contract numbers (anything with a digit) as written.
     out = " ".join(w if re.search(r"\d", w) else w.lower() for w in text.split(" "))
     out = re.sub(r"(^|[.!?]\s+)([a-z])", lambda m: m.group(1) + m.group(2).upper(), out)
-    for w in ("u.s.", "dod", "nasa", "va", "idiq", "fy"):
+    for w in ("u.s.", "dod", "nasa", "va", "idiq", "fy", "usg", "bpa", "cio", "gsa", "nih", "cdc",
+              "dla", "usaf", "dhs", "faa", "noaa", "doe", "hhs", "cms", "fema", "gdc"):
         out = re.sub(rf"\b{re.escape(w)}(?=\W|$)", w.upper(), out, flags=re.I)
+    out = re.sub(r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)(uary|ruary|ch|il|e|y|ust|tember|ober|ember)?\b(?=\.?\s+\d{4}|\s+\d{1,2}\b)",
+                 lambda m: m.group(0).capitalize(), out)
+    out = re.sub(r"\$\s+(?=\d)", "$", out)
     return out
 
 
