@@ -25,8 +25,10 @@ def awards_body(name: str, since: dt.date, until: dt.date, min_amount: float, pa
             "time_period": [{"start_date": since.isoformat(), "end_date": until.isoformat()}],
             "award_amounts": [{"lower_bound": min_amount}],
         },
-        "fields": ["Award ID", "Recipient Name", "Award Amount", "Start Date", "Awarding Agency",
-                   "Description"],
+        # "Base Obligation Date" is when the deal was actually signed; "Start Date" is
+        # when the work begins, which is often a fiscal placeholder like Jan 1 or Oct 1.
+        "fields": ["Award ID", "Recipient Name", "Award Amount", "Start Date", "Base Obligation Date",
+                   "Awarding Agency", "Description"],
         "sort": "Start Date", "order": "desc", "limit": 100, "page": page,
     }
 
@@ -39,8 +41,9 @@ def fetch_awards(name: str, user_agent: str, years: int = 3, min_amount: float =
     for page in range(1, max_pages + 1):
         data = post(USASPENDING, awards_body(name, since, today, min_amount, page), user_agent)
         for r in data.get("results", []):
-            if r.get("Award Amount") and r.get("Start Date"):
-                out.append({"date": r["Start Date"][:10], "value": float(r["Award Amount"]),
+            signed = (r.get("Base Obligation Date") or r.get("Start Date") or "")[:10]
+            if r.get("Award Amount") and signed:
+                out.append({"date": signed, "value": float(r["Award Amount"]),
                             "agency": r.get("Awarding Agency") or "", "id": r.get("Award ID"),
                             "recipient": r.get("Recipient Name") or "",
                             "description": (r.get("Description") or "")[:120]})

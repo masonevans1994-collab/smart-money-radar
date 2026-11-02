@@ -57,3 +57,13 @@ def test_search_name():
     assert reaction.search_name("General Dynamics Corporation") == "General Dynamics"
     assert reaction.search_name("Honeywell International Inc.") == "Honeywell"
     assert reaction.search_name("The Boeing Company") == "Boeing"
+
+
+def test_fetch_awards_uses_the_signing_date():
+    from radar import reaction
+    def post(url, body, ua):
+        return {"results": [{"Award Amount": 5e7, "Start Date": "2026-01-01", "Base Obligation Date": "2025-12-18",
+                             "Awarding Agency": "Department of Defense"}],
+                "page_metadata": {"hasNext": False}}
+    out = reaction.fetch_awards("Honeywell", "ua", post=post)
+    assert out[0]["date"] == "2025-12-18"
