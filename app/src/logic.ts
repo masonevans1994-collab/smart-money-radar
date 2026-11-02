@@ -450,7 +450,9 @@ export function plainSummary(s: Signal): string[] {
   }
   const mv = moveLabel(s);
   if (mv && s.trade_date && tooSoon(s)) {
-    out.push(`The market hasn't had a trading day since ${shortDate(s.trade_date)} yet, so there's no stock move to show. Check back after the next market day.`);
+    out.push(s.trade_date >= isoDay(new Date())
+      ? "This was signed today, so there's no stock move to show yet. Check back after the next market close."
+      : `The market hasn't had a trading day since ${shortDate(s.trade_date)} yet, so there's no stock move to show. Check back after the next market day.`);
   } else if (mv && s.trade_date) {
     out.push(`${mv.replace("Stock", "The stock is")} since ${shortDate(s.trade_date)}.`);
   }

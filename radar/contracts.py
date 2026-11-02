@@ -84,6 +84,9 @@ SMALL = {"and", "of", "the", "for", "in", "on", "at", "by", "to"}
 KEEP_UPPER = {"LLC", "LP", "LLP", "USA", "US", "USG", "IBM", "KBR", "CACI", "SAIC", "BAE", "GE",
               "AECOM", "ICF", "BWX", "BWXT", "HII", "L3", "L3HARRIS", "V2X", "II", "III", "IV", "NA",
               "AI", "IT", "PLC", "AG", "SA", "NV", "SE", "DBA"}
+# Brand spellings that title-casing would get wrong.
+BRAND_CASE = {"NRX": "NRx", "IROBOT": "iRobot", "EHEALTH": "eHealth", "IRHYTHM": "iRhythm",
+              "MCKESSON": "McKesson", "MCDONALD'S": "McDonald's", "AECOM": "AECOM"}
 
 
 def nice_case(name: str) -> str:
@@ -91,7 +94,9 @@ def nice_case(name: str) -> str:
     words = []
     for i, w in enumerate(name.split()):
         core = re.sub(r"[^A-Za-z0-9&]", "", w)
-        if core.upper() in KEEP_UPPER or (core.isupper() and len(core) <= 3 and core.isalpha()
+        if core.upper() in BRAND_CASE:
+            words.append(w.upper().replace(core.upper(), BRAND_CASE[core.upper()]))
+        elif core.upper() in KEEP_UPPER or (core.isupper() and len(core) <= 3 and core.isalpha()
                                           and core.upper() not in {"INC", "CO", "THE", "AND", "FOR", "OF", "DE"}):
             words.append(w.upper())
         elif i and core.lower() in SMALL:

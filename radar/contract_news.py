@@ -14,6 +14,7 @@ import html
 import json
 import re
 import urllib.error
+from .contracts import nice_case
 
 from .contracts import USASPENDING_AWARD, _post_json
 
@@ -31,6 +32,11 @@ AGENCY_RE = re.compile(
     r"Department of (?:Defense|War|Veterans Affairs|Homeland Security|Energy|Health and Human Services|"
     r"Transportation|State|Justice|the Navy|the Army|the Air Force)|NASA|"
     r"Missile Defense Agency|Defense Logistics Agency|DARPA|Space Development Agency|"
+    r"Defense Advanced Research Projects Agency|Defense Health Agency|Defense Information Systems Agency|"
+    r"BARDA|Biomedical Advanced Research and Development Authority|National Institutes of Health|"
+    r"Centers for Disease Control|Food and Drug Administration|FEMA|"
+    r"Department of (?:Commerce|Agriculture|the Interior|Education|Labor|the Treasury)|"
+    r"General Services Administration|Federal Aviation Administration|"
     r"Army|Navy|Air Force|Space Force)")
 
 
@@ -56,7 +62,7 @@ def parse_efts(text: str) -> list[dict]:
             continue
         company = re.sub(r"\s*\(.*$", "", names[0]).strip()
         out.append({
-            "ticker": m.group(1), "company": company.title(),
+            "ticker": m.group(1), "company": nice_case(company),
             "cik": int(ciks[0]), "adsh": adsh, "file": filename,
             "filed": src.get("file_date"),
             "url": ARCHIVE.format(cik=int(ciks[0]), folder=adsh.replace("-", ""), file=filename),
@@ -133,7 +139,7 @@ def fetch_8k_awards(fetcher, days: int = 10, min_amount: float = 10e6,
             "kind": "contract", "source": "Company 8-K", "ticker": d["ticker"],
             "company": d["company"], "who": d["company"], "recipient": d["company"],
             "parent": "", "value": award["value"],
-            "agency": award["agency"] or "Government customer", "sub_agency": "",
+            "agency": award["agency"] or "A U.S. government agency", "sub_agency": "",
             "award_date": d["filed"], "trade_date": d["filed"], "disclosed": d["filed"],
             "award_id": d["adsh"], "description": award["sentence"], "url": d["url"],
         })
