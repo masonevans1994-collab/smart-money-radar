@@ -38,6 +38,7 @@ export function matchesQuery(s: Signal, q: string): boolean {
     s.ticker, s.who,
     s.kind === "contract" ? `${s.company} ${s.description} ${s.agency} ${s.sub_agency} ${topicsFor(s).join(" ")}` : "",
     s.kind === "insider" ? s.company : "",
+    s.kind === "congress" ? `${s.company ?? ""} ${s.type} ${s.owner}` : "",
   ].join(" ").toLowerCase();
   return words.every((w) => hay.includes(w));
 }

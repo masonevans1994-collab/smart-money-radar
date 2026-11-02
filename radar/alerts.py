@@ -94,6 +94,15 @@ def send(alerts: list[dict], app_url: str = "", env=os.environ, post=_post, log=
     return sent
 
 
+def _name(s: dict) -> str:
+    """'Honeywell International Inc.' -> 'Honeywell (HON)'."""
+    import re
+    full = s.get("company") or s.get("ticker", "")
+    short = re.split(r" (Inc|Corp|plc|Co|Company|Corporation|Holdings|Technologies|International|Group|Ltd|Limited)\b",
+                     full, flags=re.I)[0].rstrip(",").strip() or full
+    return f"{short} ({s.get('ticker', '')})" if s.get("ticker") else short
+
+
 def _too_soon(s: dict) -> bool:
     """No trading day since the award yet (signed Friday, read on the weekend)."""
     return bool(s.get("price_date")) and bool(s.get("trade_date")) and s["price_date"] <= s["trade_date"]
@@ -120,10 +129,10 @@ def weekly_digest(contracts: list[dict], today, app_url: str = "") -> str | None
              f"{len(recent)} contract{'s' if len(recent) != 1 else ''} worth ${total / 1e6:,.0f}M went to "
              f"{len(companies)} public compan{'ies' if len(companies) != 1 else 'y'}.", "",
              "Biggest:"]
-    lines += [f"• ${c['value'] / 1e6:,.0f}M to {c.get('company', c['ticker'])} ({c['ticker']}){_mv(c)}" for c in big]
+    lines += [f"• ${c['value'] / 1e6:,.0f}M to {_name(c)}{_mv(c)}" for c in big]
     if movers:
-        lines += ["", f"Best mover: {movers[0]['ticker']} {movers[0]['change_pct']:+.1f}% since its award",
-                  f"Worst mover: {movers[-1]['ticker']} {movers[-1]['change_pct']:+.1f}% since its award"]
+        lines += ["", f"Best mover: {_name(movers[0])} {movers[0]['change_pct']:+.1f}% since its award",
+                  f"Worst mover: {_name(movers[-1])} {movers[-1]['change_pct']:+.1f}% since its award"]
     if app_url:
         lines += ["", f"Open Radar: {app_url}"]
     lines += ["", "From public records. Not investment advice."]

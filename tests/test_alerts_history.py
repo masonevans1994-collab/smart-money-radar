@@ -63,6 +63,6 @@ def test_weekly_digest():
     d = alerts.weekly_digest(cs, dt.date(2026, 11, 1), "https://app")
     assert "2 contracts worth $695M went to 2 public companies." in d
     assert "• $372M to Fluor (FLR) (stock +1.0% since)" in d
-    assert "Best mover: FLR +1.0%" in d and "Worst mover: HON +0.0%" in d
+    assert "Best mover: Fluor (FLR) +1.0%" in d and "Worst mover: Honeywell (HON) +0.0%" in d
     assert alerts.weekly_digest([], dt.date(2026, 11, 1)) is None
     assert alerts.format_alert({"kind": "digest", "headline": d}) == d
