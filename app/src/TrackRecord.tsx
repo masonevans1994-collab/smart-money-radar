@@ -29,7 +29,7 @@ export function TrackRecord({ record }: { record?: TR | null }) {
             {g.n === 0 ? null : (
               <>
                 <View style={styles.row}>
-                  <Text style={[styles.big, { color: (g.beat_spy_pct ?? 0) >= 50 ? colors.up : colors.down }]}>{g.beat_spy_pct ?? 0}%</Text>
+                  <Text style={[styles.big, { color: (g.beat_spy_pct ?? 0) >= 60 ? colors.up : (g.beat_spy_pct ?? 0) <= 40 ? colors.down : colors.text }]}>{g.beat_spy_pct ?? 0}%</Text>
                   <Text style={styles.bigLabel}>of the time, the stock did better than the market afterward</Text>
                 </View>
                 <View style={styles.stats}>
