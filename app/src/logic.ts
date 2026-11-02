@@ -390,8 +390,10 @@ function agencyFull(s: Signal): string {
   if (s.kind !== "contract") return "";
   const sub = s.sub_agency && s.sub_agency !== s.agency ? s.sub_agency : "";
   const name = sub || s.agency || "A government agency";
-  return /^(the |department|u\.s\.|army|navy|air force|space force|marine corps|defense logistics|missile defense)/i
-    .test(name) ? `The ${name.replace(/^the /i, "")}` : name;
+  if (/^(a|an) /i.test(name)) return name.charAt(0).toUpperCase() + name.slice(1);
+  return /^(the |department|u\.s\.|army|navy|air force|space force|marine corps|defense logistics|missile defense)/i.test(name)
+    || /\b(agency|authority|administration|institutes?|centers?|service|command|office|bureau|commission)$/i.test(name)
+    ? `The ${name.replace(/^the /i, "")}` : name;
 }
 
 /** "Senior EVP & CFO" -> "senior EVP & CFO": lower-case the words, keep the acronyms. */
