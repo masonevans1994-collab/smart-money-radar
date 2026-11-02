@@ -15,7 +15,7 @@ import {
 } from "./src/data";
 import {
   agencySummary, allSignals, amountLabel, biggestThisWeek, catchUp, contractsByTicker, dayLabel, filterSignals, freshness, heroFor, isHeader, type ListItem, refine, signalKey,
-  peopleSummary, savedStocks, type SortKey, statusNote, type Tab, TABS, timeAgo, topAgencies, weeklyRecap, withDayHeaders,
+  peopleSummary, savedStocks, shortDate, type SortKey, statusNote, type Tab, TABS, timeAgo, topAgencies, weeklyRecap, withDayHeaders,
 } from "./src/logic";
 import {
   callFor, checkIn, type Direction, loadProgress, makeCall, type Progress, EMPTY, resolveCalls,
@@ -233,7 +233,7 @@ function Radar({ appearance, onAppearance }: {
               <Pressable key={b.ticker} onPress={() => setQuery(b.ticker)} accessibilityRole="button"
                 accessibilityLabel={`Show trades in ${b.name}`} style={styles.buyRow}>
                 <Text style={styles.biggestText} numberOfLines={1}>{b.name}</Text>
-                <Text style={styles.buyMeta}>{b.buyers > 1 ? `${b.buyers} people` : `${b.latest.who.replace(/^Hon\. /, "")}, ${dayLabel(b.latest.trade_date)}`}</Text>
+                <Text style={styles.buyMeta}>{b.buyers > 1 ? `${b.buyers} people` : `${b.latest.who.replace(/^Hon\. /, "")}, ${shortDate(b.latest.trade_date)}`}</Text>
               </Pressable>
             ))}
             <Text style={styles.biggestOpen}>Tap one to see the trades</Text>
