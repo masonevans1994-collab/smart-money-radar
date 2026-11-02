@@ -1,0 +1,21 @@
+name: study-insiders
+on:
+  workflow_dispatch:
+  push:
+    paths: [tools/study_insiders.py, .github/workflows/study-insiders.yml]
+permissions:
+  contents: write
+jobs:
+  study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - env:
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || format('Smart Money Radar {0}@users.noreply.github.com', github.repository_owner) }}
+        run: PYTHONPATH=. python tools/study_insiders.py
+      - uses: actions/upload-artifact@v4
+        with: { name: study-insiders, path: public/study-insiders.json }
