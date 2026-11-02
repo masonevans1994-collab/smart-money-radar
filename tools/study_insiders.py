@@ -23,8 +23,9 @@ DATASET = "https://www.sec.gov/files/structureddata/data/insider-transactions-da
 WINDOWS = (5, 30, 90, 180)
 MIN_SINGLE = 25_000      # what the app shows
 MIN_CLUSTER = 100_000    # total bought across the cluster
-MAX_TICKERS = int(os.environ.get("STUDY_MAX_TICKERS", "450"))
-PRICE_BUDGET_MIN = int(os.environ.get("STUDY_PRICE_MINUTES", "45"))
+MAX_TICKERS = int(os.environ.get("STUDY_MAX_TICKERS", "420"))
+PRICE_BUDGET_MIN = int(os.environ.get("STUDY_PRICE_MINUTES", "150"))
+MAX_VALUE = 200_000_000  # above this a "purchase" is almost always a data error or a fund, not a person
 
 
 def quarters(start: dt.date, end: dt.date):
@@ -177,21 +178,19 @@ def main() -> int:
     filings = [x for x in filings if x["filed"] >= start.isoformat()]
     print(f"{len(filings)} filings with open-market purchases since {start}")
 
+    filings = [x for x in filings if x["value"] <= MAX_VALUE]
     singles = [x for x in filings if x["value"] >= MIN_SINGLE]
     cl = [c for c in clusters(filings) if c["n_people"] >= 2 and c["value"] >= MIN_CLUSTER]
     print(f"{len(singles)} single buys of ${MIN_SINGLE:,}+; {len(cl)} clusters (2+ insiders within 10 days, ${MIN_CLUSTER:,}+)")
 
-    # Prices: clusters first (all of them), then the biggest single buys, up to MAX_TICKERS symbols.
-    wanted = []
-    for c in sorted(cl, key=lambda c: -c["value"]):
-        if c["ticker"] not in wanted:
-            wanted.append(c["ticker"])
-    for s in sorted(singles, key=lambda s: -s["value"]):
-        if len(wanted) >= MAX_TICKERS:
-            break
-        if s["ticker"] not in wanted:
-            wanted.append(s["ticker"])
-    wanted = wanted[:MAX_TICKERS]
+    # Prices: a random (seeded) sample of cluster tickers, then of single-buy tickers,
+    # so the sample isn't skewed toward the oddest, largest filings.
+    import random
+    rng = random.Random(7)
+    cluster_t = sorted({c["ticker"] for c in cl})
+    single_t = sorted({x["ticker"] for x in singles} - set(cluster_t))
+    rng.shuffle(cluster_t); rng.shuffle(single_t)
+    wanted = (cluster_t[: int(MAX_TICKERS * 0.7)] + single_t)[:MAX_TICKERS]
     # No retries for prices: a throttled feed should fail fast, not stall the whole study.
     pf = Fetcher(ua, retries=0)
     book = prices.PriceBook(pf, start - dt.timedelta(days=10), today, log=lambda *_: None)
