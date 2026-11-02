@@ -108,7 +108,7 @@ def test_contract_scoring_flags_congress_buys():
     assert any("Sen. Jane Example bought LMT stock 29 days before" in r for r in lmt["reasons"])
     hii = next(c for c in ranked if c["ticker"] == "HII")
     assert not any("before this award" in r for r in hii["reasons"])
-    assert hii["score"] >= 40  # $1.2B award
+    assert hii["score"] >= 20  # $1.2B award: raw size alone is no longer a big score
 
 
 def test_market_cap_and_size_adjust():
@@ -131,7 +131,7 @@ def test_market_cap_and_size_adjust():
     assert marketcap.add_market_caps(cs, F(), log=lambda *_: None) == 2
     assert cs[0]["market_cap"] == 2_000_000_000 and cs[0]["award_pct"] == 24.0
     scoring.size_adjust(cs)
-    assert cs[0]["ticker"] == "QRTZ" and cs[0]["score"] == 70
+    assert cs[0]["ticker"] == "QRTZ" and cs[0]["score"] == 80
     assert "Huge for this company" in cs[0]["reasons"][1]
     lmt = next(c for c in cs if c["ticker"] == "LMT")
     assert lmt["score"] == 40 and "0.42%" in lmt["reasons"][1]

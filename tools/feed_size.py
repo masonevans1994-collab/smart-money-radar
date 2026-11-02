@@ -16,4 +16,4 @@ if d.get("contracts"):
 
 # What the contract descriptions look like after cleaning (review in the build log).
 for c in (d.get("contracts") or [])[:12]:
-    print(f"    desc: {c.get('description','')[:110]}")
+    print(f"    {c.get('score', 0):3d} {c.get('ticker',''):5s} {c.get('award_pct') if c.get('award_pct') is not None else '-':>6}%  desc: {c.get('description','')[:80]}")

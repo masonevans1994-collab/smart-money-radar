@@ -172,8 +172,11 @@ def score_contracts(contracts: list[dict], congress: list[dict],
     for c in contracts:
         score, why = 0, []
         v = c["value"]
-        score += 40 if v >= 1e9 else 30 if v >= 250e6 else 22 if v >= 100e6 \
-            else 15 if v >= 50e6 else 8
+        # Raw dollars matter little on their own: across 1,800+ past awards a $25M and a
+        # $500M award moved stocks about the same. Size relative to the company (see
+        # size_adjust) carries most of the weight instead.
+        score += 20 if v >= 1e9 else 16 if v >= 250e6 else 12 if v >= 100e6 \
+            else 10 if v >= 50e6 else 8
         agency = c.get("sub_agency") or c.get("agency") or "the government"
         what = "add-on to an existing contract" if c.get("is_modification") else "contract"
         why.append(f"Won a {_money(v)} {what} from {agency}")
@@ -221,11 +224,11 @@ def size_adjust(contracts: list[dict]) -> None:
         if pct is None or not cap:
             continue
         if pct >= 10:
-            pts, why = 30, f"Huge for this company: the award equals {pct:.0f}% of what the whole company is worth"
+            pts, why = 40, f"Huge for this company: the award equals {pct:.0f}% of what the whole company is worth"
         elif pct >= 3:
-            pts, why = 20, f"Big for this company: equal to {pct:.1f}% of its total value ({_money(cap)})"
+            pts, why = 25, f"Big for this company: equal to {pct:.1f}% of its total value ({_money(cap)})"
         elif pct >= 1:
-            pts, why = 10, f"Noticeable: {pct:.1f}% of the company's {_money(cap)} total value"
+            pts, why = 12, f"Noticeable: {pct:.1f}% of the company's {_money(cap)} total value"
         elif pct < 0.1:
             pts, why = -10, f"Small for a company worth {_money(cap)}"
         else:
