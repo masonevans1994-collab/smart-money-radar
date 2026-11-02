@@ -6,6 +6,7 @@ import {
   moveLabel, plainSummary, refine, signalKey, tierLabel, withDayHeaders, isHeader, shortName, plainHeadline,
 } from "../src/logic";
 import type { Feed, Signal } from "../src/types";
+import { topicsFor } from "../src/topics";
 
 import demoJson from "../src/demo.json";
 
@@ -265,6 +266,13 @@ test("a Friday award viewed on the weekend says too soon, not unchanged", () => 
 test("plain headlines for lists", () => {
   assert.equal(plainHeadline(contract()), "Fluor: $373M more from Energy");
   assert.equal(plainHeadline(contract({ is_modification: false })), "Fluor: new $373M contract from Energy");
+});
+
+test("topics match whole words only", () => {
+  const hon = contract({ company: "Honeywell International Inc.", description: "Management and operation of the national security campus." });
+  assert.ok(!topicsFor(hon).includes("food"), "'operation' must not read as 'ration'");
+  assert.ok(topicsFor(hon).includes("security"));
+  assert.ok(topicsFor(contract({ description: "Commodities for USG food donations: sorghum bulk." })).includes("food"));
 });
 
 console.log(`\n${passed} logic tests passed`);
