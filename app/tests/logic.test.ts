@@ -6,7 +6,6 @@ import {
   moveLabel, plainSummary, refine, signalKey, tierLabel, withDayHeaders, isHeader, shortName, plainHeadline,
 } from "../src/logic";
 import type { Feed, Signal } from "../src/types";
-import { topicsFor } from "../src/topics";
 
 import demoJson from "../src/demo.json";
 
