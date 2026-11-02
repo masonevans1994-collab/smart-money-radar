@@ -55,6 +55,16 @@ if (await first.count()) {
   }
   await page.getByText("Done", { exact: true }).click();
 }
+// Dark mode (the app follows the phone's setting by default).
+await page.emulateMedia({ colorScheme: "dark" });
+await page.getByText("Contracts", { exact: true }).last().click();
+await page.waitForTimeout(600);
+await page.screenshot({ path: `${outDir}/2b-contracts-dark.png` });
+await page.locator('[aria-label*="score"]').first().click();
+await page.waitForTimeout(600);
+await page.screenshot({ path: `${outDir}/3e-detail-dark.png` });
+await page.getByText("Done", { exact: true }).last().click();
+await page.emulateMedia({ colorScheme: "light" });
 await page.getByText("Saved", { exact: true }).last().click();
 await page.waitForTimeout(500);
 await page.screenshot({ path: `${outDir}/4b-saved.png` });
