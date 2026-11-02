@@ -280,7 +280,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
                 <Text style={styles.section}>Details</Text>
                 <Rows rows={detailRows(signal)} />
 
-                <MiniList title={`More on ${signal.ticker}`} items={rel.sameTicker} onOpen={onOpen} />
+                <MiniList title={`More on ${shortName(signal)}`} items={rel.sameTicker} onOpen={onOpen} />
                 {!contract && (
                   <MiniList title={`More from ${signal.who}`} items={rel.sameWho} onOpen={onOpen} />
                 )}
