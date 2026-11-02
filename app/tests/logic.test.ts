@@ -274,5 +274,13 @@ test("topics match whole words only", () => {
   assert.ok(topicsFor(contract({ description: "Commodities for USG food donations: sorghum bulk." })).includes("food"));
 });
 
+test("the freshness note fits the time of day", () => {
+  const feed = { contracts: [contract({ trade_date: "2026-10-30" })], insiders: [], congress: [], generated_at: "" } as unknown as Feed;
+  assert.match(freshness(feed, new Date("2026-11-01T10:00:00")).note ?? "", /weekends/);
+  assert.match(freshness(feed, new Date("2026-11-02T08:00:00")).note ?? "", /early/);
+  assert.match(freshness(feed, new Date("2026-11-02T15:00:00")).note ?? "", /Nothing posted yet today/);
+  assert.equal(freshness(feed, new Date("2026-10-30T15:00:00")).note, null);
+});
+
 console.log(`\n${passed} logic tests passed`);
 

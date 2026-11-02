@@ -289,9 +289,12 @@ export function freshness(feed: Feed, now = new Date()): { week: number; weekCou
   const weekend = now.getDay() === 0 || now.getDay() === 6;
   let note: string | null = null;
   if (latest && latest < today) {
+    const hour = now.getHours();
     note = weekend
       ? "Nothing new on weekends; agencies post on business days."
-      : "Nothing posted yet today. Agencies usually report within a few business days.";
+      : hour < 12
+        ? "It's early: agencies post through the day, and Radar checks every 30 minutes."
+        : "Nothing posted yet today. Agencies usually report a deal within a few business days of signing it.";
   }
   return { week: recent.reduce((s, c) => s + c.value, 0), weekCount: recent.length, latest, note };
 }
