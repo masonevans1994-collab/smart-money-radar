@@ -42,6 +42,8 @@ def fetch_awards(name: str, user_agent: str, years: int = 3, min_amount: float =
         data = post(USASPENDING, awards_body(name, since, today, min_amount, page), user_agent)
         for r in data.get("results", []):
             signed = (r.get("Base Obligation Date") or r.get("Start Date") or "")[:10]
+            if page == 1 and not out and not r.get("Base Obligation Date"):
+                print(f"  past awards: no Base Obligation Date in results (keys: {sorted(r)[:8]})")
             if r.get("Award Amount") and signed:
                 out.append({"date": signed, "value": float(r["Award Amount"]),
                             "agency": r.get("Awarding Agency") or "", "id": r.get("Award ID"),
