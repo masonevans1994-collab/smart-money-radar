@@ -389,6 +389,11 @@ function agencyFull(s: Signal): string {
     .test(name) ? `The ${name.replace(/^the /i, "")}` : name;
 }
 
+/** "Senior EVP & CFO" -> "senior EVP & CFO": lower-case the words, keep the acronyms. */
+export function roleWords(role: string): string {
+  return role.split(" ").map((w) => (/^[A-Z&]{2,5}$/.test(w) ? w : w.toLowerCase())).join(" ");
+}
+
 /** A short story of what happened, in everyday words. */
 export function plainSummary(s: Signal): string[] {
   const out: string[] = [];
@@ -410,7 +415,7 @@ export function plainSummary(s: Signal): string[] {
       out.push("Public filings show a member of Congress bought this stock before the award was signed. That's a fact about timing only; it doesn't mean anyone did anything wrong.");
     }
   } else if (s.kind === "insider") {
-    out.push(`${s.who}, ${s.role_label ? `the company's ${s.role_label.toLowerCase()}` : "a company insider"}, spent ${money(s.value)} of their own money on ${s.company} stock.`);
+    out.push(`${s.who}, ${s.role_label ? `the company's ${roleWords(s.role_label)}` : "a company insider"}, spent ${money(s.value)} of their own money on ${shortName(s)} stock.`);
     out.push("Executives sell their stock for lots of reasons, but they usually buy it for one: they think it's worth more than the price.");
   } else {
     const who = s.owner === "Self" ? s.who : `${s.who}'s ${s.owner.toLowerCase()}`;

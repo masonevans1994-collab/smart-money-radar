@@ -100,7 +100,21 @@ def main(argv=None) -> int:
             awards = [{k: v for k, v in c.items() if k not in ("score", "reasons", "headline")}
                       for c in prev["contracts"]]
             status["contracts"] = "stale"
+    # The same purchase can appear twice (an amended Form 4, or one filing per
+    # account): keep one card per person, company, day and amount.
+    seen_buys, unique = set(), []
+    for e in ins_raw:
+        k = (e.get("ticker"), e.get("who"), e.get("trade_date"), round(e.get("value", 0) / 100))
+        if k not in seen_buys:
+            seen_buys.add(k)
+            unique.append(e)
+    if len(unique) < len(ins_raw):
+        print(f"  merged {len(ins_raw) - len(unique)} duplicate insider filings")
+    ins_raw = unique
     ins, con = scoring.score_insider(ins_raw), scoring.score_congress(con_raw)
+    for e in ins:
+        # "OCEANFIRST FINANCIAL CORP" -> the listed name, or at least readable case.
+        e["company"] = SYMBOL_NAMES.get(e.get("ticker", "")) or contracts.nice_case(e.get("company", ""))
     # Plain company names for Congress trades ("Disney", not just "DIS").
     named = 0
     for t in con:
