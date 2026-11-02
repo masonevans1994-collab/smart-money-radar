@@ -187,7 +187,7 @@ def test_names_and_descriptions():
     m, _ = contracts.match_awards([{"recipient": "LOCKHEED MARTIN CORP", "parent": "", "value": 1e8,
                                     "award_date": "2026-10-01", "description": "SPARE PARTS"}], b)
     assert m[0]["company"] == "Lockheed Martin Corporation" and m[0]["who"] == "Lockheed Martin Corp"
-    assert m[0]["description"] == "Spare parts"
+    assert m[0]["description"] == "Spare parts."
 
 
 def test_transactions_include_new_awards_with_signing_date():
