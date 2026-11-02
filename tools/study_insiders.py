@@ -121,7 +121,8 @@ def clusters(filings: list[dict], days: int = 10) -> list[dict]:
     return out
 
 
-def forward(rows: list[tuple[str, float]], bench: list[tuple[str, float]], day: str) -> dict:
+def forward(rows: list[tuple[str, float]], bench: list[tuple[str, float]], day: str,
+            small: list[tuple[str, float]] | None = None) -> dict:
     """Moves from the first close on/after `day` (when the filing was public) to +w trading days."""
     out = {}
     days = [d for d, _ in rows]
@@ -135,6 +136,14 @@ def forward(rows: list[tuple[str, float]], bench: list[tuple[str, float]], day: 
         if i < len(rows) and j < len(bench) and base > 0 and bbase > 0:
             out[f"d{w}"] = round((rows[i][1] / base - 1) * 100, 2)
             out[f"d{w}_vs_spy"] = round(out[f"d{w}"] - (bench[j][1] / bbase - 1) * 100, 2)
+    if small:
+        sdays = [d for d, _ in small]
+        k0 = bisect_left(sdays, day)
+        if k0 < len(small):
+            sbase = small[k0][1]
+            for w in WINDOWS:
+                if f"d{w}" in out and k0 + w < len(small) and sbase > 0:
+                    out[f"d{w}_vs_iwm"] = round(out[f"d{w}"] - (small[k0 + w][1] / sbase - 1) * 100, 2)
     return out
 
 
@@ -143,10 +152,13 @@ def stats(items: list[dict], w: int) -> dict | None:
     raw = [x[f"d{w}"] for x in items if x.get(f"d{w}") is not None]
     if len(vals) < 10:
         return None
+    iwm = [x[f"d{w}_vs_iwm"] for x in items if x.get(f"d{w}_vs_iwm") is not None]
     return {"n": len(vals), "avg_vs_spy": round(statistics.mean(vals), 2),
             "median_vs_spy": round(statistics.median(vals), 2),
             "beat_pct": round(100 * sum(v > 0 for v in vals) / len(vals)),
-            "up_pct": round(100 * sum(v > 0 for v in raw) / len(raw)), "avg_raw": round(statistics.mean(raw), 2)}
+            "up_pct": round(100 * sum(v > 0 for v in raw) / len(raw)), "avg_raw": round(statistics.mean(raw), 2),
+            "beat_iwm_pct": round(100 * sum(v > 0 for v in iwm) / len(iwm)) if iwm else None,
+            "median_vs_iwm": round(statistics.median(iwm), 2) if iwm else None}
 
 
 def show(label: str, items: list[dict], report: dict) -> None:
@@ -155,8 +167,10 @@ def show(label: str, items: list[dict], report: dict) -> None:
         s = stats(items, w)
         report[f"{label}|d{w}"] = s
         if s:
-            print(f"  {w:3d} days: n={s['n']:5d}  stock up {s['up_pct']:3d}%  beat S&P {s['beat_pct']:3d}%  "
-                  f"avg vs S&P {s['avg_vs_spy']:+.2f}%  median {s['median_vs_spy']:+.2f}%")
+            print(f"  {w:3d} days: n={s['n']:5d}  up {s['up_pct']:3d}%  beat S&P {s['beat_pct']:3d}% "
+                  f"(median {s['median_vs_spy']:+.2f}%)  beat small-cap index {s['beat_iwm_pct']}% "
+                  f"(median {s['median_vs_iwm']:+.2f}%)" if s.get("median_vs_iwm") is not None else
+                  f"  {w:3d} days: n={s['n']:5d}  up {s['up_pct']:3d}%  beat S&P {s['beat_pct']:3d}% (median {s['median_vs_spy']:+.2f}%)")
         else:
             print(f"  {w:3d} days: not enough data")
 
@@ -195,8 +209,10 @@ def main() -> int:
     pf = Fetcher(ua, retries=0)
     book = prices.PriceBook(pf, start - dt.timedelta(days=10), today, log=lambda *_: None)
     bench = book.history("SPY")
+    small = book.history("IWM")  # Russell 2000: the fair yardstick for small companies
     if not bench:
         print("no S&P prices; aborting"); return 1
+    print(f"Benchmarks: S&P {len(bench)} days, small-cap index {len(small)} days", flush=True)
     print(f"Fetching prices for {len(wanted)} tickers (budget {PRICE_BUDGET_MIN} min)...", flush=True)
     hist = {}
     t0 = dt.datetime.now()
@@ -216,7 +232,7 @@ def main() -> int:
             rows = hist.get(x["ticker"])
             if not rows:
                 continue
-            fw = forward(rows, bench, x[key])
+            fw = forward(rows, bench, x[key], small)
             if fw:
                 out.append({**x, **fw})
         return out
