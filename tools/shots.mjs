@@ -74,6 +74,16 @@ await page.screenshot({ path: `${outDir}/4b-saved.png` });
 await page.getByText("People", { exact: true }).last().click();
 await page.waitForTimeout(500);
 await page.screenshot({ path: `${outDir}/5-people.png` });
+{
+  const card = page.locator('[aria-label*="score"]').first();
+  if (await card.count()) {
+    await card.click(); await page.waitForTimeout(600);
+    await page.screenshot({ path: `${outDir}/5b-people-detail.png` });
+    await page.mouse.move(195, 600); await page.mouse.wheel(0, 800); await page.waitForTimeout(300);
+    await page.screenshot({ path: `${outDir}/5c-people-detail-2.png` });
+    await page.getByText("Done", { exact: true }).last().click(); await page.waitForTimeout(200);
+  }
+}
 await page.getByText("You", { exact: true }).last().click();
 await page.waitForTimeout(500);
 await page.screenshot({ path: `${outDir}/6-you.png` });
