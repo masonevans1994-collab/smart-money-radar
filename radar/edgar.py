@@ -129,7 +129,7 @@ def parse_form4(xml_text: str, filing_url: str = "") -> dict | None:
         "issuer_name": _val(issuer, "issuerName"),
         "issuer_cik": _val(issuer, "issuerCik"),
         "ticker": (_val(issuer, "issuerTradingSymbol") or "").upper() or None,
-        "owner": "; ".join(names) or "Unknown",
+        "owner": "; ".join(person_name(n) for n in names) or "Unknown",
         "roles": roles,
         "period": _val(root, "periodOfReport"),
         "is_10b5_1": _flag(_val(root, "aff10b5One")),
@@ -184,6 +184,32 @@ def business_days_back(n: int, today: dt.date | None = None) -> list[dt.date]:
             out.append(day)
         day -= dt.timedelta(days=1)
     return out
+
+
+def person_name(raw: str) -> str:
+    """EDGAR files people as 'LAST FIRST M' or 'Last, First M'; return 'First M. Last'.
+    Entities (trusts, LLCs, funds) are left as written."""
+    raw = " ".join(raw.split())
+    if not raw or re.search(r"\b(LLC|L\.P\.|LP|INC|CORP|TRUST|FUND|PARTNERS|CAPITAL|HOLDINGS|MANAGEMENT|LTD|GROUP|FOUNDATION)\b", raw, re.I):
+        return raw
+    if "," in raw:
+        last, first = [x.strip() for x in raw.split(",", 1)]
+    else:
+        parts = raw.split(" ")
+        if len(parts) < 2:
+            return raw
+        last, first = parts[0], " ".join(parts[1:])
+    def cap(w: str) -> str:
+        if len(w) == 1:
+            return w.upper() + "."
+        if "-" in w:
+            return "-".join(cap(x) for x in w.split("-"))
+        if w.lower().startswith("mc") and len(w) > 2:
+            return "Mc" + w[2:3].upper() + w[3:].lower()
+        return w[:1].upper() + w[1:].lower()
+    first = " ".join(cap(w) for w in first.split())
+    last = " ".join(cap(w) for w in last.split())
+    return f"{first} {last}".strip()
 
 
 def fetch_insider_buys(fetcher, days: int = 3, max_filings: int = 500,

@@ -34,6 +34,8 @@ def main(argv=None) -> int:
     p.add_argument("--no-prices", action="store_true", help="skip price performance")
     p.add_argument("--contract-days", type=int, default=30,
                    help="days of new contract awards to scan (default 30)")
+    p.add_argument("--min-buy", type=float, default=25e3,
+                   help="skip insider purchases smaller than this (dollars)")
     p.add_argument("--min-contract", type=float, default=10e6,
                    help="smallest contract award to include, in dollars (default 10M)")
     p.add_argument("--no-contracts", action="store_true", help="skip contract awards")
@@ -60,6 +62,10 @@ def main(argv=None) -> int:
             return 2
         print("Scanning SEC Form 4 filings...")
         ins_raw = edgar.fetch_insider_buys(fetcher, args.days, args.max_filings)
+        small = [e for e in ins_raw if e["value"] < args.min_buy]
+        if small:
+            print(f"  skipping {len(small)} insider buys under ${args.min_buy:,.0f}")
+            ins_raw = [e for e in ins_raw if e["value"] >= args.min_buy]
         status["insiders"] = "ok" if ins_raw else "unavailable"
         con_raw = []
         if not args.no_congress:
