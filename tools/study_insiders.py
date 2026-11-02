@@ -23,7 +23,8 @@ DATASET = "https://www.sec.gov/files/structureddata/data/insider-transactions-da
 WINDOWS = (5, 30, 90, 180)
 MIN_SINGLE = 25_000      # what the app shows
 MIN_CLUSTER = 100_000    # total bought across the cluster
-MAX_TICKERS = int(os.environ.get("STUDY_MAX_TICKERS", "900"))
+MAX_TICKERS = int(os.environ.get("STUDY_MAX_TICKERS", "450"))
+PRICE_BUDGET_MIN = int(os.environ.get("STUDY_PRICE_MINUTES", "45"))
 
 
 def quarters(start: dt.date, end: dt.date):
@@ -81,7 +82,7 @@ def load_quarter(fetcher: Fetcher, q: str, log=print) -> list[dict]:
                     "trade": _iso(min(d for d in b["dates"] if d) if any(b["dates"]) else filed),
                     "value": round(b["value"]), "owners": owners.get(acc, set()),
                     "officer": "Officer" in roles.get(acc, set()) or "CEO" in "".join(roles.get(acc, set()))})
-    log(f"  {q}: {len(out)} filings with open-market purchases")
+    log(f"  {q}: {len(out)} filings with open-market purchases", flush=True)
     return out
 
 
@@ -164,7 +165,7 @@ def main() -> int:
     f = Fetcher(ua)
     today = dt.date.today()
     start = today - dt.timedelta(days=365 * 3 + 30)
-    print("Loading SEC insider-transaction data sets...")
+    print("Loading SEC insider-transaction data sets...", flush=True)
     filings = []
     for q in quarters(start, today):
         try:
@@ -191,17 +192,24 @@ def main() -> int:
         if s["ticker"] not in wanted:
             wanted.append(s["ticker"])
     wanted = wanted[:MAX_TICKERS]
-    book = prices.PriceBook(f, start - dt.timedelta(days=10), today, log=lambda *_: None)
+    # No retries for prices: a throttled feed should fail fast, not stall the whole study.
+    pf = Fetcher(ua, retries=0)
+    book = prices.PriceBook(pf, start - dt.timedelta(days=10), today, log=lambda *_: None)
     bench = book.history("SPY")
     if not bench:
         print("no S&P prices; aborting"); return 1
-    print(f"Fetching prices for {len(wanted)} tickers...")
+    print(f"Fetching prices for {len(wanted)} tickers (budget {PRICE_BUDGET_MIN} min)...", flush=True)
     hist = {}
+    t0 = dt.datetime.now()
     for i, t in enumerate(wanted, 1):
         hist[t] = book.history(t)
-        if i % 100 == 0:
-            print(f"  {i}/{len(wanted)} ({sum(1 for h in hist.values() if h)} with data)")
-    print(f"  prices found for {sum(1 for h in hist.values() if h)} of {len(wanted)}")
+        if i % 25 == 0:
+            print(f"  {i}/{len(wanted)} ({sum(1 for h in hist.values() if h)} with data, "
+                  f"{(dt.datetime.now() - t0).seconds // 60} min)", flush=True)
+        if (dt.datetime.now() - t0).seconds > PRICE_BUDGET_MIN * 60:
+            print(f"  price budget used up after {i} tickers", flush=True)
+            break
+    print(f"  prices found for {sum(1 for h in hist.values() if h)} of {len(wanted)}; sources {book.source_ok}", flush=True)
 
     def measure(items, key):
         out = []
