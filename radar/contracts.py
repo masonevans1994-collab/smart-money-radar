@@ -109,6 +109,26 @@ def listed_name(security: str) -> str:
     return re.sub(r"\s*\(The\)", "", name).strip(" ,")
 
 
+def plain_description(text: str, recipient: str = "") -> str:
+    """Strip procurement boilerplate from an award description, then fix the case.
+    'IGF::OT::IGF HONEYWELL-MANAGEMENT AND OPERATION OF THE NATIONAL SECURITY
+    CAMPUS-CONTRACT NO. DE-NA0002839' -> 'Management and operation of the
+    national security campus.'"""
+    t = text or ""
+    t = re.sub(r"IGF::\w+::IGF", " ", t)                       # inherently-governmental tags
+    t = re.sub(r"\s*[-:;,]?\s*CONTRACT\s+(NO\.?|NUMBER)\s*:?\s*[A-Z0-9-]+\.?", "", t, flags=re.I)
+    t = re.sub(r"\b(P\d{5}|MOD(IFICATION)?\s*#?\s*\d+)\b\.?", "", t, flags=re.I)
+    first = (recipient or "").split()[0].strip(",.") if recipient else ""
+    if first and len(first) > 3:
+        t = re.sub(rf"^\s*{re.escape(first)}\s*[-:]\s*", "", t, flags=re.I)
+    t = re.sub(r"\s*-\s*$", "", t)
+    t = re.sub(r"\s{2,}", " ", t).strip(" -:;,")
+    t = sentence_case(t)
+    if t and t[-1] not in ".!?":
+        t += "."
+    return t[:1].upper() + t[1:]
+
+
 def sentence_case(text: str) -> str:
     """Tame ALL-CAPS government descriptions into readable sentences."""
     letters = [c for c in text if c.isalpha()]
@@ -377,7 +397,7 @@ def match_awards(awards: list[dict], book: SymbolBook) -> tuple[list[dict], int]
         listed = book.names.get(ticker) or nice_case(name)
         matched.append({**a, "kind": "contract", "ticker": ticker,
                         "company": listed, "who": nice_case(a["recipient"]),
-                        "description": sentence_case(a.get("description") or ""),
+                        "description": plain_description(a.get("description") or "", a.get("recipient") or ""),
                         "trade_date": a["award_date"], "disclosed": a["award_date"] or ""})
     return matched, private
 

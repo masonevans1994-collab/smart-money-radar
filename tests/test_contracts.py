@@ -213,3 +213,12 @@ def test_dedupe_prefers_freshest_source():
     assert len(out) == 3
     top = next(x for x in out if x["source"] == "Company 8-K")
     assert top["also_reported_by"] == ["USAspending"] and top["description"] == "Missile production"
+
+
+def test_plain_description_strips_boilerplate():
+    from radar.contracts import plain_description
+    out = plain_description("IGF::OT::IGF HONEYWELL-MANAGEMENT AND OPERATION OF THE NATIONAL SECURITY CAMPUS-CONTRACT NO. DE-NA0002839",
+                            "HONEYWELL FEDERAL MANUFACTURING & TECHNOLOGIES, LLC")
+    assert out == "Management and operation of the national security campus."
+    assert plain_description("Pharmaceutical products for the VA", "X") == "Pharmaceutical products for the VA."
+    assert plain_description("", "") == ""

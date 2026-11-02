@@ -13,3 +13,7 @@ if d.get("contracts"):
             fields[k] = fields.get(k, 0) + len(json.dumps(v, separators=(",", ":")))
     for k, n in sorted(fields.items(), key=lambda x: -x[1])[:10]:
         print(f"    contracts.{k:16s} {n/1024:6.1f} KB")
+
+# What the contract descriptions look like after cleaning (review in the build log).
+for c in (d.get("contracts") or [])[:12]:
+    print(f"    desc: {c.get('description','')[:110]}")
