@@ -2,7 +2,7 @@ name: analyze
 on:
   workflow_dispatch:
   push:
-    paths: [tools/analyze.py, tools/diag_names.py, radar/reaction.py, .github/workflows/analyze.yml]
+    paths: [tools/analyze.py, tools/study.py, radar/reaction.py, .github/workflows/analyze.yml]
 permissions:
   contents: write
 jobs:
@@ -15,12 +15,12 @@ jobs:
       - run: pip install -r requirements.txt
       - env:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || format('Smart Money Radar {0}@users.noreply.github.com', github.repository_owner) }}
-        run: PYTHONPATH=. python tools/analyze.py
+        run: PYTHONPATH=. python tools/study.py
       - uses: actions/upload-artifact@v4
-        with: { name: reaction-report, path: public/reaction-report.json }
+        with: { name: study, path: public/study.json }
       - name: Save report to the 'screens' branch
         run: |
-          mkdir -p /tmp/out && cp public/reaction-report.json /tmp/out/
+          mkdir -p /tmp/out && cp public/study.json /tmp/out/
           cd /tmp/out && git init -q && git checkout -q -b analysis
           git add . && git -c user.name="radar-bot" -c user.email="radar-bot@users.noreply.github.com" commit -qm "Reaction report"
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" analysis
