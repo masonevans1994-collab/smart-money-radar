@@ -2,9 +2,9 @@ import {
   PublicSans_400Regular, PublicSans_600SemiBold, PublicSans_800ExtraBold, useFonts,
 } from "@expo-google-fonts/public-sans";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput,
+  ActivityIndicator, AppState, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput,
   useColorScheme, View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -119,6 +119,22 @@ function Radar({ appearance, onAppearance }: {
     if (feed) setProgress((p) => resolveCalls(p, allSignals(feed)));
   }, [feed, setProgress]);
 
+  // Coming back to the app after a while (home-screen apps have no pull-to-refresh
+  // on the web): check for new awards if the last check was over 10 minutes ago.
+  const lastCheck = useRef(Date.now());
+  useEffect(() => {
+    if (!refreshing) lastCheck.current = Date.now();
+  }, [refreshing]);
+  useEffect(() => {
+    const onActive = (state: string) => {
+      if (state === "active" && Date.now() - lastCheck.current > 10 * 60 * 1000) refresh();
+    };
+    const sub = AppState.addEventListener("change", onActive);
+    const onVis = () => { if (typeof document !== "undefined" && document.visibilityState === "visible") onActive("active"); };
+    if (typeof document !== "undefined") document.addEventListener("visibilitychange", onVis);
+    return () => { sub.remove(); if (typeof document !== "undefined") document.removeEventListener("visibilitychange", onVis); };
+  }, [refresh]);
+
   const toggleStar = useCallback((ticker: string) => {
     setWatch((prev) => {
       const next = new Set(prev);
@@ -181,7 +197,10 @@ function Radar({ appearance, onAppearance }: {
           </Pressable>
         </View>
       </View>
-      <Text style={styles.status}>{status}</Text>
+      <Pressable onPress={() => { if (!refreshing) refresh(); }} hitSlop={8} accessibilityRole="button"
+        accessibilityLabel="Check for new awards now" style={{ alignSelf: "flex-start" }}>
+        <Text style={styles.status}>{status}{!refreshing && source !== "demo" ? " · Tap to check" : ""}</Text>
+      </Pressable>
 
       {source === "demo" && (
         <Text style={styles.notice}>
@@ -189,7 +208,7 @@ function Radar({ appearance, onAppearance }: {
         </Text>
       )}
       {source === "cached" && !!error && (
-        <Text style={styles.notice}>Couldn't refresh ({error}). Pull down to try again.</Text>
+        <Text style={styles.notice}>Couldn't refresh ({error}). Tap "Updated" above to try again.</Text>
       )}
       {source === "live" && statusNote(feed) && (
         <Text style={styles.notice}>{statusNote(feed)}</Text>
@@ -334,7 +353,7 @@ function Radar({ appearance, onAppearance }: {
     <Text style={styles.empty}>
       {query ? `Nothing matches "${query}".`
         : tab === "people" ? "No reported trades by members of Congress or executives in the last two weeks."
-            : "No contract awards to public companies yet. Pull down to refresh."}
+            : "No contract awards to public companies yet. Tap 'Updated' at the top to check again."}
     </Text>
   );
 
