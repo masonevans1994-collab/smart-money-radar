@@ -72,6 +72,7 @@ function Radar({ appearance, onAppearance }: {
   const [legal, setLegal] = useState(false);
   const [recapHidden, setRecapHidden] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
+  const [onlyNew, setOnlyNew] = useState(false);
   const [showAgencies, setShowAgencies] = useState(false);
   const [glossary, setGlossary] = useState<string | null | false>(false);
   const [tour, setTour] = useState(false);
@@ -139,10 +140,11 @@ function Radar({ appearance, onAppearance }: {
   const linkedContracts = useMemo(() => (feed ? contractsByTicker(feed) : new Map()), [feed]);
   const items = useMemo<ListItem[]>(() => {
     if (tab === "watch") return [];
-    const base = filterSignals(signals, tab, query, watch);
+    let base = filterSignals(signals, tab, query, watch);
+    if (onlyNew && tab === "contract" && seenBefore) base = base.filter((x) => !seenBefore.has(signalKey(x)));
     const rows = refine(base, tab === "contract" ? agency : null, sort);
     return sort === "newest" ? withDayHeaders(rows) : rows;
-  }, [signals, tab, query, watch, agency, sort]);
+  }, [signals, tab, query, watch, agency, sort, onlyNew, seenBefore]);
 
   if (!feed) {
     return (
@@ -204,7 +206,12 @@ function Radar({ appearance, onAppearance }: {
         </Text>
         <Text style={styles.heroCaption}>{hero.caption}</Text>
         {tab === "contract" && newCount > 0 && (
-          <Text style={styles.heroNew}>{newCount} new since your last visit</Text>
+          <Pressable onPress={() => setOnlyNew((v) => !v)} style={[styles.newChip, onlyNew && styles.newChipOn]}
+            accessibilityRole="button" accessibilityLabel={onlyNew ? "Show all awards" : `Show the ${newCount} new awards`}>
+            <Text style={[styles.newChipText, onlyNew && styles.newChipTextOn]}>
+              {onlyNew ? `Showing the ${newCount} new · Show all` : `${newCount} new since your last visit · Show them`}
+            </Text>
+          </Pressable>
         )}
         {tab === "contract" && recapHidden && biggest?.kind === "contract" && (
           <Pressable onPress={() => openSignal(biggest)} style={styles.biggest} accessibilityRole="button"
@@ -462,7 +469,11 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   catchUpHide: { ...type.small, color: colors.muted },
   heroFigure: { ...type.hero, fontSize: 48, lineHeight: 52, fontVariant: ["tabular-nums"] },
   heroCaption: { ...type.lead, color: colors.soft, marginTop: 4, maxWidth: 320 },
-  heroNew: { ...type.bodyStrong, color: colors.gold, marginTop: 8 },
+  newChip: { alignSelf: "flex-start", marginTop: 10, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999,
+    backgroundColor: colors.flagBg },
+  newChipOn: { backgroundColor: colors.gold },
+  newChipText: { ...type.bodyStrong, color: colors.gold },
+  newChipTextOn: { color: colors.onGold },
   nudge: { marginHorizontal: 16, marginTop: 14, backgroundColor: colors.flagBg, borderRadius: 12, padding: 12 },
   nudgeText: { ...type.bodyStrong, color: colors.gold },
   biggest: { marginTop: 16, backgroundColor: colors.panel, borderRadius: 14, padding: 14, gap: 2,
