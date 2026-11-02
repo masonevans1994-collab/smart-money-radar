@@ -399,6 +399,21 @@ export function roleWords(role: string): string {
   return role.split(" ").map((w) => (/^[A-Z&]{2,5}$/.test(w) ? w : w.toLowerCase())).join(" ");
 }
 
+/** What happened after past awards of a similar size *relative to the company*.
+ *  From a study of 1,817 awards of $25M+ to 49 public companies, Nov 2023 to Nov 2026,
+ *  measured 30 trading days after signing against the S&P 500. */
+export const SIZE_HISTORY = [
+  { min: 10, n: 6, beat: 5, text: "Awards this big for a company are rare. In the past three years, the stock beat the market a month later in 5 of 6 such cases. That's far too few to count on." },
+  { min: 3, n: 34, beat: 16, text: "In the past three years, after awards worth 3% to 10% of the company, the stock beat the market a month later 47% of the time: no better than a coin flip." },
+  { min: 0.5, n: 313, beat: 175, text: "In the past three years, after awards worth 0.5% to 3% of the company, the stock beat the market a month later 56% of the time: only slightly better than a coin flip." },
+  { min: 0, n: 1384, beat: 692, text: "For awards this small compared with the company, the stock beat the market a month later about half the time in the past three years. On its own, a deal like this rarely moves the stock." },
+];
+
+export function sizeHistoryLine(s: Signal): string | null {
+  if (s.kind !== "contract" || s.award_pct == null) return null;
+  return SIZE_HISTORY.find((b) => (s.award_pct as number) >= b.min)?.text ?? null;
+}
+
 /** A short story of what happened, in everyday words. */
 export function plainSummary(s: Signal): string[] {
   const out: string[] = [];

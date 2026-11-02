@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   allSignals, amountLabel, biggestThisWeek, dayLabel, filterSignals, freshness, keyNote, money,
-  moveLabel, plainSummary, refine, signalKey, tierLabel, withDayHeaders, isHeader, shortName, plainHeadline, peopleSummary, heroFor,
+  moveLabel, plainSummary, refine, signalKey, tierLabel, withDayHeaders, isHeader, shortName, plainHeadline, peopleSummary, heroFor, sizeHistoryLine, SIZE_HISTORY,
 } from "../src/logic";
 import type { Feed, Signal } from "../src/types";
 
@@ -300,6 +300,13 @@ test("people summary counts buys and finds stocks several people bought", () => 
 test("'Big for the company' puts the largest share of company value first", () => {
   const a = contract({ ticker: "A", award_pct: 0.2 }), b = contract({ ticker: "B", award_pct: 12 }), c = contract({ ticker: "C" });
   assert.deepEqual(refine([a, c, b], null, "share").map((x) => x.ticker), ["B", "A", "C"]);
+});
+
+test("size history lines pick the right bucket and never promise anything", () => {
+  assert.match(sizeHistoryLine(contract({ award_pct: 12 })) ?? "", /5 of 6/);
+  assert.match(sizeHistoryLine(contract({ award_pct: 0.2 })) ?? "", /about half the time/);
+  assert.equal(sizeHistoryLine(contract({})), null);
+  for (const b of SIZE_HISTORY) assert.ok(!/\b(buy|sell|should|will rise|guarantee)\b/i.test(b.text), b.text);
 });
 
 console.log(`\n${passed} logic tests passed`);

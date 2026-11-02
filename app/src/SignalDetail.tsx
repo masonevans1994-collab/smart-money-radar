@@ -3,7 +3,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
   agencyLabel, amountLabel, isSell, keepInMind, money, plainSummary, related, SCORE_GUIDE,
-  lastTimeDetail, lastTimeHeadline, lastTimeLines, peersFor, sectorLine, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel, tooSoon, shortName, plainHeadline } from "./logic";
+  lastTimeDetail, lastTimeHeadline, lastTimeLines, peersFor, sectorLine, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel, tooSoon, shortName, plainHeadline, sizeHistoryLine } from "./logic";
 import { useEffect, useState, useMemo } from "react";
 import { agencyDescription } from "./agencies";
 import { CallBox } from "./CallBox";
@@ -181,6 +181,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
 
                 <View style={styles.plain}>
                   {plainSummary(signal).map((p) => <Text key={p} style={styles.plainText}>{p}</Text>)}
+                  {sizeHistoryLine(signal) && <Text style={styles.plainHelp}>{sizeHistoryLine(signal)}</Text>}
                   {contract && agencyDescription(signal.agency, signal.sub_agency) && (
                     <Text style={styles.plainHelp}>{agencyDescription(signal.agency, signal.sub_agency)}</Text>
                   )}

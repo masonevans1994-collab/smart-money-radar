@@ -20,7 +20,7 @@ const url = process.argv[2];
   if ((await txt()).includes('Quick tour')) findings.push('tour skip failed');
   // 3 sorts
   // Native lists only render what's on screen, so compare presence, not exact counts.
-  for (const s of ['Most notable', 'Largest', 'Biggest stock move', 'Newest']) {
+  for (const s of ['Most notable', 'Big for the company', 'Largest', 'Biggest stock move', 'Newest']) {
     await p.getByText(s, { exact: true }).click(); await p.waitForTimeout(120);
     if ((await cards()) < 1) findings.push(`sort ${s} emptied the list`);
   }
