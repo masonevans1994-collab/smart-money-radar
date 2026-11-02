@@ -35,6 +35,9 @@ if (await first.count()) {
     await companyLink.click();
     await page.waitForTimeout(600);
     await page.screenshot({ path: `${outDir}/3d-company.png` });
+    await page.mouse.move(195, 600); await page.mouse.wheel(0, 900); await page.waitForTimeout(400);
+    await page.screenshot({ path: `${outDir}/3d-company-2.png` });
+    await page.mouse.wheel(0, -4000); await page.waitForTimeout(200);
     await page.getByText("‹ Back", { exact: true }).click();
     await page.waitForTimeout(300);
   }
