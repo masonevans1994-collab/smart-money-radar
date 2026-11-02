@@ -18,7 +18,14 @@ const SECTIONS: [string, string[]][] = [
     "The gold number is the contract's value. Under it is the company and its stock symbol (like FLR for Fluor). Search that symbol in any investing app to look the company up.",
     "The little bar chart is the stock price each day. The gold bar is the day the contract was signed. Green bars mean the price is higher than on that day, red means lower.",
   ]],
+  ["What happened last time", [
+    "For each award, Radar looks back three years at that company's past government deals of $25M or more and checks how its stock moved in the 30 days after each one, compared with the market.",
+    "The headline picks the past deal closest in size. It's real history, not a forecast: a stock that went up after the last deal can go down after this one.",
+  ]],
   ["What the score means", SCORE_GUIDE.map(([r, t]) => `${r}: ${t}`)],
+  ["The Record tab", [
+    "The Record tab adds up every award Radar has tracked and shows how often the stock did better than the market afterward. So far, for the giant companies that win most contracts, a new award has usually been a non-event for the stock. Smaller companies react more.",
+  ]],
   ["Congress and insiders", [
     "Members of Congress and company executives have to report when they buy or sell stock. Radar shows those trades and notes when a trade happened shortly before a related contract. That's a fact about timing only, not a claim that anyone did anything wrong.",
   ]],
