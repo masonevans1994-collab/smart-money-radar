@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
@@ -20,6 +20,7 @@ export function CompanyPage({ view, saved, onToggleSave, onOpen, onClose }: {
 }) {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const [showAll, setShowAll] = useState(false);
   if (!view) return null;
   const a = view.anchor;
   const hist = a.kind === "contract" ? a.history : undefined;
@@ -88,9 +89,12 @@ export function CompanyPage({ view, saved, onToggleSave, onOpen, onClose }: {
             {!!hist?.awards?.length && (
               <>
                 <Text style={styles.section}>Past deals and what the stock did after</Text>
+                <Text style={styles.help}>
+                  The stock's own move in the 30 days after each deal. Green or red says nothing about the market that month: see the summary above for the comparison.
+                </Text>
                 <View style={styles.list}>
-                  {hist.awards.map((h, i) => (
-                    <View key={`${h.date}-${i}`} style={[styles.item, i === hist.awards!.length - 1 && { borderBottomWidth: 0 }]}>
+                  {(showAll ? hist.awards : hist.awards.slice(0, 6)).map((h, i, arr) => (
+                    <View key={`${h.date}-${i}`} style={[styles.item, i === arr.length - 1 && !(!showAll && hist.awards!.length > 6) && { borderBottomWidth: 0 }]}>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.itemAmount}>{money(h.value)}</Text>
                         <Text style={styles.itemText} numberOfLines={1}>
@@ -103,6 +107,11 @@ export function CompanyPage({ view, saved, onToggleSave, onOpen, onClose }: {
                       </Text>
                     </View>
                   ))}
+                  {!showAll && hist.awards.length > 6 && (
+                    <Pressable onPress={() => setShowAll(true)} style={[styles.item, { borderBottomWidth: 0, justifyContent: "center" }]} accessibilityRole="button">
+                      <Text style={styles.more}>Show {hist.awards.length - 6} more</Text>
+                    </Pressable>
+                  )}
                 </View>
               </>
             )}
@@ -139,6 +148,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   content: { paddingHorizontal: 20, paddingBottom: 48 },
   name: { ...type.hero, fontSize: 30, lineHeight: 36, color: colors.text },
   ticker: { fontFamily: fonts.bold, fontSize: 15, color: colors.soft, marginTop: 4 },
+  more: { ...type.bodyStrong, color: colors.gold, textAlign: "center", width: "100%" },
   help: { ...type.small, color: colors.muted, marginTop: 6 },
   box: { backgroundColor: colors.panel, borderRadius: 16, padding: 16, gap: 10, marginTop: 16 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
