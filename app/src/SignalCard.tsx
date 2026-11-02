@@ -42,7 +42,7 @@ function SignalCardBase({ signal, starred, isNew, onPress, linked }: {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const contract = signal.kind === "contract";
-  const name = signal.kind === "congress" ? signal.who : signal.company;
+  const name = signal.kind === "congress" ? signal.who : shortName(signal);
   const context = contract ? `${agencyLabel(signal)} contract` : signal.kind === "congress"
     ? `${signal.type}${signal.owner !== "Self" ? ` by ${signal.owner.toLowerCase()}` : ""}`
     : `${signal.role_label ?? "Company insider"} bought with their own money`;
