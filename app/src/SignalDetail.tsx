@@ -2,7 +2,7 @@ import { Linking, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } 
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import {
-  agencyLabel, amountLabel, isSell, KEEP_IN_MIND, money, plainSummary, related, SCORE_GUIDE,
+  agencyLabel, amountLabel, isSell, keepInMind, money, plainSummary, related, SCORE_GUIDE,
   lastTimeDetail, lastTimeHeadline, lastTimeLines, peersFor, sectorLine, shareText, whyLine, shortDate, signalKey, sourceFor, tagFor, termsFor, tickerHelp, tierLabel, tooSoon, shortName, plainHeadline } from "./logic";
 import { useEffect, useState, useMemo } from "react";
 import { agencyDescription } from "./agencies";
@@ -277,7 +277,7 @@ export function SignalDetail({ signal, all, starred, onToggleStar, onOpen, onClo
 
                 <Text style={styles.section}>Keep in mind</Text>
                 <View style={styles.caution}>
-                  {KEEP_IN_MIND.map((k) => <Text key={k} style={styles.cautionText}>{k}</Text>)}
+                  {keepInMind(signal).map((k) => <Text key={k} style={styles.cautionText}>{k}</Text>)}
                 </View>
 
                 <Text style={styles.section}>Details</Text>

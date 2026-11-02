@@ -132,6 +132,9 @@ def score_congress(trades: list[dict]) -> list[dict]:
         if t.get("trade_date") and t.get("disclosed"):
             lag = (dt.date.fromisoformat(t["disclosed"])
                    - dt.date.fromisoformat(t["trade_date"])).days
+            if lag < 0:
+                # The filing index date can't precede the trade; don't report a negative delay.
+                lag = 0
             t["lag_days"] = lag
             if lag > STOCK_ACT_DAYS:
                 score += 10

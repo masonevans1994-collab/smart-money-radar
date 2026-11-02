@@ -463,6 +463,20 @@ export const KEEP_IN_MIND = [
   "Public records can contain errors. Check the official record before relying on this.",
 ];
 
+/** The cautions that fit this kind of record. */
+export function keepInMind(s: Signal): string[] {
+  const [publicNews, contracts, advice, records] = KEEP_IN_MIND;
+  if (s.kind === "contract") return [publicNews, contracts, advice, records];
+  if (s.kind === "congress") {
+    return [
+      "Members of Congress report trades up to 45 days later, so the price has usually moved on by the time anyone sees it.",
+      "A trade is a fact about one person's money, not information about the company.",
+      advice, records,
+    ];
+  }
+  return [publicNews, "Executives sell for many reasons; buys are the more telling signal, but they can still be wrong.", advice, records];
+}
+
 /** Largest contract signed in the past 7 days (a factual starting point). */
 export function biggestThisWeek(feed: Feed, now = new Date()): Signal | null {
   const cutoff = weekStart(now);

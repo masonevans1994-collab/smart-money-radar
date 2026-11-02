@@ -135,12 +135,16 @@ def parse_ptr_text(text: str) -> list[dict]:
         low, high = parse_amount(amount)
         if not m.group("lo").startswith("Over") and (high is None or high <= low):
             high = BRACKETS.get(low, high if high and high > low else None)
+        trade, notified = _parse_us_date(m.group("trade")), _parse_us_date(m.group("notified"))
+        if trade and notified and trade > notified:
+            # A broker can't notify you before you trade: the columns are swapped.
+            trade, notified = notified, trade
         out.append({
             "ticker": ticker,
             "asset_type": asset or "",
             "type": TYPE_LABEL[m.group("type")],
-            "trade_date": _parse_us_date(m.group("trade")),
-            "notified_date": _parse_us_date(m.group("notified")),
+            "trade_date": trade,
+            "notified_date": notified,
             "amount_low": low,
             "amount_high": high,
             "owner": {"SP": "Spouse", "DC": "Dependent child",
