@@ -30,6 +30,7 @@ const SECTIONS: [string, string[]][] = [
   ]],
   ["Congress and insiders", [
     "Members of Congress and company executives have to report when they buy or sell stock. Radar shows those trades and notes when a trade happened shortly before a related contract. That's a fact about timing only, not a claim that anyone did anything wrong.",
+    "Do insider buys predict anything? We checked 1,460 executive purchases from the past three years. There was a small bump in the first week, usually gone before most people would see it. Six months later the stock had trailed the market about two times out of three, even compared with other small companies. Several insiders buying at once did no better.",
   ]],
   ["Calls, streaks and milestones", [
     "On any award you can make a call: will the stock be higher, lower or about the same in 30 days? It's a guess for learning, with no money involved. The You tab keeps score, along with your check-in streak and milestones.",

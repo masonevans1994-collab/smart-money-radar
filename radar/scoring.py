@@ -55,7 +55,7 @@ def score_insider(events: list[dict]) -> list[dict]:
         score += pts
         e["role_label"] = label
         if pts >= 15:
-            why.append(f"Buyer is the {label}, who knows the business best")
+            why.append(f"Buyer is the {label}")
 
         before, shares = e.get("shares_before"), e["shares"]
         if before is not None and before <= 0:

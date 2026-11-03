@@ -315,7 +315,7 @@
       "score": 90,
       "reasons": [
         "Bought $2.2M of stock on the open market",
-        "Buyer is the Chief Executive Officer, who knows the business best",
+        "Buyer is the Chief Executive Officer",
         "More than doubled their stake (+126%)",
         "Cluster buy: 3 insiders bought DMRB recently"
       ],
@@ -346,7 +346,7 @@
       "score": 70,
       "reasons": [
         "Bought $398K of stock on the open market",
-        "Buyer is the Chief Financial Officer, who knows the business best",
+        "Buyer is the Chief Financial Officer",
         "Grew their stake by 37%",
         "Cluster buy: 3 insiders bought DMRB recently"
       ],
@@ -406,7 +406,7 @@
       "score": 70,
       "reasons": [
         "Bought $1.3M of stock on the open market",
-        "Buyer is the President, who knows the business best",
+        "Buyer is the President",
         "Company insiders AND members of Congress are both buying"
       ],
       "headline": "Morgan Hale (President) bought $1.3M of QRTZ"
@@ -466,7 +466,7 @@
       "score": 20,
       "reasons": [
         "Bought $64K of stock on the open market",
-        "Buyer is the VP Operations, who knows the business best",
+        "Buyer is the VP Operations",
         "Pre-scheduled (10b5-1) plan, so less of a signal"
       ],
       "headline": "Casey Grant (VP Operations) bought $64K of BRKW"

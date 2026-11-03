@@ -411,6 +411,11 @@ export const SIZE_HISTORY = [
   { min: 0, n: 1384, beat: 692, text: "For awards this small compared with the company, the stock beat the market a month later about half the time in the past three years. On its own, a deal like this rarely moves the stock." },
 ];
 
+/** From a study of 1,460 insider purchases of $25K+ (Oct 2023 to Nov 2026), measured
+ *  against both the S&P 500 and the Russell 2000 small-company index. */
+export const INSIDER_HISTORY =
+  "Executives often buy because they think the stock is cheap, but that isn't a reliable guide. In the past three years, after insider buys like this, the stock trailed the market six months later about two times out of three.";
+
 export function sizeHistoryLine(s: Signal): string | null {
   if (s.kind !== "contract" || s.award_pct == null) return null;
   return SIZE_HISTORY.find((b) => (s.award_pct as number) >= b.min)?.text ?? null;
@@ -438,7 +443,7 @@ export function plainSummary(s: Signal): string[] {
     }
   } else if (s.kind === "insider") {
     out.push(`${s.who}, ${s.role_label ? `the company's ${roleWords(s.role_label)}` : "a company insider"}, spent ${money(s.value)} of their own money on ${shortName(s)} stock.`);
-    out.push("Executives sell their stock for lots of reasons, but they usually buy it for one: they think it's worth more than the price.");
+    out.push(INSIDER_HISTORY);
   } else {
     const who = s.owner === "Self" ? s.who : `${s.who}'s ${s.owner.toLowerCase()}`;
     const verb = s.type.startsWith("Sale") ? "sold" : s.type === "Purchase" ? "bought" : "traded";
@@ -503,7 +508,7 @@ export function keepInMind(s: Signal): string[] {
       advice, records,
     ];
   }
-  return [publicNews, "Executives sell for many reasons; buys are the more telling signal, but they can still be wrong.", advice, records];
+  return [publicNews, "An executive buying shows what one person believes, not what will happen. Insiders are often early, or wrong.", advice, records];
 }
 
 /** Largest contract signed in the past 7 days (a factual starting point). */
