@@ -129,7 +129,7 @@ def parse_form4(xml_text: str, filing_url: str = "") -> dict | None:
         "issuer_name": _val(issuer, "issuerName"),
         "issuer_cik": _val(issuer, "issuerCik"),
         "ticker": (_val(issuer, "issuerTradingSymbol") or "").upper() or None,
-        "owner": "; ".join(person_name(n) for n in names) or "Unknown",
+        "owner": owner_label(names),
         "roles": roles,
         "period": _val(root, "periodOfReport"),
         "is_10b5_1": _flag(_val(root, "aff10b5One")),
@@ -184,6 +184,18 @@ def business_days_back(n: int, today: dt.date | None = None) -> list[dt.date]:
             out.append(day)
         day -= dt.timedelta(days=1)
     return out
+
+
+_ENTITY = re.compile(r"\b(LLC|L\.?P\.?|INC|CORP|TRUST|FUND|PARTNERS|CAPITAL|HOLDINGS|MANAGEMENT|LTD|GROUP|FOUNDATION|VENTURES?)\b", re.I)
+
+
+def owner_label(names: list[str]) -> str:
+    """One readable name: people before funds, then 'and N others'."""
+    if not names:
+        return "Unknown"
+    ordered = sorted(names, key=lambda n: bool(_ENTITY.search(n)))
+    first = person_name(ordered[0])
+    return first if len(names) == 1 else f"{first} and {len(names) - 1} other{'s' if len(names) > 2 else ''}"
 
 
 def person_name(raw: str) -> str:

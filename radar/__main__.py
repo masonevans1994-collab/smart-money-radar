@@ -62,6 +62,13 @@ def main(argv=None) -> int:
             return 2
         print("Scanning SEC Form 4 filings...")
         ins_raw = edgar.fetch_insider_buys(fetcher, args.days, args.max_filings)
+        # Only people who run the company: directors and officers. Big outside
+        # holders (often venture or hedge funds filing as 10% owners) are investors,
+        # not "executives buying with their own money".
+        outside = [e for e in ins_raw if not (e["roles"].get("director") or e["roles"].get("officer"))]
+        if outside:
+            print(f"  leaving out {len(outside)} buys by outside 10% holders (funds), not directors or officers")
+            ins_raw = [e for e in ins_raw if e["roles"].get("director") or e["roles"].get("officer")]
         small = [e for e in ins_raw if e["value"] < args.min_buy]
         if small:
             print(f"  skipping {len(small)} insider buys under ${args.min_buy:,.0f}")
