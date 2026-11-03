@@ -138,14 +138,19 @@ def main(argv=None) -> int:
         track = demo.track_record()
     elif not args.no_prices and (ins or con or con_all):
         print("Looking up price moves and the track record...")
-        everything = con_all + ins + con
+        # Contracts first (the point of the app), then Congress, then insiders, so a
+        # throttled price feed costs the least important prices.
+        everything = con_all + con + ins
         prev_feed = fetch_text(args.published + "signals.json") if args.published else None
         hist_entries = history.merge(
             history.load(fetch_text(args.published + "history.json") if args.published else None),
             everything, dt.date.today())
         # Three years of prices so past-award reactions can be measured.
         start = dt.date.today() - dt.timedelta(days=365 * 3 + 60)
-        book = prices.PriceBook(fetcher, start)
+        from .http import Fetcher as _F
+        _ua = os.environ.get("SEC_USER_AGENT", "")
+        price_fetcher = _F(_ua, retries=0) if "@" in _ua else fetcher
+        book = prices.PriceBook(price_fetcher, start, budget_s=float(os.environ.get("PRICE_BUDGET_S") or 900))
         prices.add_performance(everything, book)
         n = marketcap.add_market_caps(con_all, fetcher)
         print(f"  company sizes found for {n} of {len(con_all)} contract winners")

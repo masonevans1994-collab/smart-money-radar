@@ -41,7 +41,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
 
@@ -76,7 +76,7 @@ jobs:
           PRICE_API_KEY: ${{ secrets.PRICE_API_KEY }}
           SEND_DIGEST: ${{ (github.event.schedule == '30 12 * * 1') && '1' || '0' }}
         run: |
-          python -m radar --days 3 --max-filings 2500 \
+          python -u -m radar --days 3 --max-filings 2500 \
             --out public/dashboard.html --json public/signals.json \
             --history public/history.json
 

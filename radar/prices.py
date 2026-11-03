@@ -84,10 +84,19 @@ PROVIDERS = {
 class PriceBook:
     """Looks up and caches closing-price history per ticker for one run."""
 
+    # Benchmarks and sector funds are always looked up, even when the budget is spent.
+    ESSENTIAL = {"SPY", "IWM", "ITA", "XLV", "XLK", "XLI", "XLE", "ARKX", "XLF", "XLU", "XLB", "XLP", "XLY", "XLC", "XLRE"}
+
     def __init__(self, fetcher, start: dt.date, today: dt.date | None = None, log=print,
-                 provider: str | None = None, api_key: str | None = None):
+                 provider: str | None = None, api_key: str | None = None, budget_s: float | None = None):
         import os
+        import time
         self.fetcher = fetcher
+        # Free price feeds throttle; past this many seconds, new (non-essential) tickers
+        # are skipped and keep their last known numbers instead of stalling the build.
+        self.budget_s = budget_s if budget_s is not None else float(os.environ.get("PRICE_BUDGET_S") or 0) or None
+        self._t0 = time.monotonic()
+        self.skipped = 0
         self.start = start
         self.today = today or dt.date.today()
         self.provider = (provider or os.environ.get("PRICE_PROVIDER") or "").lower()
@@ -102,9 +111,22 @@ class PriceBook:
         self.hist: dict[str, list[tuple[str, float]]] = {}
         self.source_ok = {"stooq": 0, "yahoo": 0, "none": 0}
 
+    def over_budget(self) -> bool:
+        import time
+        return bool(self.budget_s) and time.monotonic() - self._t0 > self.budget_s
+
     def history(self, ticker: str) -> list[tuple[str, float]]:
         if ticker in self.hist:
             return self.hist[ticker]
+        if ticker not in self.ESSENTIAL and self.over_budget():
+            if not self.skipped:
+                self.log(f"  price time budget ({self.budget_s:.0f}s) used up; remaining tickers keep their last numbers")
+            self.skipped += 1
+            return []
+        n = len(self.hist) + 1
+        if n % 25 == 0:
+            import time
+            self.log(f"  prices: {n} tickers looked up ({time.monotonic() - self._t0:.0f}s)")
         d1, d2 = self.start.strftime("%Y%m%d"), self.today.strftime("%Y%m%d")
         rows: list[tuple[str, float]] = []
         if self.provider:

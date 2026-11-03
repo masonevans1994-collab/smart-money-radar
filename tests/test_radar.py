@@ -190,3 +190,21 @@ def test_ptr_real_house_layouts():
         ("XOM", "Self", 1001, 15000, "ST"),
         ("EL", "Self", 50001, 100000, "ST"),
     ]
+
+
+def test_price_budget_skips_non_essential_tickers():
+    import datetime as dt
+    from radar import prices
+
+    class F:
+        calls = 0
+        def get(self, url, cache=True):
+            F.calls += 1
+            return None
+
+    book = prices.PriceBook(F(), dt.date(2026, 1, 1), dt.date(2026, 2, 1), log=lambda *_: None, budget_s=0.0001)
+    import time; time.sleep(0.01)
+    assert book.history("ZZZZ") == [] and book.skipped == 1
+    before = F.calls
+    book.history("SPY")  # benchmarks are always looked up
+    assert F.calls > before
